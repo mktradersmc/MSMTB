@@ -1,0 +1,12 @@
+C:\Users\Michael\IdeaProjects\MSMTB\src\dotnet-bridge\MT5WebBridge\MT5WebBridge\bin\Release\net10.0-windows\MT5WebBridge.deps.json
+C:\Users\Michael\IdeaProjects\MSMTB\src\dotnet-bridge\MT5WebBridge\MT5WebBridge\bin\Release\net10.0-windows\MT5WebBridge.dll
+C:\Users\Michael\IdeaProjects\MSMTB\src\dotnet-bridge\MT5WebBridge\MT5WebBridge\bin\Release\net10.0-windows\MT5WebBridge.pdb
+C:\Users\Michael\IdeaProjects\MSMTB\src\dotnet-bridge\MT5WebBridge\MT5WebBridge\obj\Release\net10.0-windows\MT5WebBridge.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\Michael\IdeaProjects\MSMTB\src\dotnet-bridge\MT5WebBridge\MT5WebBridge\obj\Release\net10.0-windows\MT5WebBridge.AssemblyInfoInputs.cache
+C:\Users\Michael\IdeaProjects\MSMTB\src\dotnet-bridge\MT5WebBridge\MT5WebBridge\obj\Release\net10.0-windows\MT5WebBridge.AssemblyInfo.cs
+C:\Users\Michael\IdeaProjects\MSMTB\src\dotnet-bridge\MT5WebBridge\MT5WebBridge\obj\Release\net10.0-windows\MT5WebBridge.csproj.CoreCompileInputs.cache
+C:\Users\Michael\IdeaProjects\MSMTB\src\dotnet-bridge\MT5WebBridge\MT5WebBridge\obj\Release\net10.0-windows\MT5WebBridge.sourcelink.json
+C:\Users\Michael\IdeaProjects\MSMTB\src\dotnet-bridge\MT5WebBridge\MT5WebBridge\obj\Release\net10.0-windows\MT5WebBridge.dll
+C:\Users\Michael\IdeaProjects\MSMTB\src\dotnet-bridge\MT5WebBridge\MT5WebBridge\obj\Release\net10.0-windows\refint\MT5WebBridge.dll
+C:\Users\Michael\IdeaProjects\MSMTB\src\dotnet-bridge\MT5WebBridge\MT5WebBridge\obj\Release\net10.0-windows\MT5WebBridge.pdb
+C:\Users\Michael\IdeaProjects\MSMTB\src\dotnet-bridge\MT5WebBridge\MT5WebBridge\obj\Release\net10.0-windows\ref\MT5WebBridge.dll

@@ -1,0 +1,8 @@
+EXPORTS
+   DotNetRuntimeDebugHeader DATA
+   WS_Init
+   WS_Cleanup
+   WS_Send
+   WS_SendBin
+   WS_GetNext
+   WS_IsConnected

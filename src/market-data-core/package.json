@@ -1,0 +1,26 @@
+{
+  "name": "communication-hub",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "node --watch index.js",
+    "start": "node index.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "better-sqlite3": "^12.6.0",
+    "body-parser": "^2.2.2",
+    "chokidar": "^3.5.3",
+    "cors": "^2.8.5",
+    "express": "^5.2.1",
+    "luxon": "^3.7.2",
+    "socket.io": "^4.8.3",
+    "socket.io-client": "^4.8.3",
+    "uuid": "^9.0.1",
+    "ws": "^8.19.0"
+  }
+}

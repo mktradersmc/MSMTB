@@ -1,0 +1,103 @@
+{
+    "brokers": {
+        "DEFAULT_EXAMPLE": {
+            "loop_size": 3,
+            "matrix": {
+                "1": [],
+                "2": [],
+                "3": []
+            }
+        },
+        "670ae149-7248-4522-a63e-75b8cc32fff9": {
+            "loop_size": 3,
+            "matrix": {
+                "1": [
+                    "7d823fa1-9214-4412-8ca2-7cc236a9f5c1",
+                    "c95094c4-3492-4d3b-b911-d1c1d58bb20f"
+                ],
+                "2": [
+                    "c95094c4-3492-4d3b-b911-d1c1d58bb20f"
+                ],
+                "3": [
+                    "71b923f0-e7de-4670-8058-11bf8dfc98f4",
+                    "7d823fa1-9214-4412-8ca2-7cc236a9f5c1"
+                ]
+            }
+        },
+        "1d6b1a74-b993-4503-b886-6b9c37d01358": {
+            "loop_size": 1,
+            "matrix": {
+                "1": [
+                    "9aa1c8bc-6530-4477-802a-2223496be390"
+                ]
+            }
+        },
+        "b79a84a5-387f-4dd6-b426-162a595ec7bc": {
+            "loop_size": 1,
+            "matrix": {
+                "1": [
+                    "c1b0ce76-2cce-4e7e-948f-e82255472424"
+                ]
+            }
+        },
+        "504e20aa-403f-41ff-9d55-aeed39648955": {
+            "loop_size": 3,
+            "matrix": {
+                "1": [
+                    "659e3b16-ab9d-4efe-ab05-cb5fb6ac6ceb"
+                ],
+                "2": [
+                    "de9c1e09-202b-406f-bec5-e6364444309a"
+                ],
+                "3": [
+                    "bd4e7081-18bb-4dc8-a8ac-5c58ab4b5818"
+                ]
+            }
+        },
+        "a8e19325-12b9-4fa4-910b-54e4305b3628": {
+            "loop_size": 1,
+            "matrix": {
+                "1": [
+                    "ca797102-87a3-4bde-9ad9-9cf05bda14de"
+                ]
+            }
+        },
+        "eeef39f8-ec2d-4d80-a432-16cbe204e2b1": {
+            "loop_size": 2,
+            "matrix": {
+                "1": [
+                    "30c0127f-e7d6-4a8b-a2d7-99cccba24c02"
+                ],
+                "2": [
+                    "432b0f38-488c-4cd0-a1d7-6d9f96252aa8"
+                ]
+            }
+        },
+        "a21a379f-7904-4b85-97ad-95da9e0a1123": {
+            "loop_size": 1,
+            "matrix": {
+                "1": [
+                    "3bbeb754-c8aa-4621-a763-64bbe0c2b674"
+                ]
+            }
+        }
+    },
+    "test_brokers": {
+        "b79a84a5-387f-4dd6-b426-162a595ec7bc": {
+            "loop_size": 1,
+            "matrix": {
+                "1": [
+                    "f5b802a5-c050-40f8-b9dd-d92a953ce236"
+                ]
+            }
+        },
+        "c0afca98-3ee8-4ca6-bea5-bcda19f30dca": {
+            "loop_size": 1,
+            "matrix": {
+                "1": [
+                    "4d7b3e9d-7abf-4710-8696-b578524d564c"
+                ]
+            }
+        }
+    }
+}

@@ -1,0 +1,92 @@
+[
+  {
+    "id": "670ae149-7248-4522-a63e-75b8cc32fff9",
+    "name": "Sure Leverage Funding",
+    "shorthand": "SLF",
+    "servers": [
+      "SureLeverageFunding-MT5"
+    ],
+    "symbolMappings": {
+      "EURUSD": "EURUSD.x"
+    },
+    "defaultSymbol": "EURUSD.x"
+  },
+  {
+    "id": "1d6b1a74-b993-4503-b886-6b9c37d01358",
+    "name": "Blue Guardian",
+    "shorthand": "BlueGuardian",
+    "servers": [
+      "BlueGuardian-Server"
+    ],
+    "symbolMappings": {},
+    "defaultSymbol": "EURUSD"
+  },
+  {
+    "id": "b79a84a5-387f-4dd6-b426-162a595ec7bc",
+    "name": "Alpha Capital Group",
+    "shorthand": "AGC",
+    "servers": [
+      "ACGMarkets-Main"
+    ],
+    "symbolMappings": {},
+    "defaultSymbol": "EURUSD.pro"
+  },
+  {
+    "id": "504e20aa-403f-41ff-9d55-aeed39648955",
+    "name": "Funded Next",
+    "shorthand": "FundedNext",
+    "servers": [
+      "FundedNext-Server 2"
+    ],
+    "symbolMappings": {},
+    "defaultSymbol": "EURUSD"
+  },
+  {
+    "id": "a8e19325-12b9-4fa4-910b-54e4305b3628",
+    "name": "RoboForex",
+    "shorthand": "RoboForex",
+    "servers": [
+      "RoboForex-ECN"
+    ],
+    "symbolMappings": {},
+    "defaultSymbol": "EURUSD"
+  },
+  {
+    "id": "eeef39f8-ec2d-4d80-a432-16cbe204e2b1",
+    "name": "Pepperstone",
+    "shorthand": "Pepperstone",
+    "servers": [
+      "PepperstoneUK-Demo"
+    ],
+    "symbolMappings": {},
+    "defaultSymbol": "EURUSD"
+  },
+  {
+    "id": "a21a379f-7904-4b85-97ad-95da9e0a1123",
+    "name": "IC Markets",
+    "shorthand": "ICM",
+    "servers": [
+      "ICMarketsEU-Demo"
+    ],
+    "symbolMappings": {},
+    "defaultSymbol": "EURUSD"
+  },
+  {
+    "id": "c0afca98-3ee8-4ca6-bea5-bcda19f30dca",
+    "name": "FTMO",
+    "shorthand": "FTMO",
+    "servers": [
+      "FTMO-Demo"
+    ],
+    "symbolMappings": {},
+    "defaultSymbol": "EURUSD"
+  },
+  {
+    "id": "Fundednext_Futures_25k",
+    "name": "Fundednext Futures 25k",
+    "shorthand": "FUN",
+    "type": "NinjaTrader",
+    "api": "Bridge",
+    "environment": "demo"
+  }
+]

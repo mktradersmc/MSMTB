@@ -1,0 +1,37 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "C:\\Users\\Michael\\IdeaProjects\\MSMTB\\src\\dotnet-bridge\\MT5WebBridge\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{9E6E65CD-091E-ACE2-5182-63B811E92979}|MT5WebBridge\\MT5WebBridge.csproj|c:\\users\\michael\\ideaprojects\\msmtb\\src\\dotnet-bridge\\mt5webbridge\\mt5webbridge\\bridge.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{9E6E65CD-091E-ACE2-5182-63B811E92979}|MT5WebBridge\\MT5WebBridge.csproj|solutionrelative:mt5webbridge\\bridge.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 0,
+          "Children": [
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "Bridge.cs",
+              "DocumentMoniker": "C:\\Users\\Michael\\IdeaProjects\\MSMTB\\src\\dotnet-bridge\\MT5WebBridge\\MT5WebBridge\\Bridge.cs",
+              "RelativeDocumentMoniker": "MT5WebBridge\\Bridge.cs",
+              "ToolTip": "C:\\Users\\Michael\\IdeaProjects\\MSMTB\\src\\dotnet-bridge\\MT5WebBridge\\MT5WebBridge\\Bridge.cs",
+              "RelativeToolTip": "MT5WebBridge\\Bridge.cs",
+              "ViewState": "AgIAAC8AAAAAAAAAAAAhwDYAAAAFAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-02-07T15:43:34.16Z",
+              "EditorCaption": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

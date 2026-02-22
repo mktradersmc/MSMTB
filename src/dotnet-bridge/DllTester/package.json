@@ -1,0 +1,12 @@
+{
+    "name": "dll-tester",
+    "version": "1.0.0",
+    "description": "Test MT5WebBridge.dll via Node.js FFI",
+    "main": "test_bridge.js",
+    "scripts": {
+        "test": "node test_bridge.js"
+    },
+    "dependencies": {
+        "koffi": "^2.9.0"
+    }
+}

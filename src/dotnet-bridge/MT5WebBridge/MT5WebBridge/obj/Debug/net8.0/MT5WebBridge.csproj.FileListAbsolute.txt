@@ -1,0 +1,12 @@
+C:\Users\Michael\IdeaProjects\MSMTB\src\dotnet-bridge\MT5WebBridge\MT5WebBridge\obj\Debug\net8.0\MT5WebBridge.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\Michael\IdeaProjects\MSMTB\src\dotnet-bridge\MT5WebBridge\MT5WebBridge\obj\Debug\net8.0\MT5WebBridge.AssemblyInfoInputs.cache
+C:\Users\Michael\IdeaProjects\MSMTB\src\dotnet-bridge\MT5WebBridge\MT5WebBridge\obj\Debug\net8.0\MT5WebBridge.AssemblyInfo.cs
+C:\Users\Michael\IdeaProjects\MSMTB\src\dotnet-bridge\MT5WebBridge\MT5WebBridge\obj\Debug\net8.0\MT5WebBridge.csproj.CoreCompileInputs.cache
+C:\Users\Michael\IdeaProjects\MSMTB\src\dotnet-bridge\MT5WebBridge\MT5WebBridge\obj\Debug\net8.0\MT5WebBridge.sourcelink.json
+C:\Users\Michael\IdeaProjects\MSMTB\src\dotnet-bridge\MT5WebBridge\MT5WebBridge\bin\Debug\net8.0\MT5WebBridge.deps.json
+C:\Users\Michael\IdeaProjects\MSMTB\src\dotnet-bridge\MT5WebBridge\MT5WebBridge\bin\Debug\net8.0\MT5WebBridge.dll
+C:\Users\Michael\IdeaProjects\MSMTB\src\dotnet-bridge\MT5WebBridge\MT5WebBridge\bin\Debug\net8.0\MT5WebBridge.pdb
+C:\Users\Michael\IdeaProjects\MSMTB\src\dotnet-bridge\MT5WebBridge\MT5WebBridge\obj\Debug\net8.0\MT5WebBridge.dll
+C:\Users\Michael\IdeaProjects\MSMTB\src\dotnet-bridge\MT5WebBridge\MT5WebBridge\obj\Debug\net8.0\refint\MT5WebBridge.dll
+C:\Users\Michael\IdeaProjects\MSMTB\src\dotnet-bridge\MT5WebBridge\MT5WebBridge\obj\Debug\net8.0\MT5WebBridge.pdb
+C:\Users\Michael\IdeaProjects\MSMTB\src\dotnet-bridge\MT5WebBridge\MT5WebBridge\obj\Debug\net8.0\ref\MT5WebBridge.dll

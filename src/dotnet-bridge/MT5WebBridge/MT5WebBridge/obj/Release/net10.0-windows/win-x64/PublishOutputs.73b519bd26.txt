@@ -1,0 +1,1 @@
+C:\Users\Michael\IdeaProjects\MSMTB\src\dotnet-bridge\MT5WebBridge\MT5WebBridge\bin\Release\net10.0-windows\win-x64\publish\MT5WebBridge.dll

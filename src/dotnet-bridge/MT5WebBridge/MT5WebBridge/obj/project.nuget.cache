@@ -1,0 +1,17 @@
+{
+  "version": 2,
+  "dgSpecHash": "HWnwpftrjwg=",
+  "success": true,
+  "projectFilePath": "C:\\Users\\Michael\\IdeaProjects\\MSMTB\\src\\dotnet-bridge\\MT5WebBridge\\MT5WebBridge\\MT5WebBridge.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\Michael\\.nuget\\packages\\microsoft.dotnet.ilcompiler\\10.0.2\\microsoft.dotnet.ilcompiler.10.0.2.nupkg.sha512",
+    "C:\\Users\\Michael\\.nuget\\packages\\microsoft.net.illink.tasks\\10.0.2\\microsoft.net.illink.tasks.10.0.2.nupkg.sha512",
+    "C:\\Users\\Michael\\.nuget\\packages\\runtime.win-x64.microsoft.dotnet.ilcompiler\\10.0.2\\runtime.win-x64.microsoft.dotnet.ilcompiler.10.0.2.nupkg.sha512",
+    "C:\\Users\\Michael\\.nuget\\packages\\microsoft.netcore.app.runtime.win-x64\\10.0.2\\microsoft.netcore.app.runtime.win-x64.10.0.2.nupkg.sha512",
+    "C:\\Users\\Michael\\.nuget\\packages\\microsoft.windowsdesktop.app.runtime.win-x64\\10.0.2\\microsoft.windowsdesktop.app.runtime.win-x64.10.0.2.nupkg.sha512",
+    "C:\\Users\\Michael\\.nuget\\packages\\microsoft.aspnetcore.app.runtime.win-x64\\10.0.2\\microsoft.aspnetcore.app.runtime.win-x64.10.0.2.nupkg.sha512",
+    "C:\\Users\\Michael\\.nuget\\packages\\microsoft.netcore.app.runtime.nativeaot.win-x64\\10.0.2\\microsoft.netcore.app.runtime.nativeaot.win-x64.10.0.2.nupkg.sha512",
+    "C:\\Users\\Michael\\.nuget\\packages\\runtime.win-x64.microsoft.dotnet.ilcompiler\\10.0.2\\runtime.win-x64.microsoft.dotnet.ilcompiler.10.0.2.nupkg.sha512"
+  ],
+  "logs": []
+}

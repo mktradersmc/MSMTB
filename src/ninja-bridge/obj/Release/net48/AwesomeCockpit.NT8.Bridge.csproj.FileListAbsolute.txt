@@ -1,0 +1,10 @@
+C:\Users\Michael\IdeaProjects\MSMTB\src\ninja-bridge\bin\Release\net48\AwesomeCockpit.NT8.Bridge.dll
+C:\Users\Michael\IdeaProjects\MSMTB\src\ninja-bridge\bin\Release\net48\AwesomeCockpit.NT8.Bridge.pdb
+C:\Users\Michael\IdeaProjects\MSMTB\src\ninja-bridge\obj\Release\net48\AwesomeCockpit.NT8.Bridge.csproj.AssemblyReference.cache
+C:\Users\Michael\IdeaProjects\MSMTB\src\ninja-bridge\obj\Release\net48\AwesomeCockpit.NT8.Bridge.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\Michael\IdeaProjects\MSMTB\src\ninja-bridge\obj\Release\net48\AwesomeCockpit.NT8.Bridge.AssemblyInfoInputs.cache
+C:\Users\Michael\IdeaProjects\MSMTB\src\ninja-bridge\obj\Release\net48\AwesomeCockpit.NT8.Bridge.AssemblyInfo.cs
+C:\Users\Michael\IdeaProjects\MSMTB\src\ninja-bridge\obj\Release\net48\AwesomeCockpit.NT8.Bridge.csproj.CoreCompileInputs.cache
+C:\Users\Michael\IdeaProjects\MSMTB\src\ninja-bridge\obj\Release\net48\AwesomeCockpit.NT8.Bridge.sourcelink.json
+C:\Users\Michael\IdeaProjects\MSMTB\src\ninja-bridge\obj\Release\net48\AwesomeCockpit.NT8.Bridge.dll
+C:\Users\Michael\IdeaProjects\MSMTB\src\ninja-bridge\obj\Release\net48\AwesomeCockpit.NT8.Bridge.pdb

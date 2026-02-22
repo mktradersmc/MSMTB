@@ -1,0 +1,5 @@
+C:\Users\Michael\IdeaProjects\MSMTB\src\dotnet-bridge\MT5WebBridge\MT5WebBridge\obj\Release\net8.0\win-x64\MT5WebBridge.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\Michael\IdeaProjects\MSMTB\src\dotnet-bridge\MT5WebBridge\MT5WebBridge\obj\Release\net8.0\win-x64\MT5WebBridge.AssemblyInfoInputs.cache
+C:\Users\Michael\IdeaProjects\MSMTB\src\dotnet-bridge\MT5WebBridge\MT5WebBridge\obj\Release\net8.0\win-x64\MT5WebBridge.AssemblyInfo.cs
+C:\Users\Michael\IdeaProjects\MSMTB\src\dotnet-bridge\MT5WebBridge\MT5WebBridge\obj\Release\net8.0\win-x64\MT5WebBridge.csproj.CoreCompileInputs.cache
+C:\Users\Michael\IdeaProjects\MSMTB\src\dotnet-bridge\MT5WebBridge\MT5WebBridge\obj\Release\net8.0\win-x64\MT5WebBridge.sourcelink.json

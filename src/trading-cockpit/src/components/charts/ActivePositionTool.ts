@@ -13,6 +13,8 @@ export interface ActivePositionState {
     timeIndex?: number;
     allSlAtBe?: boolean;
     anySlAtBe?: boolean;
+    status?: string;
+    orderType?: string;
 
     // PnL calc
     volume?: number;     // e.g. 1.0
@@ -44,7 +46,7 @@ export class ActivePositionTool extends InteractiveChartObject {
     private _hideMenuTimeout?: NodeJS.Timeout;
     private _currentHoverId: string | null = null;
 
-    public onAction?: (action: 'SL_BE' | 'CLOSE_PARTIAL', payload?: any) => void;
+    public onAction?: (action: 'SL_BE' | 'CLOSE_PARTIAL' | 'CANCEL', payload?: any) => void;
 
     constructor(data: ActivePositionState) {
         super();
@@ -153,8 +155,8 @@ export class ActivePositionTool extends InteractiveChartObject {
             // Explicit DB flag overrules local Math calc
             let isSlAtBe = false;
             if (type === 'sl') {
-                if (this._data.allSlAtBe !== undefined) {
-                    isSlAtBe = this._data.allSlAtBe;
+                if (this._data.allSlAtBe || this._data.anySlAtBe) {
+                    isSlAtBe = true;
                 } else if (referenceEntryPrice && Math.abs(price - referenceEntryPrice) < 0.00001) {
                     isSlAtBe = true;
                 }
@@ -183,11 +185,16 @@ export class ActivePositionTool extends InteractiveChartObject {
             ctx.lineWidth = 2;
             ctx.stroke();
 
-            // 3. Right side 'Toggle' block
-            const contentWidth = isSlAtBe ? hWidth : hWidth - this._closeBtnWidth;
+            const isPending = this._data.status === 'CREATED' || this._data.status === 'PENDING';
+            const showRightActionBlock = (type === 'entry' && isPending) ||
+                (type === 'tp' && !isPending) ||
+                (type === 'sl' && !isSlAtBe && !isPending);
+
+            // Subtract drag button from available content area
+            const contentWidth = showRightActionBlock ? hWidth - this._closeBtnWidth : hWidth;
             const xAreaX = hX + contentWidth;
 
-            if (type !== 'entry' && !isSlAtBe) {
+            if (showRightActionBlock) {
                 // Fill right toggle area
                 ctx.fillStyle = color;
 
@@ -199,7 +206,9 @@ export class ActivePositionTool extends InteractiveChartObject {
 
                 // Hover Highlight Overlay
                 const isHovered = (type === 'tp' && this._currentHoverId === 'tp_action') ||
-                    (type === 'sl' && this._currentHoverId === 'sl_action');
+                    (type === 'sl' && this._currentHoverId === 'sl_action') ||
+                    (type === 'entry' && this._currentHoverId === 'entry_action');
+
                 if (isHovered) {
                     ctx.fillStyle = 'rgba(255, 255, 255, 0.2)'; // 20% white overlay for highlight
                     ctx.fillRect(xAreaX, hY, this._closeBtnWidth, hHeight);
@@ -209,7 +218,7 @@ export class ActivePositionTool extends InteractiveChartObject {
 
                 // Divider
                 ctx.beginPath();
-                ctx.strokeStyle = color;
+                ctx.strokeStyle = type === 'entry' ? '#FFFFFF' : color;
                 ctx.lineWidth = 1;
                 ctx.moveTo(xAreaX, hY);
                 ctx.lineTo(xAreaX, hY + hHeight);
@@ -221,25 +230,35 @@ export class ActivePositionTool extends InteractiveChartObject {
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
 
-            const textX = type === 'entry' ? hX + (hWidth / 2) : hX + (contentWidth / 2);
+            const textX = hX + (contentWidth / 2);
             ctx.fillStyle = type === 'entry' ? '#FFFFFF' : color;
-            ctx.fillText(label, textX, hY + (hHeight / 2) + 1);
+
+            let labelText = label;
+            if (type === 'entry' && isPending) {
+                const ot = this._data.orderType ? this._data.orderType.toUpperCase() : '';
+                if (ot === 'LIMIT') {
+                    labelText = this._data.direction === 'LONG' ? 'BUY LIMIT' : 'SELL LIMIT';
+                } else if (ot === 'STOP') {
+                    labelText = this._data.direction === 'LONG' ? 'BUY STOP' : 'SELL STOP';
+                } else {
+                    labelText = 'PENDING';
+                }
+            }
+
+            ctx.fillText(labelText, textX, hY + (hHeight / 2) + 1);
 
             // 5. Right Area Text / Icon
-            if (type === 'tp') {
+            if (showRightActionBlock) {
                 const closeX = hX + contentWidth + (this._closeBtnWidth / 2);
                 const closeY = hY + (hHeight / 2);
                 ctx.fillStyle = '#FFFFFF';
-                // User: "das x auf takeprofit soll etwas fetter sein und mittiger"
-                ctx.font = 'bold 13px sans-serif';
-                ctx.fillText('×', closeX, closeY + 1);
-            } else if (type === 'sl' && !isSlAtBe) {
-                const closeX = hX + contentWidth + (this._closeBtnWidth / 2);
-                const closeY = hY + (hHeight / 2);
-                ctx.fillStyle = '#FFFFFF';
-                // User: "der Stoploss griff hat statt dem x ein BE"
-                ctx.font = 'bold 10px sans-serif';
-                ctx.fillText('BE', closeX, closeY + 1);
+                if (type === 'tp' || type === 'entry') {
+                    ctx.font = 'bold 13px sans-serif';
+                    ctx.fillText('×', closeX, closeY + 1);
+                } else if (type === 'sl') {
+                    ctx.font = 'bold 10px sans-serif';
+                    ctx.fillText('BE', closeX, closeY + 1);
+                }
             }
         };
 
@@ -256,12 +275,26 @@ export class ActivePositionTool extends InteractiveChartObject {
         if (this._data.takeProfitPrice) drawHandle(this._data.takeProfitPrice, tpColor, "Take Profit", 'tp');
         if (this._data.stopLossPrice) drawHandle(this._data.stopLossPrice, slColor, "Stop Loss", 'sl');
 
-        // Entry Label: Profit
-        const profitVal = this._data.currentProfit || 0;
-        const cur = this._data.currency || 'USD';
-        const profitTxt = `${profitVal > 0 ? '+' : ''}${profitVal.toFixed(2)} ${cur}`;
+        // Entry Label: Profit or Pending Type
+        const isPending = this._data.status === 'CREATED' || this._data.status === 'PENDING';
 
-        drawHandle(this._data.entryPrice, entryColor, profitTxt, 'entry');
+        let entryLabelText = '';
+        if (isPending) {
+            const ot = this._data.orderType ? this._data.orderType.toUpperCase() : '';
+            if (ot === 'LIMIT') {
+                entryLabelText = this._data.direction === 'LONG' ? 'BUY LIMIT' : 'SELL LIMIT';
+            } else if (ot === 'STOP') {
+                entryLabelText = this._data.direction === 'LONG' ? 'BUY STOP' : 'SELL STOP';
+            } else {
+                entryLabelText = 'PENDING';
+            }
+        } else {
+            const profitVal = this._data.currentProfit || 0;
+            const cur = this._data.currency || 'USD';
+            entryLabelText = `${profitVal > 0 ? '+' : ''}${profitVal.toFixed(2)} ${cur}`;
+        }
+
+        drawHandle(this._data.entryPrice, entryColor, entryLabelText, 'entry');
 
         // 3. Draw Close Popup Menu if active
         if (this._showCloseMenu && this._data.takeProfitPrice) {
@@ -331,10 +364,12 @@ export class ActivePositionTool extends InteractiveChartObject {
         const hHeight = this._handleHeight;
         const rightEdge = width - this._marginRight;
 
+        const isPending = this._data.status === 'CREATED' || this._data.status === 'PENDING';
+
         // 1. Check Menu Close Actions
         let hit: PrimitiveHoveredItem | null = null;
 
-        if (this._showCloseMenu && yTP !== null) {
+        if (this._showCloseMenu && yTP !== null && !isPending) {
             const menuW = 40;
             const menuH = 80;
             const gap = 2;
@@ -362,6 +397,9 @@ export class ActivePositionTool extends InteractiveChartObject {
         const checkHandleToggle = (handleY: number | null, prefix: string, isSlAtBe: boolean = false): PrimitiveHoveredItem | null => {
             if (handleY === null || isSlAtBe) return null; // No toggle if already at BE
 
+            if (prefix === 'entry' && !isPending) return null;
+            if ((prefix === 'tp' || prefix === 'sl') && isPending) return null;
+
             let hX = rightEdge - hWidth;
             if (x >= hX && x <= hX + hWidth && y >= handleY - (hHeight / 2) && y <= handleY + (hHeight / 2)) {
                 const contentWidth = hWidth - this._closeBtnWidth;
@@ -377,6 +415,9 @@ export class ActivePositionTool extends InteractiveChartObject {
 
         const slToggleHit = checkHandleToggle(ySL, 'sl', !!isSlAtBeGlobal);
         if (!hit && slToggleHit) hit = slToggleHit;
+
+        const entryToggleHit = checkHandleToggle(yEntry, 'entry');
+        if (!hit && entryToggleHit) hit = entryToggleHit;
 
         // --- HOVER STATE MANAGEMENT ---
         const newHoverId = hit ? hit.externalId : null;
@@ -425,6 +466,13 @@ export class ActivePositionTool extends InteractiveChartObject {
 
         if (externalId === 'sl_action') {
             this.onAction?.('SL_BE');
+            return;
+        }
+
+        if (externalId === 'entry_action') {
+            if (window.confirm('Trade canceln?')) {
+                this.onAction?.('CANCEL');
+            }
             return;
         }
 

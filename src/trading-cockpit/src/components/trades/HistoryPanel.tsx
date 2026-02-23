@@ -11,6 +11,7 @@ export const HistoryPanel: React.FC<{
     const [trades, setTrades] = useState<AggregatedTrade[]>([]);
     const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
     const [isLoading, setIsLoading] = useState(false);
+    const [activeFilters, setActiveFilters] = useState<Set<string>>(new Set(['CLOSED']));
 
     const toggleExpand = (id: string) => {
         const newSet = new Set(expandedIds);
@@ -31,7 +32,7 @@ export const HistoryPanel: React.FC<{
                     symbol: h.symbol,
                     direction: h.direction === 1 ? 'BUY' : 'SELL', // DB stores int
                     active: false,
-                    status: 'CLOSED',
+                    status: h.status || 'CLOSED',
                     openTime: h.open_time,
                     closeTime: h.close_time,
                     entryPrice: h.entry_price,
@@ -97,12 +98,22 @@ export const HistoryPanel: React.FC<{
         document.addEventListener('mouseup', onMouseUp);
     };
 
+    // Filtered trades
+    const filteredTrades = useMemo(() => {
+        return trades.filter(t => {
+            if (activeFilters.has('CLOSED') && t.status === 'CLOSED') return true;
+            if (activeFilters.has('ERROR/REJECTED') && (t.status === 'ERROR' || t.status === 'REJECTED')) return true;
+            if (activeFilters.has('CANCELED') && t.status === 'CANCELED') return true;
+            return false;
+        });
+    }, [trades, activeFilters]);
+
     // Group trades by Date
     const groupedTrades = useMemo(() => {
         const groups: { date: string, trades: AggregatedTrade[] }[] = [];
         const dateMap = new Map<string, AggregatedTrade[]>();
 
-        trades.forEach(t => {
+        filteredTrades.forEach(t => {
             const date = t.openTime ? new Date(t.openTime).toLocaleDateString(undefined, {
                 weekday: 'long',
                 year: 'numeric',
@@ -117,7 +128,7 @@ export const HistoryPanel: React.FC<{
             dateMap.get(date)!.push(t);
         });
         return groups;
-    }, [trades]);
+    }, [filteredTrades]);
 
     return (
         <div
@@ -138,12 +149,34 @@ export const HistoryPanel: React.FC<{
                     <span className="text-xs font-bold text-slate-700 dark:text-slate-300">
                         Trade History ({isTestMode ? 'TEST' : 'LIVE'})
                     </span>
-                    <span className="text-[10px] text-slate-500">
-                        {trades.length} Closed
+
+                    {/* Quick Filters */}
+                    <div className="flex bg-slate-200 dark:bg-slate-900/50 rounded p-0.5 ml-2">
+                        {['CLOSED', 'ERROR/REJECTED', 'CANCELED'].map(f => (
+                            <button
+                                key={f}
+                                onClick={() => {
+                                    const newFilters = new Set(activeFilters);
+                                    if (newFilters.has(f)) newFilters.delete(f);
+                                    else newFilters.add(f);
+                                    setActiveFilters(newFilters);
+                                }}
+                                className={`px-2 py-0.5 text-[9px] font-bold rounded transition-colors ${activeFilters.has(f)
+                                        ? 'bg-slate-100 dark:bg-slate-700 text-slate-800 dark:text-slate-200 shadow-sm'
+                                        : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 hover:bg-slate-200/50 dark:hover:bg-slate-800'
+                                    }`}
+                            >
+                                {f}
+                            </button>
+                        ))}
+                    </div>
+
+                    <span className="text-[10px] text-slate-500 ml-2">
+                        {filteredTrades.length} Trades
                     </span>
                 </div>
                 <div className="flex items-center gap-2">
-                    {trades.length === 0 && <span className="text-[10px] text-slate-500 italic">No closed trades</span>}
+                    {filteredTrades.length === 0 && <span className="text-[10px] text-slate-500 italic">No trades</span>}
                     <button onClick={onClose} className="text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors">
                         <X size={14} />
                     </button>
@@ -207,8 +240,8 @@ export const HistoryPanel: React.FC<{
                                             <td className={`p-1 text-right font-bold ${Math.abs(trade.realizedPl || 0) < 0.005 ? 'text-slate-900 dark:text-white' : ((trade.realizedPl || 0) > 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400')}`}>
                                                 {(trade.realizedPl || 0).toFixed(2)}
                                             </td>
-                                            <td className="p-1 text-center">
-                                                <span className="text-[10px] text-slate-600">CLOSED</span>
+                                            <td className="p-1 text-center font-bold">
+                                                <span className={`text-[10px] ${trade.status === 'ERROR' || trade.status === 'REJECTED' ? 'text-red-500' : (trade.status === 'CANCELED' ? 'text-slate-500' : 'text-slate-600')}`}>{trade.status}</span>
                                             </td>
                                         </tr>
                                         {/* Child Rows */}
@@ -239,17 +272,17 @@ export const HistoryPanel: React.FC<{
                                 ))}
                             </React.Fragment>
                         ))}
-                        {trades.length === 0 && !isLoading && (
+                        {filteredTrades.length === 0 && !isLoading && (
                             <tr>
                                 <td colSpan={10} className="p-8 text-center text-slate-500 italic">
-                                    No closed trades found for {isTestMode ? 'TEST' : 'LIVE'} environment.
+                                    No trades match the current filters.
                                 </td>
                             </tr>
                         )}
                     </tbody>
                     <tfoot className="bg-slate-50 dark:bg-slate-900 text-[11px] font-mono font-bold text-slate-700 dark:text-slate-300 sticky bottom-0 z-10 shadow-[0_-1px_0_theme(colors.slate.300)] dark:shadow-[0_-1px_0_theme(colors.slate.700)]">
                         {(() => {
-                            const totals = trades.reduce((acc, t) => ({
+                            const totals = filteredTrades.reduce((acc, t) => ({
                                 comm: acc.comm + (t.commission || 0),
                                 swap: acc.swap + (t.swap || 0),
                                 realized: acc.realized + (t.realizedPl || 0)

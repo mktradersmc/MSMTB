@@ -345,7 +345,7 @@ export default function AssetMappingsPage({ onUpdate }: { onUpdate?: () => void 
             setBrokers(brokersData);
 
             // 2. Load Mappings
-            const mapRes = await fetch('/api/mappings');
+            const mapRes = await fetchDirect('/api/mappings');
             const mapData = await mapRes.json();
 
             setMappings(mapData || []);
@@ -424,7 +424,7 @@ export default function AssetMappingsPage({ onUpdate }: { onUpdate?: () => void 
         if (selectedBroker && !brokerSymbolsCache[selectedBroker.id]) {
             const fetchSymbols = async () => {
                 try {
-                    const symRes = await fetch(`/api/broker-symbols/${selectedBroker.id}`);
+                    const symRes = await fetchDirect(`/api/broker-symbols/${selectedBroker.id}`);
                     const symList = await symRes.json();
                     const cleanList = symList.map((s: string | { name: string }) => typeof s === 'string' ? s : s.name);
 
@@ -479,7 +479,7 @@ export default function AssetMappingsPage({ onUpdate }: { onUpdate?: () => void 
             // Optimization: Only send modified? API usually expects full item or we send all.
             // Keeping consistent with previous logic: Send all mappings.
             await Promise.all(mappings.map(async m => {
-                const res = await fetch('/api/mappings', {
+                const res = await fetchDirect('/api/mappings', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(m)

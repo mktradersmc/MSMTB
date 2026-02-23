@@ -10,7 +10,7 @@ import { LoadingOverlay } from './LoadingOverlay';
 import { SymbolBrowser } from '../live/SymbolBrowser';
 import { MagnetControl } from './MagnetControl';
 import { MagnetService } from './widgets/MagnetService';
-import { ChevronLeft, ChevronRight, Settings, Clock, ChevronsRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Settings, Clock, ChevronsRight, CheckCircle2 } from 'lucide-react';
 import { useContextMenu } from '../../hooks/useContextMenu';
 import { ContextMenu, ContextMenuItem } from './contextmenu/ContextMenu';
 import { SettingsModal } from './settings/SettingsModal';
@@ -231,7 +231,7 @@ export const ChartContainer = React.forwardRef<ChartContainerHandle, ChartContai
         const currentSymbol = symbol; // Use current symbol scope
         const activeForSymbol = aggregatedTrades.filter(t =>
             t.symbol === currentSymbol &&
-            t.status === 'RUNNING' // Only running trades
+            (t.status === 'RUNNING' || t.status === 'PENDING' || t.status === 'CREATED')
         );
 
         const activeIds = new Set<string>();
@@ -262,6 +262,8 @@ export const ChartContainer = React.forwardRef<ChartContainerHandle, ChartContai
                         overrides: {
                             id: trade.tradeId, // Force ID to match Trade ID
                             symbol: trade.symbol,
+                            status: trade.status,
+                            orderType: (trade as any).type,
                             direction: trade.direction === 'BUY' ? 'LONG' : 'SHORT',
                             entryPrice: entryPrice,
                             stopLossPrice: slPrice,
@@ -284,6 +286,8 @@ export const ChartContainer = React.forwardRef<ChartContainerHandle, ChartContai
                 if (primitive && typeof (primitive as any).updateProfit === 'function') {
                     // Update State for generic properties
                     existing.setProperties({
+                        status: trade.status,
+                        orderType: (trade as any).type,
                         stopLossPrice: slPrice,
                         takeProfitPrice: tpPrice,
                         allSlAtBe: trade.allSlAtBe,
@@ -472,6 +476,7 @@ export const ChartContainer = React.forwardRef<ChartContainerHandle, ChartContai
     const [executionPlan, setExecutionPlan] = useState<ExecutionBatch[] | null>(null);
     const [isExecutingTrade, setIsExecutingTrade] = useState(false);
     const [executionSummary, setExecutionSummary] = useState<any[] | null>(null);
+    const [actionFeedback, setActionFeedback] = useState<string | null>(null);
 
     // --- BROKER DATA FETCHING ---
     const { fetchBrokers, brokers } = useBrokerStore();
@@ -816,6 +821,15 @@ export const ChartContainer = React.forwardRef<ChartContainerHandle, ChartContai
         widget.subscribe('trade_action' as any, async (params: any) => {
             console.log("[ChartContainer] Active Trade Action:", params);
             if (params.tradeId && params.action) {
+                // Visual UX Feedback for Trade Actions (to prevent double-clicks)
+                let msg = `${params.action} submitted`;
+                if (params.action === 'CLOSE') msg = `100% Close submitted`;
+                else if (params.action === 'CLOSE_PARTIAL') msg = `${params.payload || 0}% Close submitted`;
+                else if (params.action === 'SL_BE') msg = `SL to Break-Even submitted`;
+
+                setActionFeedback(msg);
+                setTimeout(() => setActionFeedback(null), 3000);
+
                 await modifyTrade({
                     action: params.action,
                     tradeId: params.tradeId,
@@ -1333,7 +1347,10 @@ export const ChartContainer = React.forwardRef<ChartContainerHandle, ChartContai
 
                     // Allow strictly 0 (update last) or 1 (new tick)
                     // GUARD: Ensure we never try to update with PAST data (Time Reversion) which crashes LWC
-                    if (lenDiff >= 0 && lenDiff <= 2 && newLastTime >= prevLastTimeRef.current) {
+                    const isTickUpdate = lenDiff === 0 && newLastTime === prevLastTimeRef.current;
+                    const isNewBar = lenDiff > 0 && lenDiff <= 2 && newLastTime > prevLastTimeRef.current;
+
+                    if (isTickUpdate || isNewBar) {
                         try {
                             // Apply Updates
                             const lastCandle = processedData[processedData.length - 1];
@@ -1728,12 +1745,8 @@ export const ChartContainer = React.forwardRef<ChartContainerHandle, ChartContai
             riskReward: 2.0,
             fixedLeg: 'rr',
             fixedStates: {
-                tp: false,
-                sl: false,
-                entry: false,
                 rr: true
-            },
-            orderType: 'MARKET'
+            }
         };
 
         try {
@@ -2199,6 +2212,17 @@ export const ChartContainer = React.forwardRef<ChartContainerHandle, ChartContai
                     </div>
                 </div>
             )}
+
+            {/* --- Action Feedback Toast --- */}
+            {actionFeedback && (
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[100] pointer-events-none animate-in fade-in slide-in-from-bottom-4 zoom-in-95 duration-200">
+                    <div className="bg-slate-900/90 dark:bg-slate-950/90 backdrop-blur-md px-6 py-4 rounded-2xl shadow-2xl border border-slate-700/50 flex flex-col items-center gap-2">
+                        <CheckCircle2 className="text-emerald-500 w-10 h-10 mb-1" strokeWidth={2.5} />
+                        <span className="text-white font-bold text-lg tracking-wide">{actionFeedback}</span>
+                    </div>
+                </div>
+            )}
+
             {/* --- Trade Execution Loading Overlay --- */}
             {isExecutingTrade && (
                 <div className="absolute inset-0 z-[110] flex items-center justify-center bg-white/80 dark:bg-slate-950/80 backdrop-blur-sm animate-in fade-in duration-200">

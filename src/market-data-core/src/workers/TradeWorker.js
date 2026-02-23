@@ -332,6 +332,11 @@ class TradeWorker extends AbstractWorker {
             // Propagate explicit Error to UI if failed (via updating execution status)
             if (response.status === 'ERROR' || response.status === 'REJECTED') {
                 this.db.updateBrokerExecutionStatus(botId, masterId, response.status, response.message);
+            } else if (command.content && command.content.action === 'CANCEL' && response.status === 'OK') {
+                // Map successful cancellation to CANCELED status
+                response.status = 'CANCELED';
+                this.db.updateBrokerExecutionStatus(botId, masterId, 'CANCELED', 'Order Canceled');
+                this.db.checkAggregateTradeStatus(masterId); // Ensure master trade gets updated
             }
 
             // EXPLICIT SL_BE FLAG (User Request)

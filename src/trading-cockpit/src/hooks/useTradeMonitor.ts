@@ -50,7 +50,7 @@ export interface AggregatedTrade {
     totalProfit: number;
     totalCommission: number;
     totalSwap: number;
-    status: 'RUNNING' | 'PARTIAL' | 'CLOSED' | 'OFFLINE';
+    status: 'RUNNING' | 'PARTIAL' | 'CLOSED' | 'OFFLINE' | 'ERROR' | 'REJECTED' | 'PENDING' | 'CREATED' | string;
     positions: TradePosition[];
     // Computed for Group
     avgEntry: number;
@@ -74,6 +74,7 @@ export interface AggregatedTrade {
     errorMessage?: string; // NEW: For displaying ERROR/REJECTED details
     anySlAtBe?: boolean; // NEW: UI Handle Control
     allSlAtBe?: boolean; // NEW: UI Action Button Control
+    type?: string;
 }
 
 import { socketService } from '../services/socket';
@@ -408,7 +409,7 @@ export const useTradeMonitor = () => {
                 // FORCE CLOSED STATE LOGIC
                 // If DB says CLOSED, we must zero out Unrealized, even if we had ghost matches
                 // (Though strict matching should prevent ghost matches on closed trades)
-                const isClosed = mt.status === 'CLOSED' || mt.status === 'REJECTED' || mt.status === 'ERROR';
+                const isClosed = mt.status === 'CLOSED' || mt.status === 'REJECTED' || mt.status === 'ERROR' || mt.status === 'CANCELED';
                 if (isClosed) {
                     unrealizedPl = 0;
                 }
@@ -429,7 +430,8 @@ export const useTradeMonitor = () => {
                         timeStr = new Date(ms).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
                     }
                     const tf = a.timeframe || a.tf;
-                    return tf ? `[${tf}] ${timeStr}` : (timeStr || a.name || 'Anchor');
+                    const typeStr = a.type ? ` ${a.type}` : '';
+                    return tf ? `[${tf}] ${timeStr}${typeStr}` : (timeStr + typeStr || a.name || 'Anchor');
                 };
 
                 let entryLabel = formatAnchor(params.entry?.anchor);
@@ -450,11 +452,17 @@ export const useTradeMonitor = () => {
                     }
                 }
 
+                let mtDirectionStr = mt.direction === 1 ? 'BUY' : 'SELL';
+                if (params?.direction) {
+                    mtDirectionStr = (params.direction.toUpperCase() === 'LONG' || params.direction.toUpperCase() === 'BUY') ? 'BUY' : 'SELL';
+                }
+
                 combined.push({
                     tradeId: tId,
                     symbol: mt.symbol,
                     strategy: mt.strategy || 'Manual',
-                    direction: mt.direction === 1 ? 'BUY' : 'SELL',
+                    direction: mtDirectionStr as 'BUY' | 'SELL',
+                    type: params?.orderType || (mt as any).type || 'MARKET',
                     totalVol: totalVol,
                     volume: totalVol, // Map totalVol to volume
                     realizedPl: realizedPl,
@@ -462,7 +470,7 @@ export const useTradeMonitor = () => {
                     totalProfit: realizedPl + unrealizedPl,
                     totalCommission: totalComm,
                     totalSwap: totalSwap,
-                    status: isClosed ? mt.status : (matches.length > 0 ? 'RUNNING' : (mt.status || 'PENDING')),
+                    status: isClosed ? mt.status : (mt.status === 'CREATED' || mt.status === 'PENDING' ? mt.status : (matches.length > 0 ? 'RUNNING' : (mt.status || 'PENDING'))),
                     positions: matches,
                     avgEntry: avgEntry,
                     avgSl: calculatedAvgSl, // Use calculated dynamically moving SL 
@@ -530,6 +538,7 @@ export const useTradeMonitor = () => {
                         symbol: pos.symbol,
                         strategy: pos.comment?.split('|')[0] || 'Manual',
                         direction: pos.type === 0 ? 'BUY' : 'SELL', // Helper needed for type check
+                        type: 'MARKET', // Default for orphans
                         totalVol: 0,
                         volume: 0,
                         realizedPl: 0,
@@ -664,7 +673,46 @@ export const useTradeMonitor = () => {
         console.log(`[modifyTrade] Action: ${modification.action} TradeID: ${modification.tradeId}`);
         console.log(`[modifyTrade] 🚀 Sending POST to /api/trade/modify...`);
 
+        const socket = socketService.getSocket();
+
         try {
+            // If action is CANCEL, we wrap it in a Promise to wait for the websocket confirmation
+            if (modification.action === 'CANCEL') {
+                return new Promise<boolean>(async (resolve) => {
+                    const timeout = setTimeout(() => {
+                        socket.off('execution_result', onResult);
+                        resolve(false);
+                        console.warn(`[modifyTrade] CANCEL Timeout for TradeID: ${modification.tradeId}`);
+                    }, 5000); // 5 second timeout
+
+                    const onResult = (result: any) => {
+                        // Check if this execution result matches our cancel
+                        if (result.masterTradeId === modification.tradeId && result.status === 'CANCELED') {
+                            clearTimeout(timeout);
+                            socket.off('execution_result', onResult);
+                            console.log(`[modifyTrade] CANCEL Confirmed via websocket for TradeID: ${modification.tradeId}`);
+                            resolve(true);
+                        }
+                    };
+
+                    socket.on('execution_result', onResult);
+
+                    const res = await fetchDirect('/api/trade/modify', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ modification, accounts })
+                    });
+
+                    const body = await res.json();
+                    if (!body.success) {
+                        clearTimeout(timeout);
+                        socket.off('execution_result', onResult);
+                        resolve(false);
+                    }
+                });
+            }
+
+            // Normal flow for non-CANCEL actions
             const res = await fetchDirect('/api/trade/modify', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },

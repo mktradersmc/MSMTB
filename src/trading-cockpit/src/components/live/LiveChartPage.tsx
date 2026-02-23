@@ -8,6 +8,7 @@ interface LiveChartPageProps {
 }
 
 import { Activity } from 'lucide-react';
+import { fetchDirect } from "../../lib/client-api";
 
 export default function LiveChartPage({ onNavigate }: LiveChartPageProps) {
     const [accounts, setAccounts] = useState<any[]>([]);
@@ -19,15 +20,15 @@ export default function LiveChartPage({ onNavigate }: LiveChartPageProps) {
     useEffect(() => {
         const resolveDatafeedBot = async () => {
             try {
-                const [accRes, brokerRes] = await Promise.all([
-                    fetch('/api/accounts'),
-                    fetch('/api/brokers')
+                const [accountsRes, brokersRes] = await Promise.all([
+                    fetchDirect('/api/accounts'),
+                    fetchDirect('/api/brokers')
                 ]);
 
-                if (accRes.ok && brokerRes.ok) {
-                    const accData = await accRes.json();
+                if (accountsRes.ok && brokersRes.ok) {
+                    const accData = await accountsRes.json();
                     const accountsList = Array.isArray(accData) ? accData : (accData.accounts || []);
-                    const brokers = await brokerRes.json();
+                    const brokers = await brokersRes.json();
                     setAccounts(accountsList);
 
                     const feedAccount = accountsList.find((a: any) => a.accountType === 'DATAFEED' || a.isDatafeed);

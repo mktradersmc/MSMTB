@@ -25,6 +25,8 @@ export interface ChartOverlayProps {
     precision?: number;
     status: SyncStatus; // New Prop
     isDatafeedOnline?: boolean;
+    onPlaceOrder?: () => void;
+    livePrice?: number | null;
 }
 export const ChartOverlay = React.forwardRef<ChartOverlayHandle, ChartOverlayProps>(({
     symbol,
@@ -38,6 +40,8 @@ export const ChartOverlay = React.forwardRef<ChartOverlayHandle, ChartOverlayPro
     ohlc,
     precision = 5,
     status = 'OFFLINE',
+    onPlaceOrder,
+    livePrice,
 }, ref) => {
     // Polling Hook for Stable Status AND Execution Monitoring
     const { isOnline, executionState, executionMessage } = useDatafeedStatus(symbol);
@@ -341,9 +345,24 @@ export const ChartOverlay = React.forwardRef<ChartOverlayHandle, ChartOverlayPro
                     </div>
                 </div>
             </div>
-            {/* 4. STATUS BADGE (Top Right - Floating next to Price Scale) */}
-            <div className="absolute top-4 right-20 z-[30] pointer-events-none">
-                <ChartStatusIndicator status={effectiveStatus} message={statusMessage} className="shadow-sm backdrop-blur-sm shadow-slate-900/10" />
+
+            {/* 4. TOP RIGHT OVERLAYS (Status Badge & Place Order Shield) */}
+            <div className="absolute top-4 right-20 z-[30] flex items-start gap-4 pointer-events-none">
+                <ChartStatusIndicator status={effectiveStatus} message={statusMessage} className="shadow-sm backdrop-blur-sm shadow-slate-900/10 mt-1" />
+
+                <button
+                    onClick={(e) => { e.stopPropagation(); onPlaceOrder?.(); }}
+                    className="pointer-events-auto group/orderbtn relative flex items-center justify-center rounded-md border border-blue-600 bg-white/50 p-[2px] shadow-sm transition-all hover:shadow-md"
+                >
+                    <div className="flex flex-col items-center justify-center rounded-sm px-2 py-0.5 bg-transparent group-hover/orderbtn:bg-blue-600/50 text-slate-900 group-hover/orderbtn:text-white transition-colors w-full h-full min-w-[70px]">
+                        <span className="text-[9px] uppercase font-bold tracking-wider leading-tight">
+                            {livePrice ? livePrice.toFixed(precision) : '---'}
+                        </span>
+                        <span className="text-[9px] uppercase font-bold tracking-wider leading-tight opacity-80 group-hover/orderbtn:opacity-100">
+                            PLACE ORDER
+                        </span>
+                    </div>
+                </button>
             </div>
         </>
     );

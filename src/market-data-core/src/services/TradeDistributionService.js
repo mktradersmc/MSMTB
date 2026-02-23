@@ -399,11 +399,24 @@ class TradeDistributionService {
         const results = [];
         const targetedBots = new Set();
 
+        const db = require('./DatabaseService');
+        const dbExecutions = db.marketDb.prepare("SELECT bot_id, status FROM broker_executions WHERE master_trade_id = ?").all(modification.tradeId);
+
+        const terminalStates = new Set(['CLOSED', 'ERROR', 'REJECTED', 'OFFLINE']);
+
         console.log(`[TradeDist] modifyTrade called for ${accounts.length} accounts. Modification:`, modification);
 
         accounts.forEach(acc => {
             if (acc.botId && !targetedBots.has(acc.botId)) {
                 targetedBots.add(acc.botId);
+
+                // Check if the execution is already in a terminal state
+                const exec = dbExecutions.find(e => (e.bot_id || "").trim() === acc.botId.trim());
+                if (exec && terminalStates.has(exec.status)) {
+                    console.log(`[TradeDist] Skipping modification for Bot ${acc.botId}. Execution is already ${exec.status}.`);
+                    results.push({ botId: acc.botId, status: 'SKIPPED_TERMINAL' });
+                    return;
+                }
 
                 // Send Command
                 console.log(`[TradeDist] Targeting Bot: ${acc.botId} for Modification.`);
@@ -427,7 +440,7 @@ class TradeDistributionService {
         // DETERMINE COMMAND TYPE BASED ON ACTION
         let cmdType = 'CMD_MODIFY_POSITION';
 
-        if (content.action === 'CLOSE' || content.action === 'CLOSE_PARTIAL') {
+        if (content.action === 'CLOSE' || content.action === 'CLOSE_PARTIAL' || content.action === 'CANCEL') {
             cmdType = 'CMD_CLOSE_POSITION';
         }
 

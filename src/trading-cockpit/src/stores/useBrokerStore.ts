@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { Broker } from '../lib/mt-manager/types';
+import { fetchDirect } from '../lib/client-api';
 
 interface BrokerStore {
     brokers: Broker[];
@@ -17,7 +18,7 @@ export const useBrokerStore = create<BrokerStore>((set, get) => ({
     fetchBrokers: async () => {
         set({ isLoading: true, error: null });
         try {
-            const res = await fetch('/api/brokers');
+            const res = await fetchDirect('/api/brokers');
             if (!res.ok) throw new Error('Failed to fetch brokers');
             const data = await res.json();
             set({ brokers: data, isLoading: false });

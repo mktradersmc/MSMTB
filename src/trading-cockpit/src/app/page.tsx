@@ -17,6 +17,8 @@ import AssetMappingPage from "./settings/mappings/page";
 import Link from "next/link";
 import { MainSidebar, ViewType } from "../components/navigation/MainSidebar";
 import DataHistoryPage from "./data-history/page";
+import { EconomicCalendarView } from "../components/dashboard/EconomicCalendarView";
+import { fetchDirect } from "../lib/client-api";
 
 // SIMPLE UTILS
 const cn = (...classes: (string | undefined | null | boolean)[]) => classes.filter(Boolean).join(" ");
@@ -134,12 +136,13 @@ export default function Dashboard() {
 
   // --- SIDEBAR BADGE LOGIC ---
   const [hasPendingMappings, setHasPendingMappings] = useState(false);
+  const [hasCalendarAlert, setHasCalendarAlert] = useState(false);
 
   const checkMappings = async () => {
     try {
       const [brokersRes, mappingsRes] = await Promise.all([
-        fetch('/api/brokers'),
-        fetch('/api/mappings')
+        fetchDirect('/api/brokers'),
+        fetchDirect('/api/mappings')
       ]);
 
       if (brokersRes.ok && mappingsRes.ok) {
@@ -169,12 +172,28 @@ export default function Dashboard() {
     }
   };
 
+  const checkCalendarAlert = async () => {
+    try {
+      const res = await fetchDirect('/api/economic-calendar');
+      if (res.ok) {
+        const data = await res.json();
+        setHasCalendarAlert(data.missingNextMonth || false);
+      }
+    } catch (e) {
+      console.error("Failed to check calendar status", e);
+    }
+  };
+
   useEffect(() => {
     // Initial check
     checkMappings();
+    checkCalendarAlert();
 
     // Poll every 5 seconds to update badge when user fixes mappings
-    const interval = setInterval(checkMappings, 5000);
+    const interval = setInterval(() => {
+      checkMappings();
+      checkCalendarAlert();
+    }, 5000);
     return () => clearInterval(interval);
   }, []);
 
@@ -187,7 +206,7 @@ export default function Dashboard() {
         <MainSidebar
           activeView={activeView}
           onNavigate={setActiveView}
-          badges={{ mappings: hasPendingMappings }}
+          badges={{ mappings: hasPendingMappings, calendar: hasCalendarAlert }}
         />
 
         {/* --- MAIN CONTENT AREA --- */}
@@ -454,6 +473,11 @@ export default function Dashboard() {
             <div className="h-full w-full animate-in fade-in zoom-in-95 duration-300 overflow-hidden p-6">
               <DataHistoryPage />
             </div>
+          )}
+
+          {/* --- VIEW: ECONOMIC CALENDAR --- */}
+          {activeView === 'ECONOMIC_CALENDAR' && (
+            <EconomicCalendarView />
           )}
 
           {/* --- VIEW: LIVE CHART --- */}

@@ -1748,6 +1748,23 @@ class SystemOrchestrator {
         }
     }
 
+    handleTradesClosed(botId, payload) {
+        if (!payload) return;
+        const closedTrades = Array.isArray(payload) ? payload : (payload.positions || payload.closedTrades || []);
+        if (closedTrades.length === 0) return;
+
+        if (this.botStatus[botId] && this.botStatus[botId].openTrades) {
+            const closedIds = new Set(closedTrades.map(t => (t.id || t.magic || '').toString()));
+            this.botStatus[botId].openTrades = this.botStatus[botId].openTrades.filter(
+                p => !closedIds.has((p.id || p.magic || '').toString())
+            );
+        }
+
+        if (this.socketServer && this.socketServer.io) {
+            this.socketServer.io.emit('trades_update_signal', { botId, event: 'closed' });
+        }
+    }
+
     // --- TASK: EXECUTION REPORTING ---
     // --- TASK: EXECUTION REPORTING ---
     handleExecutionResult(botId, payload) {

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Plus, BarChart2, Layers, Cpu, Zap, Briefcase, Shield } from 'lucide-react';
+import { Plus, Layers, Zap, Briefcase, Shield } from 'lucide-react';
 import { useWorkspaceStore } from '../../stores/useWorkspaceStore';
 
 interface FinancialToolbarProps {
@@ -54,20 +54,6 @@ export const FinancialToolbar: React.FC<FinancialToolbarProps> = ({
                     </div>
                 </button>
 
-                <div className="w-px bg-slate-200 dark:bg-slate-800 my-2.5 mx-1" />
-
-                <button className="h-full flex items-center px-1 group outline-none focus:outline-none" title="Strategy Lab">
-                    <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 group-hover:bg-slate-100 dark:group-hover:bg-slate-800 group-hover:text-slate-900 dark:group-hover:text-slate-200 px-2 py-1.5 rounded-md transition-all">
-                        <Cpu size={14} />
-                        <span>Strategies</span>
-                    </div>
-                </button>
-                <button className="h-full flex items-center px-1 group outline-none focus:outline-none" title="Performance">
-                    <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 group-hover:bg-slate-100 dark:group-hover:bg-slate-800 group-hover:text-slate-900 dark:group-hover:text-slate-200 px-2 py-1.5 rounded-md transition-all">
-                        <BarChart2 size={14} />
-                        <span>Stats</span>
-                    </div>
-                </button>
             </div>
 
             {/* Right Status */}

@@ -13,7 +13,7 @@ export async function POST(req: Request) {
 
         console.log(`[System] Triggering Deployment via Script: ${DEPLOY_SCRIPT}`);
 
-        return new Promise((resolve) => {
+        return new Promise<NextResponse>((resolve) => {
             const ps = spawn('powershell.exe', [
                 '-NoProfile',
                 '-ExecutionPolicy', 'Bypass',

@@ -166,10 +166,15 @@ export const ChartPane: React.FC<ChartPaneProps> = ({ workspaceId, pane, botId =
         }
     }, [pane.id, registerChart, unregisterChart, workspaceId, updatePane]); // Important: Exclude pane.drawings to prevent re-hydration loops
 
+    const [livePrice, setLivePrice] = useState<number | null>(null);
+
     // Optimized Tick Handler
     const handleTick = useCallback((candle: any) => {
         if (chartRef.current) {
             chartRef.current.updateCandle(candle);
+        }
+        if (candle && candle.close !== undefined) {
+            setLivePrice(candle.close);
         }
     }, []);
 
@@ -237,6 +242,26 @@ export const ChartPane: React.FC<ChartPaneProps> = ({ workspaceId, pane, botId =
     }, []);
 
     const [ohlc, setOhlc] = useState<{ open: number, high: number, low: number, close: number } | null>(null);
+
+    const handlePlaceOrder = useCallback(() => {
+        if (!chartRef.current) return;
+        const widget = chartRef.current.getWidget();
+        if (!widget) return;
+
+        const data = (widget as any)._data;
+        if (!data || data.length === 0) {
+            alert("No data available to place order.");
+            return;
+        }
+
+        const latest = data[data.length - 1];
+        if (!latest) return;
+
+        widget.createShape(
+            { time: latest.time as number, price: latest.close as number },
+            { shape: 'TradeBuilder', overrides: {}, disableSelection: false }
+        );
+    }, []);
 
     // --- MANAGE OUTGOING EVENTS (Source) ---
     const handleCallbackTimeframeChange = (tf: string) => {
@@ -399,6 +424,8 @@ export const ChartPane: React.FC<ChartPaneProps> = ({ workspaceId, pane, botId =
                 precision={precision}
                 status={syncStatus as any}
                 isDatafeedOnline={isDatafeedOnline}
+                onPlaceOrder={handlePlaceOrder}
+                livePrice={livePrice || (data && data.length > 0 ? data[data.length - 1].close : null)}
             />
 
             {/* Chart Wrapper */}

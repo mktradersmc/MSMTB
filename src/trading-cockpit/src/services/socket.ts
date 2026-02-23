@@ -7,11 +7,16 @@ class SocketService {
     public socket: Socket;
 
     constructor() {
+        const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : '';
+
         this.socket = io(URL, {
             autoConnect: true,
             reconnection: true,
             transports: ['websocket'], // FORCE Websocket to avoid 400 Bad Request Polling
             withCredentials: true,
+            auth: {
+                token: token
+            }
         });
 
         this.socket.on('connect', () => {

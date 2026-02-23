@@ -10,6 +10,7 @@ const db = require('./DatabaseService');
 const assetMappingService = require('./AssetMappingService');
 const tradeDistributionService = require('./TradeDistributionService');
 const sessionEngine = require('./SessionEngine');
+const AuthService = require('./AuthService');
 
 const { WebSocketServer } = require('ws');
 const botConfigService = require('./BotConfigService'); // Import Service
@@ -60,12 +61,57 @@ class SocketServer {
 
         // Inject into SyncManager so it can emit events
         systemOrchestrator.socketServer = this; // Pass THIS instance so SyncManager can accept sendToBot calls. 
+
+        this.initializeDefaultUser();
+    }
+
+    initializeDefaultUser() {
+        try {
+            if (db.getUsersCount() === 0) {
+                console.log("[Auth] No users found, creating default admin user...");
+                db.createUser('admin', AuthService.hashPassword('admin'));
+            }
+        } catch (e) {
+            console.error("[Auth] Failed to initialize default user:", e);
+        }
     }
 
     setupExpress() {
         this.app.use(express.static('public'));
         this.app.use(express.json({ limit: '50mb' })); // Support large JSON payloads
         this.app.use(cors());
+
+        // --- AUTH API ---
+        this.app.post('/api/auth/login', (req, res) => {
+            const { username, password } = req.body;
+            if (!username || !password) return res.status(400).json({ success: false, error: 'Missing credentials' });
+
+            const user = db.getUserByUsername(username);
+            if (!user) return res.status(401).json({ success: false, error: 'Invalid credentials' });
+
+            if (!AuthService.verifyPassword(password, user.password_hash)) {
+                return res.status(401).json({ success: false, error: 'Invalid credentials' });
+            }
+
+            const token = AuthService.generateToken({ id: user.id, username: user.username });
+            res.json({ success: true, token, user: { id: user.id, username: user.username } });
+        });
+
+        // Apply JWT protection for API routes EXCEPT login and public endpoints
+        this.app.use('/api', (req, res, next) => {
+            // Exclude public endpoints if any are strictly public
+            if (req.path === '/auth/login' || req.path === '/status/heartbeat') {
+                return next();
+            }
+
+            // Allow internal loopback requests (from Next.js Server-Side API routes)
+            const clientIp = req.ip || req.connection?.remoteAddress;
+            if (clientIp === '127.0.0.1' || clientIp === '::1' || clientIp === '::ffff:127.0.0.1') {
+                return next();
+            }
+
+            AuthService.authenticateJWT(req, res, next);
+        });
 
         // Legacy / Heartbeat Endpoints
 
@@ -136,7 +182,7 @@ class SocketServer {
         });
 
         // Symbols Endpoint (For SymbolBrowser)
-        this.app.get('/symbols', (req, res) => {
+        this.app.get('/api/symbols', (req, res) => {
             // Return configured symbols enriched with metadata (digits, path, desc) from availableSymbols
             const configured = systemOrchestrator.configuredSymbols || [];
             const available = systemOrchestrator.availableSymbols || [];
@@ -209,12 +255,12 @@ class SocketServer {
             res.json({ symbols: enriched });
         });
 
-        this.app.get('/available-symbols', (req, res) => {
+        this.app.get('/api/available-symbols', (req, res) => {
             res.json({ symbols: systemOrchestrator.availableSymbols || [] });
         });
 
         // NEW: ICT Sessions Endpoint
-        this.app.get('/indicators/ict-sessions', async (req, res) => {
+        this.app.get('/api/indicators/ict-sessions', async (req, res) => {
             if (systemOrchestrator.getFeatures().ENABLE_INDICATOR_LOGGING) {
                 console.log(`[API] ict-sessions REQ received: ${JSON.stringify(req.query)}`);
             }
@@ -267,14 +313,13 @@ class SocketServer {
 
         // History Endpoint (For Charts)
         // ✅ PERFORMANCE FIX: Non-blocking with immediate response
-        this.app.get('/history', async (req, res) => {
+        this.app.get('/api/history', async (req, res) => {
             try {
                 let { symbol, timeframe, limit, to } = req.query;
                 limit = parseInt(limit) || 10000;
                 to = to ? parseInt(to) : null;
 
                 const toLog = to ? new Date(to).toISOString() : "LATEST";
-                console.log(`[SocketServer] History Req: ${symbol} ${timeframe} Limit=${limit} To=${toLog}`);
 
                 // ENSURE FRESHNESS (Only `to` is not set, meaning we want LATEST)
                 // ENSURE FRESHNESS: DISABLED (Legacy)
@@ -344,7 +389,7 @@ class SocketServer {
         });
 
         // Purge History Endpoint
-        this.app.delete('/history', (req, res) => {
+        this.app.delete('/api/history', (req, res) => {
             try {
                 const { symbol, pass } = req.body; // simple protection? nah dev env.
                 const changes = db.purgeHistory(symbol);
@@ -359,14 +404,14 @@ class SocketServer {
         });
 
         // Messages Endpoint (Legacy Poll)
-        this.app.get('/getMessages', (req, res) => {
+        this.app.get('/api/getMessages', (req, res) => {
             const lastTimestamp = parseInt(req.query.lastTimestamp) || 0;
             const messages = db.getMessages(lastTimestamp);
             res.json({ success: true, messages });
         });
 
         // Sync Status Endpoint
-        this.app.get('/sync-status', (req, res) => {
+        this.app.get('/api/sync-status', (req, res) => {
             const { symbol } = req.query;
             if (!symbol) return res.json({});
             const status = systemOrchestrator.getStatusSnapshot(symbol);
@@ -410,6 +455,26 @@ class SocketServer {
             } catch (e) {
                 console.error("[API] /api/brokers error:", e);
                 res.status(500).json([]);
+            }
+        });
+
+        // --- Economic Calendar ---
+        this.app.get('/api/economic-calendar', (req, res) => {
+            try {
+                const { from, to } = req.query;
+                const fromTs = from ? parseInt(from) : 0;
+                const toTs = to ? parseInt(to) : 9999999999;
+                const events = db.getCalendarEvents(fromTs, toTs);
+
+                const ecs = require('./EconomicCalendarService');
+                res.json({
+                    success: true,
+                    events,
+                    missingNextMonth: ecs.missingFutureMonth
+                });
+            } catch (e) {
+                console.error("[API] Error fetching calendar events:", e);
+                res.status(500).json({ error: "Failed to fetch calendar events" });
             }
         });
 
@@ -667,7 +732,7 @@ class SocketServer {
         });
 
         // --- ICT Sessions Indicator ---
-        this.app.get('/indicators/ict-sessions', async (req, res) => {
+        this.app.get('/api/indicators/ict-sessions', async (req, res) => {
             try {
                 const { symbol, from, to, settings } = req.query;
 
@@ -968,8 +1033,26 @@ class SocketServer {
     }
 
     setupSocket() {
+        // --- AUTH MIDDLEWARE FOR SOCKET.IO ---
+        this.io.use((socket, next) => {
+            const token = socket.handshake.auth?.token || socket.handshake.query?.token;
+
+            // Bypass auth for now if explicit dev flag is used, otherwise enforce
+            if (!token) {
+                return next(new Error('Authentication error: Token missing'));
+            }
+
+            const user = AuthService.verifyToken(token);
+            if (!user) {
+                return next(new Error('Authentication error: Invalid Token'));
+            }
+
+            socket.user = user;
+            next();
+        });
+
         this.io.on('connection', (socket) => {
-            console.log(`[Socket] Client connected: ${socket.id}`);
+            console.log(`[Socket] Client connected: ${socket.id} (User: ${socket.user?.username})`);
 
             // 1. Datafeed Configuration
             socket.on('config_update', (symbols) => {
@@ -1414,14 +1497,16 @@ class SocketServer {
                         console.error(`[SocketServer] 📥 RAW REGISTER DATA:`, JSON.stringify(data));
 
                         let payload = data.payload || data;
+                        let header = data.header || {};
                         // Parsing already handled above.
 
-                        const botId = payload.id || payload.botId;
+                        // V3 Protocol: Identity is in Header. Fallback to Payload for legacy.
+                        const botId = header.botId || payload.id || payload.botId;
 
                         if (botId) {
                             // FIX: Use Composite Key to prevent Session Collision (Same as WebSocketManager)
-                            const func = payload.function || 'UNKNOWN';
-                            const sym = payload.symbol || 'ALL';
+                            const func = header.func || payload.function || 'UNKNOWN';
+                            const sym = header.symbol || payload.symbol || 'ALL';
                             const compositeKey = `${botId}:${func}:${sym}`;
 
                             // MULTIPLEXING PATCH: Support multiple Bots per Socket

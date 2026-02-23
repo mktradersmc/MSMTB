@@ -1,12 +1,13 @@
-import { Message } from "../types";
+import { Message } from '../types';
+import { fetchDirect } from '../lib/client-api';
 
-const COMMUNICATION_HUB_URL = "http://127.0.0.1:3005";
+const COMMUNICATION_HUB_URL = 'http://127.0.0.1:3005/api';
 
 export const fetchMessages = async (sinceTimestamp: number = 0): Promise<Message[]> => {
     try {
-        const res = await fetch(`${COMMUNICATION_HUB_URL}/getMessages?lastTimestamp=${sinceTimestamp}`);
+        const res = await fetchDirect(`/getMessages?lastTimestamp=${sinceTimestamp}`);
         if (!res.ok) {
-            throw new Error(`Server error: ${res.status}`);
+            throw new Error(`Server error: ${res.status} `);
         }
         const data = await res.json();
         if (data.success && Array.isArray(data.messages)) {
@@ -27,9 +28,11 @@ export const fetchBotHistory = async (botId: string, limit: number = 100): Promi
 
 export const sendCommand = async (command: any): Promise<boolean> => {
     try {
-        const res = await fetch(`${COMMUNICATION_HUB_URL}/sendCommand`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
+        const res = await fetchDirect('/sendCommand', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
             body: JSON.stringify(command)
         });
         const data = await res.json();
@@ -44,8 +47,8 @@ export const sendCommand = async (command: any): Promise<boolean> => {
 
 export const fetchSymbols = async (botId?: string): Promise<string[]> => {
     try {
-        const url = botId ? `${COMMUNICATION_HUB_URL}/symbols?botId=${botId}` : `${COMMUNICATION_HUB_URL}/symbols`;
-        const res = await fetch(url);
+        const url = botId ? `/symbols?botId=${botId}` : `/symbols`;
+        const res = await fetchDirect(url);
         if (res.status === 503) {
             throw new Error("No Master Account Configured");
         }
@@ -56,7 +59,7 @@ export const fetchSymbols = async (botId?: string): Promise<string[]> => {
         if (!data.symbols || data.symbols.length === 0) {
             try {
                 // Try alternate endpoint if it exists
-                const res2 = await fetch(`${COMMUNICATION_HUB_URL}/available-symbols`);
+                const res2 = await fetchDirect('/available-symbols');
                 const data2 = await res2.json();
                 if (data2.symbols && data2.symbols.length > 0) return data2.symbols;
             } catch (e2) { }
@@ -71,7 +74,7 @@ export const fetchSymbols = async (botId?: string): Promise<string[]> => {
 
 export const startStream = async (clientId: string, symbol: string): Promise<boolean> => {
     try {
-        await fetch(`${COMMUNICATION_HUB_URL}/stream/start`, {
+        await fetchDirect('/stream/start', {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ clientId, symbol })
@@ -85,7 +88,7 @@ export const startStream = async (clientId: string, symbol: string): Promise<boo
 
 export const sendKeepAlive = async (clientId: string): Promise<boolean> => {
     try {
-        await fetch(`${COMMUNICATION_HUB_URL}/stream/keepalive`, {
+        await fetchDirect('/stream/keepalive', {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ clientId })
@@ -98,7 +101,7 @@ export const sendKeepAlive = async (clientId: string): Promise<boolean> => {
 
 export const fetchTicks = async (clientId: string): Promise<any[]> => {
     try {
-        const res = await fetch(`${COMMUNICATION_HUB_URL}/stream/ticks?clientId=${clientId}`);
+        const res = await fetchDirect(`/stream/ticks?clientId=${clientId}`);
         const data = await res.json();
         return data.ticks || [];
     } catch (error) {

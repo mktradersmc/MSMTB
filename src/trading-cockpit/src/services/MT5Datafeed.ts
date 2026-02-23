@@ -135,7 +135,7 @@ export class MT5Datafeed implements IDatafeed {
             // Start light (1k) to get Chart visible instantly. Pagination fills the rest.
             const reqLimit = firstDataRequest ? 1000 : 20000;
 
-            let url = `http://127.0.0.1:3005/history?symbol=${symbol}&timeframe=${tf}&limit=${reqLimit}`;
+            let url = `http://127.0.0.1:3005/api/history?symbol=${symbol}&timeframe=${tf}&limit=${reqLimit}`;
             if (!firstDataRequest && to) {
                 // Pagination: Load OLDER than 'to'
                 url += `&to=${Math.floor(to * 1000)}`;
@@ -144,7 +144,11 @@ export class MT5Datafeed implements IDatafeed {
             url += `&_=${Date.now()}`;
 
             console.log(`[MT5Datafeed] (c) LOADING HISTORY: ${url}`);
-            const res = await fetch(url);
+
+            const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
+            const headers: Record<string, string> = token ? { 'Authorization': `Bearer ${token}` } : {};
+
+            const res = await fetch(url, { headers });
 
             if (!res.ok) {
                 console.error("[MT5Datafeed] API Status Error:", res.status);

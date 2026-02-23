@@ -34,7 +34,9 @@ export const registerIndicators = () => {
                 to: to.toString(),
                 settings: JSON.stringify(engineSettings)
             });
-            const res = await fetch(`http://localhost:3005/indicators/ict-sessions?${params.toString()}`);
+            const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
+            const headers: Record<string, string> = token ? { 'Authorization': `Bearer ${token}` } : {};
+            const res = await fetch(`http://localhost:3005/api/indicators/ict-sessions?${params.toString()}`, { headers });
             const data = await res.json();
             return data.sessions || [];
         }

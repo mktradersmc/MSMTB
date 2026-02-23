@@ -40,6 +40,11 @@ export class TradeBuilderPosition extends InteractiveChartObject {
     private _handleHeight = 18; // Thinner
     private _marginRight = 5;
     private _closeBtnWidth = 24; // Width of the right toggle area
+    private _dragBtnWidth = 16;  // Width of the left drag area
+
+    // Execute Button Layout
+    private _executeBtnWidth = 65;
+    private _executeBtnGap = 16;
 
     constructor(initialData: TradeBuilderState) {
         super();
@@ -146,8 +151,6 @@ export class TradeBuilderPosition extends InteractiveChartObject {
 
     private _updateFixedLegLegacy() {
         if (this._data.fixedStates.rr) this._data.fixedLeg = 'rr';
-        else if (this._data.fixedStates.tp) this._data.fixedLeg = 'tp';
-        else if (this._data.fixedStates.sl) this._data.fixedLeg = 'sl';
     }
 
     public updateMarketPrice(price: number, time: number): void {
@@ -319,14 +322,44 @@ export class TradeBuilderPosition extends InteractiveChartObject {
             ctx.roundRect(hX, hY, hWidth, hHeight, 4);
             ctx.fill();
 
+            // Draw Left Drag Handle (Hatched Pattern)
+            ctx.save();
+            ctx.beginPath();
+            ctx.rect(hX, hY, this._dragBtnWidth, hHeight);
+            ctx.clip();
+
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 1;
+            const spacing = 4;
+            for (let i = -hHeight; i < this._dragBtnWidth + hHeight; i += spacing) {
+                ctx.beginPath();
+                ctx.moveTo(hX + i, hY);
+                ctx.lineTo(hX + i - hHeight, hY + hHeight);
+                ctx.stroke();
+            }
+
+            // Hover overlay for drag handle
+            ctx.restore();
+
+            // Divider for drag handle
+            ctx.beginPath();
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 1;
+            ctx.moveTo(hX + this._dragBtnWidth, hY);
+            ctx.lineTo(hX + this._dragBtnWidth, hY + hHeight);
+            ctx.stroke();
+
             // Frame (Border) - "der rahmen sollte die griffarbe mit 2px haben"
+            ctx.beginPath();
+            ctx.roundRect(hX, hY, hWidth, hHeight, 4);
             ctx.strokeStyle = color;
             ctx.lineWidth = 2;
             ctx.stroke();
 
             // The 'X' Area (Right side)
-            const contentWidth = hWidth - this._closeBtnWidth;
-            const xAreaX = hX + contentWidth;
+            const labelAreaStart = hX + this._dragBtnWidth;
+            const contentWidth = hWidth - this._closeBtnWidth - this._dragBtnWidth;
+            const xAreaX = hX + hWidth - this._closeBtnWidth;
 
             // Fill X Area
             ctx.fillStyle = isFixed ? color : 'rgba(226, 232, 240, 0.4)';
@@ -350,7 +383,7 @@ export class TradeBuilderPosition extends InteractiveChartObject {
             if (drawRR && this._data.fixedStates.rr) {
                 ctx.fillStyle = color;
                 ctx.beginPath();
-                ctx.roundRect(hX + 2, hY + 2, contentWidth - 3, hHeight - 4, 1);
+                ctx.roundRect(labelAreaStart + 2, hY + 2, contentWidth - 3, hHeight - 4, 1);
                 ctx.fill();
             }
 
@@ -360,7 +393,7 @@ export class TradeBuilderPosition extends InteractiveChartObject {
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
 
-            const textX = hX + (contentWidth / 2);
+            const textX = labelAreaStart + (contentWidth / 2);
             if (drawRR) {
                 const ratio = this._data.riskReward.toFixed(2);
                 ctx.fillText(`${ratio} R`, textX, hY + (hHeight / 2) + 1);
@@ -377,10 +410,8 @@ export class TradeBuilderPosition extends InteractiveChartObject {
         // 5. Draw Execute Label/Button
         // Button directly to the left of entry handle
         const btnHeight = this._handleHeight; // Match entry handle height
-        const btnWidth = 100;
-        const gap = 4;
         const hX = width - this._marginRight - this._handleWidth;
-        const btnX = hX - btnWidth - gap;
+        const btnX = hX - this._executeBtnWidth - this._executeBtnGap;
         const buttonY = yEntry - (btnHeight / 2);
 
         const validation = this._validateState();
@@ -392,12 +423,12 @@ export class TradeBuilderPosition extends InteractiveChartObject {
 
         ctx.fillStyle = shadowColor;
         ctx.beginPath();
-        ctx.roundRect(btnX, buttonY + 2, btnWidth, btnHeight, 4);
+        ctx.roundRect(btnX, buttonY + 2, this._executeBtnWidth, btnHeight, 4);
         ctx.fill();
 
         ctx.fillStyle = btnColor;
         ctx.beginPath();
-        ctx.roundRect(btnX, buttonY, btnWidth, btnHeight, 4);
+        ctx.roundRect(btnX, buttonY, this._executeBtnWidth, btnHeight, 4);
         ctx.fill();
 
         ctx.lineWidth = 1;
@@ -411,21 +442,21 @@ export class TradeBuilderPosition extends InteractiveChartObject {
 
         let label = '';
         if (this._data.orderType === 'MARKET') {
-            label = 'MARKET ORDER';
+            label = 'MARKET';
         } else {
-            label = 'LIMIT ORDER';
+            label = 'LIMIT';
             if (this._lastMarketPrice !== null) {
                 const entry = this._data.entryPrice;
                 const market = this._lastMarketPrice;
                 if (isLong) {
-                    label = entry < market ? 'LIMIT ORDER' : 'STOP ORDER';
+                    label = entry < market ? 'LIMIT' : 'STOP';
                 } else {
-                    label = entry > market ? 'LIMIT ORDER' : 'STOP ORDER';
+                    label = entry > market ? 'LIMIT' : 'STOP';
                 }
             }
         }
 
-        ctx.fillText(label, btnX + btnWidth / 2, buttonY + (btnHeight / 2) + 1);
+        ctx.fillText(label, btnX + this._executeBtnWidth / 2, buttonY + (btnHeight / 2) + 1);
         ctx.restore();
     }
 
@@ -447,22 +478,26 @@ export class TradeBuilderPosition extends InteractiveChartObject {
 
         // Check Execute Button first
         const btnHeight = hHeight;
-        const btnWidth = 100;
-        const gap = 4;
-        const btnX = hX - btnWidth - gap;
+        const btnX = hX - this._executeBtnWidth - this._executeBtnGap;
         const buttonY = yEntry - (btnHeight / 2);
 
-        if (x >= btnX && x <= btnX + btnWidth && y >= buttonY && y <= buttonY + btnHeight) {
+        if (x >= btnX && x <= btnX + this._executeBtnWidth && y >= buttonY && y <= buttonY + btnHeight) {
             return { externalId: 'execute_btn', zOrder: 'top' };
         }
 
         const checkHandle = (handleY: number, prefix: string): PrimitiveHoveredItem | null => {
             if (x >= hX && x <= hX + hWidth && y >= handleY - (hHeight / 2) && y <= handleY + (hHeight / 2)) {
-                const contentWidth = hWidth - this._closeBtnWidth;
-                if (x >= hX + contentWidth) {
+                if (x <= hX + this._dragBtnWidth) {
+                    // Safe left-hand drag zone
+                    return { externalId: prefix, zOrder: 'top' };
+                } else if (x >= hX + hWidth - this._closeBtnWidth) {
+                    // Right-hand toggle zone
                     return { externalId: prefix + '_fix_toggle', zOrder: 'top' };
                 } else {
-                    return { externalId: prefix, zOrder: 'top' };
+                    // Middle label zone
+                    return { externalId: prefix + '_label', zOrder: 'top' }; // We assign meaningless label id to prevent dragging from middle?
+                    // Actually, if we return 'prefix', it allows dragging from the middle anyway.
+                    // To strictly prevent dragging from the middle (prevent RR toggle clash), return something NOT in getHandles():
                 }
             }
             return null;
@@ -475,12 +510,16 @@ export class TradeBuilderPosition extends InteractiveChartObject {
         if (slHit) return slHit;
 
         if (x >= hX && x <= hX + hWidth && y >= yEntry - (hHeight / 2) && y <= yEntry + (hHeight / 2)) {
-            const contentWidth = hWidth - this._closeBtnWidth;
-            if (x >= hX + contentWidth) {
-                // Clicked the X corner
+            if (x <= hX + this._dragBtnWidth) {
+                // Safe left-hand drag zone
+                return { externalId: 'entry', zOrder: 'top' };
+            } else if (x >= hX + hWidth - this._closeBtnWidth) {
+                // Right-hand Entry fix
                 return { externalId: 'entry_fix_toggle', zOrder: 'top' };
             } else {
-                // Clicked the Label area
+                // Middle Entry label -> click toggles RR!
+                // To support RR click logic while NOT making it draggable by default, we just return 'entry_rr_toggle'.
+                // 'entry_rr_toggle' matches an entry in getHandles() so it might technically drag if mouse moved, but it prioritizes click events nicely.
                 return { externalId: 'entry_rr_toggle', zOrder: 'top' };
             }
         }

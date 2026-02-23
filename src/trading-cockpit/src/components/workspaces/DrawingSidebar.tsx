@@ -1,11 +1,11 @@
-import React from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useWorkspaceStore } from '../../stores/useWorkspaceStore';
 import { useChartRegistryStore } from '../../stores/useChartRegistryStore';
 import { MagnetControl } from '../charts/MagnetControl';
 import {
     MousePointer2,
-    Minus,
-    ArrowRight
+    ChevronRight,
+    Star
 } from 'lucide-react';
 
 /**
@@ -45,6 +45,253 @@ const TradeBuilderIcon = () => (
         <circle cx="20" cy="18" r="2" />
     </svg>
 );
+
+const HorizontalLineIcon = () => (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="pointer-events-none">
+        <path d="M3 12h7" strokeLinecap="round" />
+        <circle cx="12" cy="12" r="2" />
+        <path d="M14 12h7" strokeLinecap="round" />
+    </svg>
+);
+
+const HorizontalRayIcon = () => (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="pointer-events-none">
+        <circle cx="5" cy="12" r="2" />
+        <path d="M7 12h14" strokeLinecap="round" />
+    </svg>
+);
+
+const VerticalLineIcon = () => (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="pointer-events-none">
+        <path d="M12 3v7" strokeLinecap="round" />
+        <circle cx="12" cy="12" r="2" />
+        <path d="M12 14v7" strokeLinecap="round" />
+    </svg>
+);
+
+const LineToolsControl: React.FC<{ onSelectTool: (tool: string) => void }> = ({ onSelectTool }) => {
+    const [selectedTool, setSelectedTool] = useState<'HorizontalLine' | 'HorizontalRay' | 'VerticalLine'>('HorizontalLine');
+    const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const menuRef = useRef<HTMLDivElement>(null);
+
+    // Close menu on click outside
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+                setIsMenuOpen(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
+
+    const handleMainClick = () => {
+        onSelectTool(selectedTool);
+    };
+
+    const handleSelectOption = (tool: 'HorizontalLine' | 'HorizontalRay' | 'VerticalLine') => {
+        setSelectedTool(tool);
+        onSelectTool(tool);
+        setIsMenuOpen(false);
+    };
+
+    const isActiveOption = (tool: string) => tool === selectedTool;
+
+    const btnClass = "p-2 rounded hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-100 transition-colors text-slate-500 dark:text-slate-400";
+
+    const getIconForTool = (tool: string) => {
+        if (tool === 'HorizontalLine') return <HorizontalLineIcon />;
+        if (tool === 'HorizontalRay') return <HorizontalRayIcon />;
+        if (tool === 'VerticalLine') return <VerticalLineIcon />;
+        return <HorizontalLineIcon />;
+    };
+
+    return (
+        <div className="relative flex flex-col items-center group w-full" ref={menuRef}>
+            <div className="relative flex items-center justify-center w-full">
+                {/* Main Action Button */}
+                <button
+                    onClick={handleMainClick}
+                    className={btnClass}
+                    title="Linien-Werkzeuge"
+                >
+                    {getIconForTool(selectedTool)}
+                </button>
+
+                {/* Dedicated Hover Button for the Dropdown Arrow */}
+                <button
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        setIsMenuOpen(!isMenuOpen);
+                    }}
+                    className={`
+                        absolute left-full ml-0.5 w-4 h-full flex items-center justify-center rounded-r
+                        opacity-0 group-hover:opacity-100 transition-all
+                        text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-slate-100 cursor-pointer
+                    `}
+                    title="Zeichen-Werkzeuge"
+                >
+                    <ChevronRight size={14} strokeWidth={3} className="mr-0.5" />
+                </button>
+            </div>
+
+            {/* Popup Menu */}
+            {isMenuOpen && (
+                <div className="absolute left-full top-0 ml-[18px] w-[280px] bg-white dark:bg-[#1e222d] border border-slate-200 dark:border-slate-800 rounded shadow-xl z-50 overflow-hidden animate-in fade-in slide-in-from-left-1">
+                    <div className="py-1">
+                        {/* Horizontal Line */}
+                        <button
+                            onClick={() => handleSelectOption('HorizontalLine')}
+                            className={`w-full text-left px-3 py-2 text-sm flex items-center justify-between transition-colors ${isActiveOption('HorizontalLine') ? 'bg-blue-50 dark:bg-blue-600/10 text-blue-600 dark:text-blue-400' : 'text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'}`}
+                        >
+                            <div className="flex items-center gap-3">
+                                <span className="shrink-0"><HorizontalLineIcon /></span>
+                                <span>Horizontale Linie</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <span className="text-xs text-slate-400 dark:text-slate-500">Alt + H</span>
+                                <Star size={14} className={isActiveOption('HorizontalLine') ? "text-yellow-500 fill-yellow-500" : "text-slate-400 dark:text-slate-500"} />
+                            </div>
+                        </button>
+
+                        {/* Horizontal Ray */}
+                        <button
+                            onClick={() => handleSelectOption('HorizontalRay')}
+                            className={`w-full text-left px-3 py-2 text-sm flex items-center justify-between transition-colors ${isActiveOption('HorizontalRay') ? 'bg-blue-50 dark:bg-blue-600/10 text-blue-600 dark:text-blue-400' : 'text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'}`}
+                        >
+                            <div className="flex items-center gap-3">
+                                <span className="shrink-0"><HorizontalRayIcon /></span>
+                                <span>Horizontaler Strahl</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <span className="text-xs text-slate-400 dark:text-slate-500">Alt + J</span>
+                                <Star size={14} className={isActiveOption('HorizontalRay') ? "text-yellow-500 fill-yellow-500" : "text-slate-400 dark:text-slate-500"} />
+                            </div>
+                        </button>
+
+                        {/* Vertical Line */}
+                        <button
+                            onClick={() => handleSelectOption('VerticalLine')}
+                            className={`w-full text-left px-3 py-2 text-sm flex items-center justify-between transition-colors ${isActiveOption('VerticalLine') ? 'bg-blue-50 dark:bg-blue-600/10 text-blue-600 dark:text-blue-400' : 'text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'}`}
+                        >
+                            <div className="flex items-center gap-3">
+                                <span className="shrink-0"><VerticalLineIcon /></span>
+                                <span>Vertikale Linie</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <span className="text-xs text-slate-400 dark:text-slate-500">Alt + V</span>
+                                <Star size={14} className={isActiveOption('VerticalLine') ? "text-yellow-500 fill-yellow-500" : "text-slate-400 dark:text-slate-500"} />
+                            </div>
+                        </button>
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+};
+
+const PredictionToolsControl: React.FC<{ onSelectTool: (tool: string) => void }> = ({ onSelectTool }) => {
+    const [selectedTool, setSelectedTool] = useState<'Long' | 'Short'>('Long');
+    const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const menuRef = useRef<HTMLDivElement>(null);
+
+    // Close menu on click outside
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+                setIsMenuOpen(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
+
+    const handleMainClick = () => {
+        onSelectTool(selectedTool);
+    };
+
+    const handleSelectOption = (tool: 'Long' | 'Short') => {
+        setSelectedTool(tool);
+        onSelectTool(tool);
+        setIsMenuOpen(false);
+    };
+
+    const isActiveOption = (tool: string) => tool === selectedTool;
+
+    const btnClass = "p-2 rounded hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-100 transition-colors text-slate-500 dark:text-slate-400";
+
+    const getIconForTool = (tool: string) => {
+        if (tool === 'Long') return <LongPosIcon />;
+        if (tool === 'Short') return <ShortPosIcon />;
+        return <LongPosIcon />;
+    };
+
+    return (
+        <div className="relative flex flex-col items-center group w-full" ref={menuRef}>
+            <div className="relative flex items-center justify-center w-full">
+                {/* Main Action Button */}
+                <button
+                    onClick={handleMainClick}
+                    className={btnClass}
+                    title="Prognose-Werkzeuge"
+                >
+                    {getIconForTool(selectedTool)}
+                </button>
+
+                {/* Dedicated Hover Button for the Dropdown Arrow */}
+                <button
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        setIsMenuOpen(!isMenuOpen);
+                    }}
+                    className={`
+                        absolute left-full ml-0.5 w-4 h-full flex items-center justify-center rounded-r
+                        opacity-0 group-hover:opacity-100 transition-all
+                        text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-slate-100 cursor-pointer
+                    `}
+                    title="Prognose-Werkzeuge"
+                >
+                    <ChevronRight size={14} strokeWidth={3} className="mr-0.5" />
+                </button>
+            </div>
+
+            {/* Popup Menu */}
+            {isMenuOpen && (
+                <div className="absolute left-full top-0 ml-[18px] w-[280px] bg-white dark:bg-[#1e222d] border border-slate-200 dark:border-slate-800 rounded shadow-xl z-50 overflow-hidden animate-in fade-in slide-in-from-left-1">
+                    <div className="py-1">
+                        {/* Long Position */}
+                        <button
+                            onClick={() => handleSelectOption('Long')}
+                            className={`w-full text-left px-3 py-2 text-sm flex items-center justify-between transition-colors ${isActiveOption('Long') ? 'bg-blue-50 dark:bg-blue-600/10 text-blue-600 dark:text-blue-400' : 'text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'}`}
+                        >
+                            <div className="flex items-center gap-3">
+                                <span className="shrink-0"><LongPosIcon /></span>
+                                <span>Long Position</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <Star size={14} className={isActiveOption('Long') ? "text-yellow-500 fill-yellow-500" : "text-slate-400 dark:text-slate-500"} />
+                            </div>
+                        </button>
+
+                        {/* Short Position */}
+                        <button
+                            onClick={() => handleSelectOption('Short')}
+                            className={`w-full text-left px-3 py-2 text-sm flex items-center justify-between transition-colors ${isActiveOption('Short') ? 'bg-blue-50 dark:bg-blue-600/10 text-blue-600 dark:text-blue-400' : 'text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'}`}
+                        >
+                            <div className="flex items-center gap-3">
+                                <span className="shrink-0"><ShortPosIcon /></span>
+                                <span>Short Position</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <Star size={14} className={isActiveOption('Short') ? "text-yellow-500 fill-yellow-500" : "text-slate-400 dark:text-slate-500"} />
+                            </div>
+                        </button>
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+};
 
 export const DrawingSidebar: React.FC = () => {
     const { activeWorkspaceId, workspaces } = useWorkspaceStore();
@@ -137,62 +384,18 @@ export const DrawingSidebar: React.FC = () => {
 
             <div className="w-6 h-px bg-slate-200 dark:bg-slate-800" />
 
-            {/* 2. Line Tools */}
-            <div className="flex flex-col gap-2">
-                <button
-                    onClick={() => handleToolClick('HorizontalLine')}
-                    className={btnClass}
-                    title="Horizontal Line"
-                >
-                    <Minus size={20} strokeWidth={1.5} className="pointer-events-none" />
-                </button>
-                <button
-                    onClick={() => handleToolClick('VerticalLine')}
-                    className={btnClass}
-                    title="Vertical Line"
-                >
-                    <Minus size={20} strokeWidth={1.5} className="pointer-events-none rotate-90" />
-                </button>
-                <button
-                    onClick={() => handleToolClick('HorizontalRay')}
-                    className={btnClass}
-                    title="Horizontal Ray"
-                >
-                    <ArrowRight size={20} strokeWidth={1.5} className="pointer-events-none" />
-                </button>
-            </div>
+            {/* 2. Line Tools (Grouped) */}
+            <LineToolsControl onSelectTool={handleToolClick} />
 
             <div className="w-6 h-px bg-slate-200 dark:bg-slate-800" />
 
-            {/* 3. Prediction Tools */}
-            <div className="flex flex-col gap-2">
-                <button
-                    onClick={() => handleToolClick('Long')}
-                    className={btnClass}
-                    title="Long Position"
-                >
-                    <LongPosIcon />
-                </button>
-                <button
-                    onClick={() => handleToolClick('Short')}
-                    className={btnClass}
-                    title="Short Position"
-                >
-                    <ShortPosIcon />
-                </button>
-                <button
-                    onClick={() => handleToolClick('TradeBuilder')}
-                    className={btnClass}
-                    title="Trade Builder"
-                >
-                    <TradeBuilderIcon />
-                </button>
-            </div>
+            {/* 3. Prediction Tools (Grouped) */}
+            <PredictionToolsControl onSelectTool={handleToolClick} />
 
             <div className="w-6 h-px bg-slate-200 dark:bg-slate-800" />
 
             {/* 4. Magnet */}
-            <div className="scale-75 origin-center">
+            <div className="w-full">
                 <MagnetControl side="right" />
             </div>
         </div>

@@ -61,8 +61,7 @@ export class ChartWidget implements IChartWidgetApi {
                     timeIndex: point.time as number,
                     riskReward: 2.0,
                     fixedLeg: 'rr',
-                    fixedStates: { tp: false, sl: false, entry: false, rr: true },
-                    orderType: 'MARKET',
+                    fixedStates: { rr: true },
                     symbol: this._symbol
                 };
             }
@@ -211,6 +210,14 @@ export class ChartWidget implements IChartWidgetApi {
                 entryPrice: overrides.entryPrice || point.price,
                 stopLossPrice: overrides.stopLossPrice,
                 takeProfitPrice: overrides.takeProfitPrice,
+                status: overrides.status,
+                orderType: overrides.orderType,
+                allSlAtBe: overrides.allSlAtBe,
+                anySlAtBe: overrides.anySlAtBe,
+                currentProfit: overrides.currentProfit,
+                currency: overrides.currency,
+                volume: overrides.volume,
+                contractSize: overrides.contractSize,
                 // visuals
                 lineColor: overrides.lineColor || '#000000',
                 stopColor: overrides.stopColor || 'rgba(239, 68, 68, 1)',

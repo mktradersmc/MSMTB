@@ -136,6 +136,8 @@ class UnifiedBotProtocol {
                 case 'EV_TRADE_CLOSED': // NEW: Closed Trades Support
                     // Generic Routing
                     require('../../services/SystemOrchestrator').routeToWorker(msg);
+                    // Hot-Cache Cleanup for /api/positions endpoint (REST GUI)
+                    require('../../services/SystemOrchestrator').handleTradesClosed(msg.botId, msg.content || msg.payload || msg);
                     break;
                 case 'MSG_POSITIONS_UPDATE':
                 case 'EV_TRADE_UPDATE': // NEW: Standard Trade Update Event

@@ -80,7 +80,7 @@ export function AccountConfigModal({ botId, onClose, onSuccess }: AccountConfigM
     };
 
     const updateField = (section: string, field: string, value: any) => {
-        setConfig(prev => ({
+        setConfig((prev: any) => ({
             ...prev,
             [section]: {
                 ...prev[section],

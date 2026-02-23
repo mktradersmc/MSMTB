@@ -127,7 +127,7 @@ export const TradesPanel: React.FC<{
                                 {group.trades.map(trade => (
                                     <React.Fragment key={trade.tradeId}>
                                         {/* Parent Row */}
-                                        <tr className={`border-b ${trade.status === 'OFFLINE' ? 'border-slate-200 dark:border-slate-800/20 bg-slate-100/50 dark:bg-slate-900/50 opacity-60' : (trade.status === 'ERROR' || trade.status === 'REJECTED' ? 'bg-red-50 dark:bg-red-900/10 border-red-200 dark:border-red-900/30' : 'border-slate-200 dark:border-slate-800/50 hover:bg-slate-50 dark:hover:bg-slate-800/30')} transition-colors`}>
+                                        <tr className={`border-b ${(trade.status as string) === 'OFFLINE' ? 'border-slate-200 dark:border-slate-800/20 bg-slate-100/50 dark:bg-slate-900/50 opacity-60' : ((trade.status as string) === 'ERROR' || (trade.status as string) === 'REJECTED' ? 'bg-red-50 dark:bg-red-900/10 border-red-200 dark:border-red-900/30' : 'border-slate-200 dark:border-slate-800/50 hover:bg-slate-50 dark:hover:bg-slate-800/30')} transition-colors`}>
                                             <td className="p-1 text-center cursor-pointer" onClick={() => toggleExpand(trade.tradeId)}>
                                                 {expandedIds.has(trade.tradeId) ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
                                             </td>
@@ -148,8 +148,8 @@ export const TradesPanel: React.FC<{
                                             {/* MASTER ROW: TYPE (No Price) */}
                                             {/* MASTER ROW: TYPE (No Price) */}
                                             <td className="p-1 text-right font-bold text-slate-900 dark:text-white">
-                                                {/* Display Order Type (MARKET/LIMIT) instead of Price */}
-                                                {(trade as any).type || 'MARKET'}
+                                                {/* Display Anchor Info or Order Type (MARKET/LIMIT) instead of Price */}
+                                                {trade.entryLabel ? <span className="text-blue-600 dark:text-blue-400 text-[10px]">{trade.entryLabel}</span> : ((trade as any).type || 'MARKET')}
                                             </td>
                                             <td className="p-1 text-right text-slate-900 dark:text-white">
                                                 {trade.slLabel ? <span className="text-purple-600 dark:text-purple-400 text-[10px]">{trade.slLabel}</span> : (trade.avgSl > 0 ? trade.avgSl.toFixed(5) : '-')}

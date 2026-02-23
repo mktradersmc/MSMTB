@@ -14,10 +14,6 @@ export class LongShortPositionAdapter implements IChartShape {
         this.id = uuidv4();
         this.name = type;
         this._tool = tool;
-
-        this._tool.onExecute = (trade) => {
-            this.onExecute?.(trade);
-        };
     }
 
     public getPoints(): TimePoint[] {
@@ -50,7 +46,6 @@ export class LongShortPositionAdapter implements IChartShape {
             [`${prefix}.riskReward`]: state.riskReward,
             [`${prefix}.fixedLeg`]: state.fixedLeg,
             [`${prefix}.fixedStates`]: state.fixedStates,
-            [`${prefix}.orderType`]: state.orderType,
             [`${prefix}.lineColor`]: state.lineColor,
             [`${prefix}.stopColor`]: state.stopColor,
             [`${prefix}.profitColor`]: state.profitColor,
@@ -76,7 +71,6 @@ export class LongShortPositionAdapter implements IChartShape {
         if (typeof props[`${prefix}.riskReward`] === 'number') state.riskReward = props[`${prefix}.riskReward`];
         if (typeof props[`${prefix}.fixedLeg`] === 'string') state.fixedLeg = props[`${prefix}.fixedLeg`] as any;
         if (props[`${prefix}.fixedStates`]) state.fixedStates = props[`${prefix}.fixedStates`];
-        if (typeof props[`${prefix}.orderType`] === 'string') state.orderType = props[`${prefix}.orderType`] as any;
         if (typeof props[`${prefix}.lineColor`] === 'string') state.lineColor = props[`${prefix}.lineColor`];
         if (typeof props[`${prefix}.stopColor`] === 'string') state.stopColor = props[`${prefix}.stopColor`];
         if (typeof props[`${prefix}.profitColor`] === 'string') state.profitColor = props[`${prefix}.profitColor`];

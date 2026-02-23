@@ -17,12 +17,24 @@ export async function fetchDirect(endpoint: string, options?: RequestInit) {
 
     const url = `${BACKEND_URL}${cleanPath}`;
 
+    // Merge Authentication Header
+    const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
+    const authHeaders: Record<string, string> = token ? { 'Authorization': `Bearer ${token}` } : {};
+
+    const finalOptions: RequestInit = {
+        ...options,
+        headers: {
+            ...authHeaders,
+            ...(options?.headers as Record<string, string> || {})
+        }
+    };
+
     // Performance Trace
     const start = performance.now();
     console.log(`[PERF ${Date.now()}] [ClientAPI] 🟡 FETCH START: ${cleanPath}`);
 
     try {
-        const res = await fetch(url, options);
+        const res = await fetch(url, finalOptions);
         console.log(`[PERF ${Date.now()}] [ClientAPI] 🟢 FETCH END: ${cleanPath} (Status: ${res.status}, Duration: ${(performance.now() - start).toFixed(2)}ms)`);
         return res;
     } catch (e) {

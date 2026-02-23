@@ -44,6 +44,10 @@ export class ActivePositionAdapter implements IChartShape {
         if (props.takeProfitPrice !== undefined) d.takeProfitPrice = props.takeProfitPrice;
         if (props.direction !== undefined) d.direction = props.direction;
         if (props.currentProfit !== undefined) d.currentProfit = props.currentProfit;
+        if (props.status !== undefined) d.status = props.status;
+        if (props.orderType !== undefined) d.orderType = props.orderType;
+        if (props.allSlAtBe !== undefined) d.allSlAtBe = props.allSlAtBe;
+        if (props.anySlAtBe !== undefined) d.anySlAtBe = props.anySlAtBe;
     }
 
     public isSelectionEnabled(): boolean {

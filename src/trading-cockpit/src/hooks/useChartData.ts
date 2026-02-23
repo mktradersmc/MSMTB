@@ -67,13 +67,15 @@ export function useChartData({ symbol, timeframe, botId, isActivePane, onTick }:
             }
 
             const targetTotal = 10000; // Goal: 10k bars
-            const chunkSize = 500;     // Packet size: 500 (safe balance)
 
-            // 1. Initial Fetch (Latest)
-            console.log(`[useChartData] 🚀 Starting Progressive Fetch for ${symbol} ${timeframe}`);
-            let url = `http://127.0.0.1:3005/history?symbol=${symbol}&timeframe=${timeframe}&limit=${chunkSize}&_=${Date.now()}`;
+            // 1. Initial Fetch (Latest from local DB)
+            console.log(`[useChartData] 🚀 Fetching History for ${symbol} ${timeframe}`);
+            let url = `http://127.0.0.1:3005/api/history?symbol=${symbol}&timeframe=${timeframe}&limit=${targetTotal}&_=${Date.now()}`;
 
-            let res = await fetch(url);
+            const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
+            const headers: Record<string, string> = token ? { 'Authorization': `Bearer ${token}` } : {};
+
+            let res = await fetch(url, { headers });
             let response = await res.json();
 
             if (!response.success || !response.candles) {
@@ -121,14 +123,15 @@ export function useChartData({ symbol, timeframe, botId, isActivePane, onTick }:
                     console.log(`[useChartData] 🧬 Smart Merge: Integrating ${gatheredBars.length} bars...`);
 
                     setData(prevData => {
-                        // Create a map of existing bars for overlap check? No, just time-based merge.
-                        // Simple: Filter prevData to keep only bars OLDER than the new chunk's first bar.
-                        // Then append new chunk.
                         if (prevData.length === 0) return [...gatheredBars];
 
                         const firstNewTime = gatheredBars[0].time;
+                        const lastNewTime = gatheredBars[gatheredBars.length - 1].time;
+
                         const nonOverlappingOld = prevData.filter(d => d.time < firstNewTime);
-                        return [...nonOverlappingOld, ...gatheredBars];
+                        const nonOverlappingNew = prevData.filter(d => d.time > lastNewTime);
+
+                        return [...nonOverlappingOld, ...gatheredBars, ...nonOverlappingNew];
                     });
 
                     // Update Horizon
@@ -147,82 +150,9 @@ export function useChartData({ symbol, timeframe, botId, isActivePane, onTick }:
                     if (gatheredBars.length > 0) {
                         setHorizonData(generatePhantomBars(gatheredBars[gatheredBars.length - 1].time, gatheredBars[gatheredBars.length - 1].close, timeframe));
 
-                        // FIX: PROGRESSIVE LOADING
-                        // Show chart immediately after first chunk, while backfilling continues in background
                         setIsLoading(false);
                     }
                 }
-            }
-
-            // 2. Background Loop (Load older data)
-            while (gatheredBars.length < targetTotal) {
-                if (gatheredBars.length === 0) break;
-
-                const oldestTime = gatheredBars[0].time; // First element is oldest
-
-                // Fetch older than current oldest
-                // Fix: Convert 'oldestTime' (seconds) back to MS for the backend if needed.
-                // Since we detected MS in the response earlier, we know backend sends MS.
-                // But let's be robust: If the ORIGINAL response was MS, we should query in MS.
-                // Simplest: Assume backend stores MS (standard).
-                const toMs = Math.floor(oldestTime * 1000);
-                url = `http://127.0.0.1:3005/history?symbol=${symbol}&timeframe=${timeframe}&limit=${chunkSize}&to=${toMs}&_=${Date.now()}`;
-                // console.log(`[useChartData] 📡 Fetching chunk older than ${new Date(toMs).toISOString()} (to=${toMs})`);
-
-                res = await fetch(url);
-                response = await res.json();
-
-                if (!response.success || !response.candles || response.candles.length === 0) {
-                    console.log("[useChartData] ✅ End of history reached.");
-                    break;
-                }
-
-                const newChunk = response.candles.map((c: any) => {
-                    let t = Number(c.time);
-                    if (t > 100000000000) t = t / 1000;
-                    return {
-                        time: t,
-                        open: c.open, high: c.high, low: c.low, close: c.close, volume: c.volume || 0
-                    };
-                }).sort((a: any, b: any) => a.time - b.time);
-
-                // Dedup
-                const uniqueNew = newChunk.filter((nc: any) => nc.time < oldestTime);
-
-                if (uniqueNew.length === 0) {
-                    console.log("[useChartData] No unique older bars found. Stopping.");
-                    break;
-                }
-
-                gatheredBars = [...uniqueNew, ...gatheredBars];
-
-                // STALENESS CHECK: Ensure we are still on the same symbol/tf
-                if (symbolRef.current !== symbol || tfRef.current !== timeframe) {
-                    console.log(`[useChartData] ⚠️ Fetch aborted for ${symbol} ${timeframe} (switched to ${symbolRef.current} ${tfRef.current})`);
-                    return; // Stop this loop and function
-                }
-
-                // Update UI incrementally
-                // Update UI incrementally but PRESERVE Live Candle State
-                const liveCandle = lastCandleRef.current;
-                let finalData = [...gatheredBars];
-
-                if (liveCandle) {
-                    const lastFetched = finalData[finalData.length - 1];
-                    if (!lastFetched || lastFetched.time < liveCandle.time) {
-                        // Append Live Candle if missing from fetch
-                        finalData.push(liveCandle);
-                    } else if (lastFetched.time === liveCandle.time) {
-                        // CRITICAL FIX: Overwrite stale DB candle with LIVE candle
-                        // The Live Stream is always more up-to-date than the DB during active trading.
-                        finalData[finalData.length - 1] = liveCandle;
-                    }
-                }
-
-                setData(finalData);
-
-                // Small delay to prevent network congestion
-                await new Promise(r => setTimeout(r, 100));
             }
 
             setIsLoading(false);
@@ -296,7 +226,9 @@ export function useChartData({ symbol, timeframe, botId, isActivePane, onTick }:
         const checkSyncStatus = async () => {
 
             try {
-                const res = await fetch(`http://127.0.0.1:3005/sync-status?symbol=${symbol}`);
+                const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
+                const headers: Record<string, string> = token ? { 'Authorization': `Bearer ${token}` } : {};
+                const res = await fetch(`http://127.0.0.1:3005/api/sync-status?symbol=${symbol}`, { headers });
                 const json = await res.json();
                 if (json.success && json.status) {
                     // Check if specific TF is ready
@@ -362,6 +294,16 @@ export function useChartData({ symbol, timeframe, botId, isActivePane, onTick }:
                     } else {
                         if (candleTime > lastCandleRef.current.time) {
                             // New Bar
+                            // Push the newly closed bar into our React state to prevent data loss on merge
+                            const closedCandle = lastCandleRef.current;
+                            setData(prev => {
+                                // Prevent duplicates
+                                if (prev.length > 0 && prev[prev.length - 1].time >= closedCandle.time) {
+                                    return prev;
+                                }
+                                return [...prev, closedCandle];
+                            });
+
                             if (bar.open !== undefined) {
                                 candleToRender = {
                                     time: candleTime,

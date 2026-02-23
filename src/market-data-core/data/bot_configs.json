@@ -1,7 +1,7 @@
 {
     "FTMO_1512564534": {
         "risk": {
-            "percent": 0.1,
+            "percent": 0.5,
             "slippage": 3,
             "commissions": false,
             "lotSplitSize": 20
@@ -20,7 +20,7 @@
         "logging": {
             "positionUpdates": false
         },
-        "lastUpdated": 1771638212211
+        "lastUpdated": 1771835856994
     },
     "Pepperstone_62104204": {
         "risk": {

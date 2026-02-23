@@ -112,6 +112,14 @@ class DatabaseService {
             CREATE TABLE IF NOT EXISTS distribution_state (
                 broker_id TEXT PRIMARY KEY, sequence INTEGER, updated_at INTEGER
             );
+            CREATE TABLE IF NOT EXISTS users (
+                id TEXT PRIMARY KEY, username TEXT UNIQUE, password_hash TEXT, created_at INTEGER
+            );
+            CREATE TABLE IF NOT EXISTS economic_calendar (
+                id TEXT PRIMARY KEY, event_id INTEGER, name TEXT, country TEXT, currency TEXT,
+                impact TEXT, timestamp INTEGER, actual TEXT, forecast TEXT, previous TEXT,
+                time_label TEXT, date_string TEXT, updated_at INTEGER
+            );
         `);
 
         // Perform Data Migration from JSON if tables are empty
@@ -449,6 +457,40 @@ class DatabaseService {
         }
     }
 
+    // 3. USERS
+    getUserByUsername(username) {
+        try {
+            return this.marketDb.prepare("SELECT * FROM users WHERE username = ?").get(username);
+        } catch (e) {
+            console.error("[DB] getUserByUsername Error:", e);
+            return null;
+        }
+    }
+
+    createUser(username, passwordHash) {
+        const id = `user_${Date.now()}_${Math.random().toString(36).substring(7)}`;
+        try {
+            this.marketDb.prepare(`
+                INSERT INTO users (id, username, password_hash, created_at)
+                VALUES (?, ?, ?, ?)
+            `).run(id, username, passwordHash, Date.now());
+            return id;
+        } catch (e) {
+            console.error("[DB] createUser Error:", e);
+            return null;
+        }
+    }
+
+    getUsersCount() {
+        try {
+            const row = this.marketDb.prepare("SELECT count(*) as count FROM users").get();
+            return row ? row.count : 0;
+        } catch (e) {
+            console.error("[DB] getUsersCount Error:", e);
+            return 0;
+        }
+    }
+
     deleteAccount(id) {
         try {
             this.marketDb.prepare("DELETE FROM accounts WHERE id = ?").run(id);
@@ -496,8 +538,8 @@ class DatabaseService {
     getActiveTrades(env = 'test') { // Default to 'test' for safety
         try {
             // OPTIMIZATION: 2-Query Load Strategy (Instead of N+1)
-            // 1. Fetch all Master Trades for Environment (Exclude CLOSED)
-            const trades = this.marketDb.prepare("SELECT * FROM active_trades WHERE environment = ? AND status != 'CLOSED'").all(env);
+            // 1. Fetch all Master Trades for Environment (Exclude CLOSED and Terminals)
+            const trades = this.marketDb.prepare("SELECT * FROM active_trades WHERE environment = ? AND status NOT IN ('CLOSED', 'ERROR', 'REJECTED', 'OFFLINE', 'CANCELED')").all(env);
             if (trades.length === 0) return [];
 
             // 2. Fetch ALL Broker Executions for these trades (Batch)
@@ -736,6 +778,35 @@ class DatabaseService {
         }
     }
 
+    // --- ECONOMIC CALENDAR ---
+    saveCalendarEvents(events) {
+        try {
+            const insert = this.marketDb.prepare(`
+                INSERT OR REPLACE INTO economic_calendar 
+                (id, event_id, name, country, currency, impact, timestamp, actual, forecast, previous, time_label, date_string, updated_at)
+                VALUES (@id, @event_id, @name, @country, @currency, @impact, @timestamp, @actual, @forecast, @previous, @time_label, @date_string, @updated_at)
+            `);
+            const insertMany = this.marketDb.transaction((list) => {
+                for (const e of list) insert.run(e);
+            });
+            insertMany(events);
+            console.log(`[DB] 💾 Saved ${events.length} calendar events.`);
+            return true;
+        } catch (e) {
+            console.error("[DB] saveCalendarEvents Error:", e);
+            return false;
+        }
+    }
+
+    getCalendarEvents(fromTimestamp, toTimestamp) {
+        try {
+            return this.marketDb.prepare("SELECT * FROM economic_calendar WHERE timestamp >= ? AND timestamp <= ? ORDER BY timestamp ASC").all(fromTimestamp, toTimestamp);
+        } catch (e) {
+            console.error("[DB] getCalendarEvents Error:", e);
+            return [];
+        }
+    }
+
     // --- RESTORED MISSING METHODS (CRITICAL FOR SYNCMANAGER) ---
 
     getHistory(symbol, timeframe, limit, to = null) {
@@ -752,7 +823,7 @@ class DatabaseService {
                     id, symbol, direction, status, entry_price, sl, tp, strategy, environment,
                     created_at as open_time, updated_at as close_time, volume
                 FROM active_trades 
-                WHERE status = 'CLOSED' AND environment = ? 
+                WHERE status IN ('CLOSED', 'ERROR', 'REJECTED', 'OFFLINE', 'CANCELED') AND environment = ? 
                 ORDER BY created_at DESC 
                 LIMIT ?
             `;
@@ -937,7 +1008,7 @@ class DatabaseService {
                 paramsUpdate = ", params = @params";
             }
 
-            const stmt = this.marketDb.prepare(`UPDATE active_trades SET status = @status, updated_at = @updated ${paramsUpdate} WHERE id = @id`);
+            const stmt = this.marketDb.prepare(`UPDATE active_trades SET status = CASE WHEN status = 'CLOSED' THEN 'CLOSED' ELSE @status END, updated_at = @updated ${paramsUpdate} WHERE id = @id`);
             stmt.run(args);
             console.log(`[DB] Updated Trade ${tradeId} -> ${status} ${message ? '(With Error)' : ''}`);
             return true;
@@ -953,6 +1024,8 @@ class DatabaseService {
         if (!botId || !Array.isArray(positions)) return;
 
         try {
+            const now = Date.now();
+
             // 1. Get ALL "OPEN" or "SENT" Executions for this Bot in DB
             // We ignore "CLOSED", "ERROR", "REJECTED", "PENDING", "SENT" because they are settled or not yet acknowledged.
             const dbPositions = this.marketDb.prepare("SELECT * FROM broker_executions WHERE bot_id = ? AND status NOT IN ('CLOSED', 'Calculated', 'ERROR', 'REJECTED', 'PENDING', 'SENT')").all(botId);
@@ -964,35 +1037,9 @@ class DatabaseService {
                 // Note: If p.id is "manual_1234", we handle it below
             });
 
-            // 2. Iterate DB Positions -> If NOT in Incoming, it CLOSED
-            const now = Date.now();
-            dbPositions.forEach(dbStat => {
-                const magic = dbStat.magic_number;
-                // Match Logic: Check via Magic Number (Primary)
-                // If dbStat.magic_number is valid check against incoming IDs
-
-                let found = false;
-                if (magic && incomingIds.has(magic.toString())) found = true;
-
-                // If "manual" trade is in DB via Ticket ID? 
-                // Rare case: DB might track manual trade by some other ID.
-                // Assuming "broker_executions" relies on Magic mostly.
-
-                if (!found && magic > 0) {
-                    // MISSING from Snapshot -> CLOSED
-                    console.log(`[DB] 📉 Sync Detects CLOSED Trade: Master=${dbStat.master_trade_id} Magic=${magic} (Missing from ${botId} Report)`);
-
-                    // Force Close and ZERO P/L (Unrealized)
-                    this.marketDb.prepare(`
-                        UPDATE broker_executions 
-                        SET status = 'CLOSED', unrealized_pl = 0, close_time = ?, updated_at = ?
-                        WHERE id = ?
-                     `).run(now, now, dbStat.id);
-
-                    // Also Update Master Trade Status if needed
-                    this.checkAggregateTradeStatus(dbStat.master_trade_id);
-                }
-            });
+            // --- AGGRESSIVE DIFFING REMOVED ---
+            // TRADES ARE NOW ONLY CLOSED VIA EXPLICIT EV_TRADE_CLOSED.
+            // Partial Closes and missing sync periods will no longer prematurely close Active Trades.
 
             // 3. Update Existing (Active) Positions
             const upsert = this.marketDb.prepare(`
@@ -1166,7 +1213,7 @@ class DatabaseService {
             // 2. Update Execution
             const stmt = this.marketDb.prepare(`
                 UPDATE broker_executions
-                SET status = @status, error_message = @message, updated_at = @updated
+                SET status = CASE WHEN status = 'CLOSED' THEN 'CLOSED' ELSE @status END, error_message = @message, updated_at = @updated
                 WHERE bot_id = @botId AND (master_trade_id = @masterId OR magic_number = CAST(@masterId AS INTEGER))
             `);
 
@@ -1246,22 +1293,27 @@ class DatabaseService {
             if (rows.length === 0) return;
 
             // Definition of Terminal States
-            const terminalStates = new Set(['CLOSED', 'OFFLINE', 'ERROR', 'REJECTED']);
+            const terminalStates = new Set(['CLOSED', 'OFFLINE', 'ERROR', 'REJECTED', 'CANCELED']);
             const allTerminal = rows.every(r => terminalStates.has(r.status));
 
             // NEW: If any execution is RUNNING (or actively executing), keep the master trade RUNNING
             const anyRunning = rows.some(r => r.status === 'RUNNING');
+            const anyCreated = rows.some(r => r.status === 'CREATED' || r.status === 'PENDING');
 
             if (anyRunning) {
                 this.marketDb.prepare("UPDATE active_trades SET status = 'RUNNING', updated_at = ? WHERE id = ? AND status != 'RUNNING'").run(Date.now(), masterId);
+            } else if (anyCreated && !allTerminal) {
+                this.marketDb.prepare("UPDATE active_trades SET status = 'CREATED', updated_at = ? WHERE id = ? AND status != 'CREATED'").run(Date.now(), masterId);
             } else if (allTerminal) {
                 let finalStatus = 'CLOSED'; // Default (if at least one opened and closed)
 
                 const hasClosed = rows.some(r => r.status === 'CLOSED');
+                const hasCanceled = rows.some(r => r.status === 'CANCELED');
 
                 if (!hasClosed) {
-                    // No execution ever completed legitimately
-                    if (rows.every(r => r.status === 'ERROR' || r.status === 'REJECTED')) {
+                    if (hasCanceled) {
+                        finalStatus = 'CANCELED';
+                    } else if (rows.every(r => r.status === 'ERROR' || r.status === 'REJECTED')) {
                         finalStatus = 'ERROR';
                     } else if (rows.every(r => r.status === 'OFFLINE' || r.status === 'BLOCKED_DATAFEED')) {
                         finalStatus = 'OFFLINE';
@@ -1293,7 +1345,7 @@ class DatabaseService {
                     realized_pl = @realizedPl,
                     commission = @commission,
                     swap = @swap,
-                    status = @status,
+                    status = CASE WHEN status = 'CLOSED' THEN 'CLOSED' ELSE @status END,
                     updated_at = @updated,
                     
                     -- LATCHING LOGIC: Only write if empty

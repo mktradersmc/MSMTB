@@ -42,4 +42,8 @@ if (systemOrchestrator.setSocketServer) {
 // Global reference for debugging
 SystemOrchestrator = systemOrchestrator;
 
+// Start Economic Calendar Scraper
+const economicCalendar = require('./src/services/EconomicCalendarService');
+economicCalendar.start();
+
 console.log("MarketDataCore Services initialized.");

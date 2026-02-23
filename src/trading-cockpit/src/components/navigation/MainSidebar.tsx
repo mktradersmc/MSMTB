@@ -12,17 +12,20 @@ import {
     ChevronLeft,
     ChevronRight,
     PanelLeftClose,
-    PanelLeftOpen
+    PanelLeftOpen,
+    LogOut,
+    CalendarDays
 } from 'lucide-react';
 
 // Define ViewType locally or import if it's shared (currently local in page.tsx, so we'll redefine or just use string)
-export type ViewType = 'DASHBOARD' | 'LIVE_COCKPIT' | 'LIVE_CHART' | 'ACCOUNTS' | 'SETTINGS' | 'STRATEGY_LAB' | 'DATAFEED' | 'ASSET_MAPPINGS' | 'DISTRIBUTION' | 'DATA_HISTORY' | 'SYSTEM';
+export type ViewType = 'DASHBOARD' | 'LIVE_COCKPIT' | 'LIVE_CHART' | 'ACCOUNTS' | 'SETTINGS' | 'STRATEGY_LAB' | 'DATAFEED' | 'ASSET_MAPPINGS' | 'DISTRIBUTION' | 'DATA_HISTORY' | 'SYSTEM' | 'ECONOMIC_CALENDAR';
 
 interface MainSidebarProps {
     activeView: ViewType;
     onNavigate: (view: ViewType) => void;
     badges?: {
         mappings?: boolean;
+        calendar?: boolean;
     };
 }
 
@@ -140,12 +143,39 @@ export const MainSidebar: React.FC<MainSidebarProps> = ({ activeView, onNavigate
                     <SidebarItem id="ASSET_MAPPINGS" icon={Settings} label="Brokers" />
                     <SidebarItem id="DATAFEED" icon={Database} label="Datafeeds" />
 
+                    <SectionHeader label="Analysis" />
+                    <SidebarItem id="ECONOMIC_CALENDAR" icon={CalendarDays} label="Calendar" badge={badges?.calendar} />
 
                     <SectionHeader label="Trading" />
                     <SidebarItem id="LIVE_CHART" icon={LineChart} label="Live Chart" />
                     <SidebarItem id="DISTRIBUTION" icon={Share2} label="Distribution" />
                 </div>
 
+                {/* Footer Section */}
+                <div className="p-3 mt-auto shrink-0 border-t border-slate-300 dark:border-slate-800">
+                    <button
+                        onClick={() => {
+                            if (typeof window !== 'undefined') {
+                                localStorage.removeItem('auth_token');
+                                document.cookie = "auth_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+                                window.location.href = '/login';
+                            }
+                        }}
+                        className={cn(
+                            "flex items-center py-2.5 rounded-lg transition-all duration-200 w-full group/logout",
+                            isCollapsed ? "justify-center px-0 w-10 mx-auto" : "px-3 gap-3",
+                            "text-slate-500 dark:text-slate-400 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-600 dark:hover:text-red-400"
+                        )}
+                        title={isCollapsed ? "Logout" : undefined}
+                    >
+                        <LogOut size={20} className="shrink-0 transition-colors" />
+                        {!isCollapsed && (
+                            <span className="text-sm font-medium whitespace-nowrap">
+                                Disconnect
+                            </span>
+                        )}
+                    </button>
+                </div>
 
             </div>
 

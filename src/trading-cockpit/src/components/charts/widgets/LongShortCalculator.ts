@@ -1,4 +1,4 @@
-export type FixedLeg = 'tp' | 'sl' | 'rr';
+export type FixedLeg = 'rr';
 
 export interface LongShortParams {
     entryPrice: number;
@@ -6,16 +6,13 @@ export interface LongShortParams {
     takeProfitPrice: number;
     riskReward: number;
     fixedStates: {
-        tp: boolean;
-        sl: boolean;
-        entry: boolean;
         rr: boolean;
     };
 }
 
 export class LongShortCalculator {
     /**
-     * Calculates the missing value based on which leg is fixed.
+     * Calculates the missing value based on which leg is moved.
      */
     public static recalculate(
         params: LongShortParams,
@@ -23,56 +20,37 @@ export class LongShortCalculator {
         isLong: boolean
     ): LongShortParams {
         const result = { ...params };
-        const { tp: tpFixed, sl: slFixed, rr: rrFixed } = params.fixedStates;
+        const { rr: rrFixed } = params.fixedStates;
 
         if (changedId === 'entry') {
             if (rrFixed) {
-                // If SL is fixed, update TP. If TP is fixed, update SL. 
-                // If neither/both, prioritize updating TP from fixed SL distance.
-                if (slFixed && tpFixed) {
-                    // Special Case: All fixed. Move Entry implies re-calculating RR if we keep SL/TP fixed?
-                    // No, if Entry moves and SL/TP are fixed, RR changes.
-                    result.riskReward = this.calculateRR(result.entryPrice, result.stopLossPrice, result.takeProfitPrice, isLong);
-                }
-                else if (slFixed) result.takeProfitPrice = this.calculateTP(result.entryPrice, result.stopLossPrice, result.riskReward, isLong);
-                else if (tpFixed) result.stopLossPrice = this.calculateSL(result.entryPrice, result.takeProfitPrice, result.riskReward, isLong);
-                else result.takeProfitPrice = this.calculateTP(result.entryPrice, result.stopLossPrice, result.riskReward, isLong);
+                // If Entry moves and RR is fixed, move TP synchronously to maintain RR.
+                // Assuming SL dictates risk in this specific move logic or vice versa.
+                // Let's standardise: Entry moves -> SL stays fixed (distance changes), so TP must change.
+                result.takeProfitPrice = this.calculateTP(result.entryPrice, result.stopLossPrice, result.riskReward, isLong);
             } else {
-                // RR is not fixed. Just update the ratio.
                 result.riskReward = this.calculateRR(result.entryPrice, result.stopLossPrice, result.takeProfitPrice, isLong);
             }
         } else if (changedId === 'tp') {
-            // EXCEPTION: If SL and TP and RR are ALL fixed, and we are moving TP,
-            // we must NOT move SL (violation of fixed SL). We must update RR (violation of fixed RR).
-            // User rule: "fixed level must not change" -> implied priority over RR.
-            if (rrFixed && slFixed && tpFixed) {
-                result.riskReward = this.calculateRR(result.entryPrice, result.stopLossPrice, result.takeProfitPrice, isLong);
-            } else if (rrFixed) {
+            if (rrFixed) {
                 // RR is fixed, SL must move to maintain R
                 result.stopLossPrice = this.calculateSL(result.entryPrice, result.takeProfitPrice, result.riskReward, isLong);
             } else {
-                // SL or Entry is fixed (implied by dragging only TP), update RR
+                // RR dynamic
                 result.riskReward = this.calculateRR(result.entryPrice, result.stopLossPrice, result.takeProfitPrice, isLong);
             }
         } else if (changedId === 'sl') {
-            // EXCEPTION: Same as above.
-            if (rrFixed && slFixed && tpFixed) {
-                result.riskReward = this.calculateRR(result.entryPrice, result.stopLossPrice, result.takeProfitPrice, isLong);
-            } else if (rrFixed) {
+            if (rrFixed) {
                 // RR is fixed, TP must move to maintain R
                 result.takeProfitPrice = this.calculateTP(result.entryPrice, result.stopLossPrice, result.riskReward, isLong);
             } else {
-                // TP or Entry is fixed, update RR
+                // RR dynamic
                 result.riskReward = this.calculateRR(result.entryPrice, result.stopLossPrice, result.takeProfitPrice, isLong);
             }
         } else if (changedId === 'rr') {
-            // Manual RR change (from settings or else)
-            // If SL is fixed, move TP. If TP is fixed, move SL.
-            if (slFixed || !tpFixed) {
-                result.takeProfitPrice = this.calculateTP(result.entryPrice, result.stopLossPrice, result.riskReward, isLong);
-            } else {
-                result.stopLossPrice = this.calculateSL(result.entryPrice, result.takeProfitPrice, result.riskReward, isLong);
-            }
+            // Manual RR change (from settings or double click on RR box)
+            // Arbitrary choice: move TP to match new RR against current SL.
+            result.takeProfitPrice = this.calculateTP(result.entryPrice, result.stopLossPrice, result.riskReward, isLong);
         }
 
         return result;

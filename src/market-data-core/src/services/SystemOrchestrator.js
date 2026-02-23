@@ -1008,12 +1008,17 @@ class SystemOrchestrator {
         }
 
         // Timezone Handling
-        if (data.timezone) {
-            const tzService = require('./TimezoneNormalizationService');
-            tzService.registerBotTimezone(id, data.timezone);
-            this.botStatus[key].timezone = tzService.getBotZone(id);
+        const rawTimezone = data.timezone || (payload && payload.timezone);
+        const tzService = require('./TimezoneNormalizationService');
 
-            // PERSISTENCE: Save discovered timezone to DB
+        if (rawTimezone) {
+            tzService.registerBotTimezone(id, rawTimezone);
+        }
+
+        this.botStatus[key].timezone = tzService.getBotZone(id);
+
+        // PERSISTENCE: Save discovered timezone to DB
+        if (typeof this.db.saveAccountTimezone === 'function') {
             this.db.saveAccountTimezone(id, this.botStatus[key].timezone);
         }
 
@@ -1558,6 +1563,15 @@ class SystemOrchestrator {
         const realStatus = this.botStatus[botId];
         if (realStatus && realStatus.id) {
             const realBotId = realStatus.id;
+
+            // Persist balance if available
+            if (content.account && content.account.balance !== undefined) {
+                const sizeInitialized = this.db.saveAccountBalance(realBotId, content.account.balance);
+                if (sizeInitialized && this.socketServer && this.socketServer.io) {
+                    this.socketServer.io.emit('accounts_updated_event', { id: realBotId });
+                }
+            }
+
             Object.values(this.botStatus).forEach(status => {
                 // Find children of Real BotID
                 if (status.id && status.id !== realBotId && status.id.startsWith(realBotId + "_")) {

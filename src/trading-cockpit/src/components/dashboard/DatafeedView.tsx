@@ -130,7 +130,7 @@ export function DatafeedView() {
     useEffect(() => {
         const init = async () => {
             try {
-                const res = await fetch(`${API_URLS.DIRECT_BASE}/symbols`);
+                const res = await fetchDirect('/symbols');
                 const data = await res.json();
                 if (data.symbols && Array.isArray(data.symbols)) {
                     const newRows: RowItem[] = [];
@@ -175,7 +175,7 @@ export function DatafeedView() {
 
     const fetchStatus = async () => {
         try {
-            const res = await fetch(`${API_URLS.DIRECT_BASE}/status/heartbeat`);
+            const res = await fetchDirect('/status/heartbeat');
             const data = await res.json();
             if (data.success) {
                 setStatuses(data.services);
@@ -352,7 +352,7 @@ export function DatafeedView() {
 
                 <div className="flex items-center gap-3">
                     {/* RESTART (Replaces Redeploy) */}
-                    <RestartControl scope="DATAFEED" />
+                    <RestartControl scope="DATAFEED" accounts={accounts} onAction={handleAction} />
 
                     <button onClick={() => socketService.getSocket().emit('refresh_symbols')} className="p-2 text-slate-500 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 dark:text-slate-400 dark:hover:text-white dark:bg-slate-800 dark:hover:bg-slate-700 rounded-lg transition-colors" title="Refresh from Broker">
                         <RefreshCw size={18} className={loading ? "animate-spin" : ""} />
@@ -556,39 +556,69 @@ const getStatusBorder = (isRunning: boolean, isConnected: boolean) => {
     return 'border-emerald-500 bg-slate-50 dark:bg-slate-800/50 shadow-[0_0_10px_rgba(16,185,129,0.1)]'; // Online (Matches Hover)
 };
 
-const RestartControl = ({ scope }: { scope: 'TRADING' | 'DATAFEED' }) => {
+const RestartControl = ({ scope, accounts, onAction }: { scope: 'TRADING' | 'DATAFEED', accounts: TradingAccount[], onAction: (id: string, action: 'START' | 'STOP' | 'RESTART' | 'DELETE') => Promise<void> }) => {
     const [isOpen, setIsOpen] = useState(false);
-    const { socket } = socketService;
+    const [isRestarting, setIsRestarting] = useState(false);
 
-    const handleRestart = (type: 'ALL' | 'ACTIVE') => {
-        if (!confirm(`Restart ${type === 'ALL' ? 'ALL' : 'ACTIVE'} ${scope} instances?`)) return;
-        socket.emit('cmd_restart_accounts', { type, scope });
+    const handleRestart = async (type: 'ALL' | 'ACTIVE') => {
+        if (!confirm(`Restart ${type === 'ALL' ? 'ALL' : 'ACTIVE'} ${scope} instances sequentially?`)) return;
+
+        setIsRestarting(true);
+        try {
+            // Find targets based on scope and type
+            let targets = accounts;
+            if (scope === 'DATAFEED') {
+                targets = accounts.filter(a => a.accountType === 'DATAFEED' || a.isDatafeed);
+            } else {
+                targets = accounts.filter(a => a.accountType === 'TRADING' || !a.isDatafeed);
+            }
+
+            if (type === 'ACTIVE') {
+                targets = targets.filter(a => a.status === 'RUNNING' || (a.pid && a.pid > 0));
+            }
+
+            for (const acc of targets) {
+                // Ignore deterministic 'Detected' IDs when bulk restarting actions.
+                if (acc.server === 'Detected' || acc.id.startsWith('fix_') || acc.id.startsWith('gen_')) continue;
+                console.log(`[RestartControl] Restarting ${acc.login} (${acc.id})...`);
+                await onAction(acc.id, 'RESTART');
+                // Small delay between instances
+                await new Promise(r => setTimeout(r, 1000));
+            }
+            console.log(`[RestartControl] Bulk restart completed for ${targets.length} accounts.`);
+        } catch (e) {
+            console.error(`[RestartControl] Bulk restart failed:`, e);
+        } finally {
+            setIsRestarting(false);
+        }
     };
 
     return (
-        <div className="relative group/restart">
-            <div className="flex bg-amber-600 text-white rounded-lg shadow-lg">
-                <button
-                    onClick={() => handleRestart('ACTIVE')}
-                    className="flex items-center gap-2 px-3 py-2 hover:bg-amber-500 font-bold text-sm border-r border-amber-700/50 rounded-l-lg transition-colors"
-                >
-                    <RotateCw size={16} /> Restart Active
-                </button>
-                <div className="relative group/dropdown">
-                    <button className="px-2 py-2 hover:bg-amber-500 rounded-r-lg transition-colors h-full flex items-center justify-center">
-                        <ArrowLeftRight className="rotate-90" size={12} />
-                    </button>
-                    {/* Hoverable Dropdown */}
-                    <div className="absolute right-0 top-full mt-1 w-48 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-xl py-1 opacity-0 group-hover/dropdown:opacity-100 pointer-events-none group-hover/dropdown:pointer-events-auto transition-all z-50">
-                        <button
-                            onClick={() => handleRestart('ALL')}
-                            className="w-full text-left px-4 py-2 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-sm font-medium flex items-center gap-2"
-                        >
-                            <Power size={14} className="text-red-500" /> Restart ALL (Hard)
-                        </button>
-                    </div>
-                </div>
+        <div className={`flex items-stretch text-white rounded-lg shadow-lg overflow-hidden border border-slate-300 dark:border-slate-700 ${isRestarting ? 'opacity-50 pointer-events-none' : ''}`}>
+            {/* Label - Darker, Non-clickable */}
+            <div className="flex items-center gap-2 px-3 py-2 bg-slate-700 dark:bg-slate-800 font-bold text-sm text-slate-200 border-r border-slate-600 dark:border-slate-900">
+                <RotateCw size={14} className={isRestarting ? 'animate-spin text-amber-500' : 'text-slate-400'} />
+                <span className="tracking-wide">Restart</span>
             </div>
+
+            {/* Button 1: Active */}
+            <button
+                onClick={() => handleRestart('ACTIVE')}
+                disabled={isRestarting}
+                className="px-3 py-2 bg-slate-600 dark:bg-slate-700 hover:bg-amber-600 dark:hover:bg-amber-600 font-bold text-sm transition-colors border-r border-slate-500 dark:border-slate-800 flex items-center gap-2"
+            >
+                {isRestarting ? '...' : 'Active'}
+            </button>
+
+            {/* Button 2: All */}
+            <button
+                onClick={() => handleRestart('ALL')}
+                disabled={isRestarting}
+                className="px-3 py-2 bg-slate-600 dark:bg-slate-700 hover:bg-amber-600 dark:hover:bg-amber-600 font-bold text-sm transition-colors flex items-center gap-1"
+                title="Restart ALL"
+            >
+                All
+            </button>
         </div>
     );
 };
@@ -612,8 +642,8 @@ function CompactAccountCard({ acc, status, serverTime, loading, onAction, broker
     const isRunning = acc.status === 'RUNNING';
     const accOk = status ? !!status.account?.connected : (acc.brokerConnectionStatus === 'CONNECTED');
     // Extract Timezone short code (e.g. "New_York")
-    const rawTz = (status?.timezone && status.timezone !== 'Unknown') ? status.timezone : (acc.timezone || 'Unknown Timezone');
-    const tz = rawTz.split('/')[1] || rawTz;
+    const rawTz = acc.timezone;
+    const tz = rawTz ? (rawTz.split('/')[1] || rawTz) : '---';
 
     // 3-State Logic for Border
     const isBotConnected = acc.platform === 'NT8'

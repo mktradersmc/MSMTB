@@ -43,6 +43,10 @@ interface WorkspaceState {
     updateLayoutSizes: (workspaceId: string, sizes: number[]) => void;
     toggleMaximizePane: (workspaceId: string, paneId: string) => void;
 
+    // Drawing
+    activeDrawingTool: string | null;
+    setActiveDrawingTool: (tool: string | null) => void;
+
     // Test Mode
     isTestMode: boolean;
     toggleTestMode: () => void;
@@ -78,6 +82,9 @@ export const useWorkspaceStore = create<WorkspaceState>()(
         (set, get) => ({
             workspaces: [createDefaultWorkspace('Main Workspace')],
             activeWorkspaceId: '', // Set in initial hydration if empty? Actually we'll ensure at least one exists.
+
+            activeDrawingTool: null,
+            setActiveDrawingTool: (tool) => set({ activeDrawingTool: tool }),
 
             isTestMode: true, // Default to Safe Mode
 

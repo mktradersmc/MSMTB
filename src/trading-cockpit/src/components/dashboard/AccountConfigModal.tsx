@@ -4,14 +4,17 @@ import { fetchDirect } from '../../lib/client-api';
 
 interface AccountConfigModalProps {
     botId: string;
+    accountId?: string;
+    accountSize?: number;
     onClose: () => void;
     onSuccess: () => void;
 }
 
-export function AccountConfigModal({ botId, onClose, onSuccess }: AccountConfigModalProps) {
+export function AccountConfigModal({ botId, accountId, accountSize, onClose, onSuccess }: AccountConfigModalProps) {
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [config, setConfig] = useState<any>({});
+    const [localAccountSize, setLocalAccountSize] = useState<number | ''>(accountSize || '');
 
     // Default structure matching CTradingConfig
     const DEFAULT_CONFIG = {
@@ -59,21 +62,25 @@ export function AccountConfigModal({ botId, onClose, onSuccess }: AccountConfigM
     const handleSave = async () => {
         setSaving(true);
         try {
-            const res = await fetchDirect(`/bot-config/${botId}`, {
+            await fetchDirect(`/bot-config/${botId}`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(config)
             });
-            const data = await res.json();
-            if (data.success) {
-                onSuccess();
-                onClose();
-            } else {
-                alert("Failed to save config: " + (data.error || "Unknown error"));
+
+            if (accountId && localAccountSize !== '') {
+                await fetchDirect(`/accounts/${accountId}/size`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ size: Number(localAccountSize) })
+                });
             }
+
+            onSuccess();
+            onClose();
         } catch (e) {
-            console.error("Save failed", e);
-            alert("Save failed: Network error");
+            console.error("Failed to save", e);
+            alert("Failed to save config. Check console.");
         } finally {
             setSaving(false);
         }
@@ -118,8 +125,22 @@ export function AccountConfigModal({ botId, onClose, onSuccess }: AccountConfigM
                     {/* RISK MANAGEMENT */}
                     <div className="space-y-4">
                         <h3 className="text-sm font-bold uppercase tracking-wider text-slate-500 flex items-center gap-2">
-                            <ShieldCheck size={16} /> Risk Management
+                            <ShieldCheck size={16} /> Risk Management & Size
                         </h3>
+
+                        {accountId !== undefined && (
+                            <div className="bg-slate-50 dark:bg-slate-950/50 p-4 rounded-xl border border-indigo-200 dark:border-indigo-900/50 mb-6">
+                                <label className="block text-sm font-bold text-indigo-700 dark:text-indigo-400 mb-2">Account Size ($)</label>
+                                <input
+                                    type="number"
+                                    value={localAccountSize}
+                                    onChange={(e) => setLocalAccountSize(e.target.value === '' ? '' : Number(e.target.value))}
+                                    className="w-full bg-white dark:bg-slate-900 border border-indigo-300 dark:border-indigo-700 rounded-lg px-4 py-3 text-lg font-mono font-bold text-indigo-900 dark:text-indigo-100 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                                    placeholder="e.g. 100000"
+                                />
+                                <p className="text-xs text-indigo-600 dark:text-indigo-500 mt-2 font-medium">Core parameters like risk multipliers are derived from this value.</p>
+                            </div>
+                        )}
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div className="bg-slate-50 dark:bg-slate-950/50 p-4 rounded-xl border border-slate-200 dark:border-slate-800">

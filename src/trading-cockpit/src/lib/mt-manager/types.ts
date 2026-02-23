@@ -22,6 +22,7 @@ export interface TradingAccount {
     instancePath?: string; // Absolute path to the instance folder
     platform?: 'MT5' | 'NT8'; // Trading Platform (Default: MT5)
     timezone?: string; // Persisted Timezone (e.g. "EET", "UTC", "Europe/New_York")
+    accountSize?: number; // Base Account Size (e.g., 50000, 100000)
 
     // Deployment Status
     status: 'DEPLOYING' | 'RUNNING' | 'STOPPED' | 'ERROR';

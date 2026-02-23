@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from 'react';
-import { createChart, ColorType, IChartApi, ISeriesApi, Time, CandlestickSeries, LineSeries, TickMarkType, LogicalRange } from 'lightweight-charts';
+import { createChart, ColorType, IChartApi, ISeriesApi, Time, CandlestickSeries, LineSeries, TickMarkType, LogicalRange, CrosshairMode } from 'lightweight-charts';
 import { getTimeframeSeconds } from '../../utils/chartUtils';
 import { useChartTheme } from '../../context/ChartThemeContext';
 import { LongShortPosition, LongShortState } from './LongShortPosition';
@@ -120,7 +120,7 @@ export const ChartContainer = React.forwardRef<ChartContainerHandle, ChartContai
     const containerRefB = useRef<HTMLDivElement>(null);
 
     const { theme } = useChartTheme();
-    const { isTestMode } = useWorkspaceStore();
+    const { isTestMode, activeDrawingTool } = useWorkspaceStore();
 
     const chartARef = useRef<IChartApi | null>(null);
     const chartBRef = useRef<IChartApi | null>(null);
@@ -796,9 +796,57 @@ export const ChartContainer = React.forwardRef<ChartContainerHandle, ChartContai
         // Dynamic Scroll Removed in favor of Phantom Bars logic
 
 
-        // Subscribe to Click for Activation
-        chartA.subscribeClick(() => {
+        // Subscribe to Click for Activation and Drawing
+        chartA.subscribeClick((param) => {
             if (onChartClick) onChartClick();
+
+            // Handle drawing mode placement
+            const store = useWorkspaceStore.getState();
+            if (store.activeDrawingTool && chartWidgetRef.current) {
+                chartWidgetRef.current.handleChartClick(
+                    param,
+                    store.activeDrawingTool,
+                    () => store.setActiveDrawingTool(null)
+                );
+            }
+        });
+
+        // Track if we have manually overridden the crosshair
+        let isCrosshairOverridden = false;
+
+        chartA.subscribeCrosshairMove((param) => {
+            // Ignore synthetic crosshair movements triggered by programmatic snapping
+            if (!param.sourceEvent) return;
+
+            if (chartWidgetRef.current) {
+                chartWidgetRef.current.handleCrosshairMove(param);
+            }
+
+            // Manual Crosshair Snapping for Custom Drawing Tools
+            const store = useWorkspaceStore.getState();
+            const magnetMode = MagnetService.getMode();
+
+            if (store.activeDrawingTool && magnetMode !== 'OFF' && param.point && param.time) {
+                const snapped = MagnetService.snap(
+                    param.point.x,
+                    param.point.y,
+                    seriesARef.current!,
+                    dataARef.current,
+                    chartARef.current!.timeScale(),
+                    timeframe
+                );
+
+                if (snapped.snapped && snapped.anchor) {
+                    chartA.setCrosshairPosition(snapped.anchor.price, snapped.anchor.time as Time, seriesARef.current!);
+                    isCrosshairOverridden = true;
+                } else if (isCrosshairOverridden) {
+                    chartA.clearCrosshairPosition();
+                    isCrosshairOverridden = false;
+                }
+            } else if (isCrosshairOverridden) {
+                chartA.clearCrosshairPosition();
+                isCrosshairOverridden = false;
+            }
         });
 
         chartARef.current = chartA;
@@ -1381,7 +1429,6 @@ export const ChartContainer = React.forwardRef<ChartContainerHandle, ChartContai
                 seriesARef.current.setData(processedData);
             }
 
-            // Update Tracking Refs for Next Render
             if (processedData.length > 0) {
                 prevDataLengthRef.current = processedData.length;
                 prevStartTimeRef.current = processedData[0].time as number;
@@ -1393,6 +1440,11 @@ export const ChartContainer = React.forwardRef<ChartContainerHandle, ChartContai
                 prevStartTimeRef.current = 0;
                 prevLastTimeRef.current = 0;
                 dataARef.current = [];
+            }
+
+            // Sync with ChartWidget for Magnet/Drawing
+            if (chartWidgetRef.current) {
+                chartWidgetRef.current.setSeriesData(processedData);
             }
 
             // 4. Restore State
@@ -1580,6 +1632,23 @@ export const ChartContainer = React.forwardRef<ChartContainerHandle, ChartContai
     }, [activeIndicators, symbol, timeframe, dataA, chartReady]);
 
     // Cleanup Plugins on Unmount
+    useEffect(() => {
+        return () => {
+            const plugins = indicatorPluginsRef.current;
+            for (const [id, plugin] of plugins.entries()) {
+                if (seriesARef.current) {
+                    try {
+                        seriesARef.current.detachPrimitive(plugin);
+                    } catch (e) { /* ignore */ }
+                }
+            }
+            plugins.clear();
+        };
+    }, []);
+
+
+
+    // Cleanup Charts on Unmount
     useEffect(() => {
         return () => {
             const plugins = indicatorPluginsRef.current;

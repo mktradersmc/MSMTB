@@ -83,6 +83,7 @@ class DatabaseService {
         try { this.marketDb.exec("ALTER TABLE broker_executions ADD COLUMN tp REAL DEFAULT 0"); } catch (e) { }
         try { this.marketDb.exec("ALTER TABLE broker_executions ADD COLUMN created_at INTEGER DEFAULT 0"); } catch (e) { }
         try { this.marketDb.exec("ALTER TABLE broker_executions ADD COLUMN updated_at INTEGER DEFAULT 0"); } catch (e) { }
+        try { this.marketDb.exec("ALTER TABLE accounts ADD COLUMN balance REAL DEFAULT 0"); } catch (e) { }
         try { this.marketDb.exec("ALTER TABLE broker_executions ADD COLUMN volume REAL DEFAULT 0"); } catch (e) { }
         try { this.marketDb.exec("ALTER TABLE broker_executions ADD COLUMN unrealized_pl REAL DEFAULT 0"); } catch (e) { }
         try { this.marketDb.exec("ALTER TABLE active_trades ADD COLUMN environment TEXT DEFAULT 'test'"); } catch (e) { }
@@ -90,6 +91,7 @@ class DatabaseService {
         try { this.marketDb.exec("ALTER TABLE broker_executions ADD COLUMN initial_entry REAL"); } catch (e) { }
         try { this.marketDb.exec("ALTER TABLE broker_executions ADD COLUMN initial_sl REAL"); } catch (e) { }
         try { this.marketDb.exec("ALTER TABLE broker_executions ADD COLUMN initial_tp REAL"); } catch (e) { }
+        try { this.marketDb.exec("ALTER TABLE accounts ADD COLUMN account_size REAL DEFAULT NULL"); } catch (e) { }
 
         // Trades DB Migrations (Fix for Task-0199 Crash)
         try { this.tradesDb.exec("ALTER TABLE messages ADD COLUMN isActive INTEGER DEFAULT 1"); } catch (e) { }
@@ -103,7 +105,7 @@ class DatabaseService {
             CREATE TABLE IF NOT EXISTS accounts (
                 id TEXT PRIMARY KEY, bot_id TEXT, broker_id TEXT, login TEXT, password TEXT, server TEXT,
                 account_type TEXT, is_test INTEGER, status TEXT, pid INTEGER, instance_path TEXT,
-                is_datafeed INTEGER, platform TEXT, timezone TEXT, created_at INTEGER
+                is_datafeed INTEGER, platform TEXT, timezone TEXT, balance REAL, account_size REAL, created_at INTEGER
             );
             CREATE TABLE IF NOT EXISTS distribution_configs (
                 broker_id TEXT, loop_size INTEGER, matrix TEXT, environment TEXT,
@@ -119,6 +121,9 @@ class DatabaseService {
                 id TEXT PRIMARY KEY, event_id INTEGER, name TEXT, country TEXT, currency TEXT,
                 impact TEXT, timestamp INTEGER, actual TEXT, forecast TEXT, previous TEXT,
                 time_label TEXT, date_string TEXT, updated_at INTEGER
+            );
+            CREATE TABLE IF NOT EXISTS bot_configs (
+                bot_id TEXT PRIMARY KEY, config TEXT, updated_at INTEGER
             );
         `);
 
@@ -183,8 +188,8 @@ class DatabaseService {
                 console.log("[DB] Migrating Accounts from JSON...");
                 const accounts = this._loadJson(ACCOUNTS_FILE);
                 const insert = this.marketDb.prepare(`
-                    INSERT INTO accounts (id, bot_id, broker_id, login, password, server, account_type, is_test, status, pid, instance_path, is_datafeed, platform, timezone, created_at)
-                    VALUES (@id, @botId, @brokerId, @login, @password, @server, @accountType, @isTest, @status, @pid, @instancePath, @isDatafeed, @platform, @timezone, @createdAt)
+                    INSERT INTO accounts (id, bot_id, broker_id, login, password, server, account_type, is_test, status, pid, instance_path, is_datafeed, platform, timezone, balance, account_size, created_at)
+                    VALUES (@id, @botId, @brokerId, @login, @password, @server, @accountType, @isTest, @status, @pid, @instancePath, @isDatafeed, @platform, @timezone, @balance, @accountSize, @createdAt)
                 `);
                 const insertMany = this.marketDb.transaction((list) => {
                     for (const a of list) insert.run({
@@ -192,6 +197,7 @@ class DatabaseService {
                         server: a.server, accountType: a.accountType, isTest: a.isTest ? 1 : 0,
                         status: a.status, pid: a.pid, instancePath: a.instancePath,
                         isDatafeed: a.isDatafeed ? 1 : 0, platform: a.platform, timezone: a.timezone,
+                        balance: a.balance || 0, accountSize: a.accountSize || null,
                         createdAt: a.createdAt || Date.now()
                     });
                 });
@@ -410,6 +416,9 @@ class DatabaseService {
 
     // 2. ACCOUNTS
     getAccounts() {
+        // Self-heal: Retroactively generate account_size for existing accounts that have a balance
+        this.marketDb.prepare("UPDATE accounts SET account_size = round(balance / 1000) * 1000 WHERE balance > 0 AND (account_size IS NULL OR account_size = 0)").run();
+
         const rows = this.marketDb.prepare("SELECT * FROM accounts").all();
         return rows.map(r => ({
             ...r,
@@ -418,7 +427,8 @@ class DatabaseService {
             botId: r.bot_id,
             brokerId: r.broker_id,
             accountType: r.account_type,
-            instancePath: r.instance_path
+            instancePath: r.instance_path,
+            accountSize: r.account_size
         }));
     }
 
@@ -428,15 +438,15 @@ class DatabaseService {
 
         try {
             const stmt = this.marketDb.prepare(`
-                INSERT OR REPLACE INTO accounts (id, bot_id, broker_id, login, password, server, account_type, is_test, status, pid, instance_path, is_datafeed, platform, timezone, created_at)
-                VALUES (@id, @botId, @brokerId, @login, @password, @server, @accountType, @isTest, @status, @pid, @instancePath, @isDatafeed, @platform, @timezone, @createdAt)
+                INSERT OR REPLACE INTO accounts (id, bot_id, broker_id, login, password, server, account_type, is_test, status, pid, instance_path, is_datafeed, platform, timezone, balance, account_size, created_at)
+                VALUES (@id, @botId, @brokerId, @login, @password, @server, @accountType, @isTest, @status, @pid, @instancePath, @isDatafeed, @platform, @timezone, @balance, @accountSize, @createdAt)
             `);
 
             stmt.run({
                 id: a.id, botId: a.botId, brokerId: a.brokerId, login: a.login, password: a.password,
                 server: a.server, accountType: a.accountType, isTest: a.isTest ? 1 : 0,
                 status: a.status, pid: a.pid || 0, instancePath: a.instancePath,
-                isDatafeed: a.isDatafeed ? 1 : 0, platform: a.platform, timezone: a.timezone,
+                isDatafeed: a.isDatafeed ? 1 : 0, platform: a.platform, timezone: a.timezone, balance: a.balance || 0, accountSize: a.accountSize || null,
                 createdAt: a.createdAt || Date.now()
             });
             return true;
@@ -446,14 +456,68 @@ class DatabaseService {
         }
     }
 
-    saveAccountTimezone(id, timezone) {
+    saveAccountTimezone(botId, timezone) {
         try {
-            this.marketDb.prepare("UPDATE accounts SET timezone = ? WHERE id = ?").run(timezone, id);
-            // Also update JSON for fallback safety during migration phase? 
-            // deciding NO to avoid split-brain. DB is source of truth now.
-            console.log(`[DB] Persisted Timezone for ${id}: ${timezone}`);
+            this.marketDb.prepare("UPDATE accounts SET timezone = ? WHERE id = ? OR bot_id = ?").run(timezone, botId, botId);
+            console.log(`[DB] Persisted Timezone for bot_id ${botId}: ${timezone}`);
         } catch (e) {
             console.error("[DB] saveAccountTimezone Error:", e);
+        }
+    }
+
+    saveAccountBalance(botId, balance) {
+        try {
+            this.marketDb.prepare("UPDATE accounts SET balance = ? WHERE id = ? OR bot_id = ?").run(balance, botId, botId);
+            console.log(`[DB] Persisted Balance for bot_id ${botId}: ${balance}`);
+
+            if (balance > 0) {
+                const acc = this.marketDb.prepare("SELECT account_size FROM accounts WHERE id = ? OR bot_id = ?").get(botId, botId);
+                if (acc && (acc.account_size === null || acc.account_size === 0)) {
+                    const newSize = Math.round(balance / 1000) * 1000;
+                    this.marketDb.prepare("UPDATE accounts SET account_size = ? WHERE id = ? OR bot_id = ?").run(newSize, botId, botId);
+                    console.log(`[DB] Auto-Initialized Account Size for bot_id ${botId}: ${newSize}`);
+                    return true;
+                }
+            }
+            return false;
+        } catch (e) {
+            console.error("[DB] saveAccountBalance Error:", e);
+            return false;
+        }
+    }
+
+    saveAccountSize(id, size) {
+        try {
+            const res = this.marketDb.prepare("UPDATE accounts SET account_size = ? WHERE id = ? OR bot_id = ?").run(size, id, id);
+            return res.changes > 0;
+        } catch (e) {
+            console.error("[DB] saveAccountSize Error:", e);
+            return false;
+        }
+    }
+
+    // --- BOT CONFIGURATION ---
+    getBotConfig(botId) {
+        try {
+            const row = this.marketDb.prepare("SELECT config FROM bot_configs WHERE bot_id = ?").get(botId);
+            return row ? (JSON.parse(row.config) || {}) : {};
+        } catch (e) {
+            console.error("[DB] getBotConfig Error:", e);
+            return {};
+        }
+    }
+
+    saveBotConfig(botId, config) {
+        try {
+            const stmt = this.marketDb.prepare(`
+                INSERT OR REPLACE INTO bot_configs (bot_id, config, updated_at) 
+                VALUES (?, ?, ?)
+            `);
+            stmt.run(botId, JSON.stringify(config), Date.now());
+            return true;
+        } catch (e) {
+            console.error("[DB] saveBotConfig Error:", e);
+            return false;
         }
     }
 

@@ -237,3 +237,38 @@ export async function shutdownTerminal(pid: number): Promise<void> {
     // Pass 'true' for force
     await killTerminal(pid, true);
 }
+
+export async function killTerminalByPath(instancePath: string, force: boolean = true): Promise<void> {
+    return new Promise((resolve) => {
+        const folderName = path.basename(instancePath);
+        // Use powershell to safely find terminal64 processes with this folder path in their CommandLine
+        const psCmd = `powershell -NoProfile -Command "Get-CimInstance Win32_Process -Filter \\"Name='terminal64.exe'\\" | Where-Object {$_.CommandLine -match '${folderName}'} | Select-Object -ExpandProperty ProcessId"`;
+
+        exec(psCmd, { timeout: 5000 }, (error, stdout) => {
+            if (error) {
+                // Ignore if not found or command fails
+                resolve();
+                return;
+            }
+
+            const pids = stdout.trim().split('\\n').map(s => s.trim()).filter(s => s.length > 0);
+            if (pids.length === 0) {
+                resolve();
+                return;
+            }
+
+            console.log(`[Process] Found untracked/stale PIDs [${pids.join(', ')}] for instance ${folderName}. Killing...`);
+
+            // Kill all found instances
+            const killPromises = pids.map(pidStr => {
+                const pid = parseInt(pidStr, 10);
+                if (!isNaN(pid) && pid > 0) {
+                    return killTerminal(pid, force).catch(() => { });
+                }
+                return Promise.resolve();
+            });
+
+            Promise.all(killPromises).then(() => resolve());
+        });
+    });
+}

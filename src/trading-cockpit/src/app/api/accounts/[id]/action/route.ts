@@ -2,7 +2,7 @@
 import { NextResponse } from 'next/server';
 import { getAccounts, saveAccount, deleteAccount, updateAccountStatus, getBrokers } from '@/lib/mt-manager/data';
 import { getInstancesRoot } from '@/lib/mt-manager/deployer';
-import { startTerminal, killTerminal, shutdownTerminal, checkProcessRunning } from '@/lib/mt-manager/process';
+import { startTerminal, killTerminal, shutdownTerminal, checkProcessRunning, killTerminalByPath } from '@/lib/mt-manager/process';
 import path from 'path';
 
 import fs from 'fs/promises';
@@ -60,7 +60,49 @@ export async function POST(req: Request, props: { params: Promise<{ id: string }
         }
 
         if (action === 'STOP') {
-            if (account.pid) await shutdownTerminal(account.pid);
+            if (account.pid) {
+                const brokers = await getBrokers();
+                const broker = brokers.find(b => b.id === account.brokerId);
+                let botId = broker ? `${broker.shorthand.replace(/\s+/g, '')}_${account.login}` : account.botId;
+                if (botId && (account.accountType === 'DATAFEED' || account.isDatafeed)) {
+                    botId += '_DATAFEED';
+                }
+
+                if (botId) {
+                    try {
+                        console.log(`[ActionAPI] Sending Graceful CMD_SHUTDOWN to ${botId}...`);
+                        const response = await fetch(`http://127.0.0.1:3005/api/bot-command/${botId}`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ type: 'CMD_SHUTDOWN' })
+                        });
+                        if (!response.ok) {
+                            const errData = await response.json().catch(() => ({}));
+                            console.warn(`[ActionAPI] CMD_SHUTDOWN failed with ${response.status} for ${botId}:`, errData);
+                        } else {
+                            console.log(`[ActionAPI] CMD_SHUTDOWN sent successfully to ${botId}.`);
+                        }
+                        await new Promise(r => setTimeout(r, 2000));
+                    } catch (e) {
+                        console.error(`[ActionAPI] Graceful shutdown request failed for ${botId}`, e);
+                    }
+                }
+
+                if (await checkProcessRunning(account.pid)) {
+                    console.log(`[ActionAPI] Process ${account.pid} still running. Force killing...`);
+                    await shutdownTerminal(account.pid);
+                } else {
+                    console.log(`[ActionAPI] Process ${account.pid} exited gracefully.`);
+                }
+
+                if (instancePath) {
+                    await killTerminalByPath(instancePath, true);
+                }
+            } else if (instancePath) {
+                // Failsafe: No PID tracked but we have an instancePath. 
+                console.log(`[ActionAPI] No PID tracked for ${id}, ensuring shutdown by path...`);
+                await killTerminalByPath(instancePath, true);
+            }
             await updateAccountStatus(id, 'STOPPED', undefined);
             return NextResponse.json({ success: true, status: 'STOPPED' });
         }
@@ -80,9 +122,47 @@ export async function POST(req: Request, props: { params: Promise<{ id: string }
             console.log(`[ActionAPI] RESTART Initiated for ${id} (PID: ${account.pid || 'None'})`);
 
             if (account.pid) {
-                console.log(`[ActionAPI] Shutting down PID ${account.pid}...`);
-                await shutdownTerminal(account.pid);
-                console.log(`[ActionAPI] Shutdown complete.`);
+                const brokers = await getBrokers();
+                const broker = brokers.find(b => b.id === account.brokerId);
+                let botId = broker ? `${broker.shorthand.replace(/\s+/g, '')}_${account.login}` : account.botId;
+                if (botId && (account.accountType === 'DATAFEED' || account.isDatafeed)) {
+                    botId += '_DATAFEED';
+                }
+
+                if (botId) {
+                    try {
+                        console.log(`[ActionAPI] Sending Graceful CMD_SHUTDOWN to ${botId}...`);
+                        const response = await fetch(`http://127.0.0.1:3005/api/bot-command/${botId}`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ type: 'CMD_SHUTDOWN' })
+                        });
+                        if (!response.ok) {
+                            const errData = await response.json().catch(() => ({}));
+                            console.warn(`[ActionAPI] CMD_SHUTDOWN failed with ${response.status} for ${botId}:`, errData);
+                        } else {
+                            console.log(`[ActionAPI] CMD_SHUTDOWN sent successfully to ${botId}.`);
+                        }
+                        await new Promise(r => setTimeout(r, 2000));
+                    } catch (e) {
+                        console.error(`[ActionAPI] Graceful shutdown request failed for ${botId}`, e);
+                    }
+                }
+
+                if (await checkProcessRunning(account.pid)) {
+                    console.log(`[ActionAPI] Process ${account.pid} still running. Shutting down...`);
+                    await shutdownTerminal(account.pid);
+                    console.log(`[ActionAPI] Shutdown complete.`);
+                } else {
+                    console.log(`[ActionAPI] Process ${account.pid} exited gracefully.`);
+                }
+
+                if (instancePath) {
+                    await killTerminalByPath(instancePath, true);
+                }
+            } else if (instancePath) {
+                console.log(`[ActionAPI] No PID tracked for ${id}, ensuring shutdown by path before restart...`);
+                await killTerminalByPath(instancePath, true);
             }
 
             // Small delay to ensure file locks are released even after process exit

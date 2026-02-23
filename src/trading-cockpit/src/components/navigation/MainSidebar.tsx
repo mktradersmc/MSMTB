@@ -33,16 +33,24 @@ const cn = (...classes: (string | undefined | null | boolean)[]) => classes.filt
 
 export const MainSidebar: React.FC<MainSidebarProps> = ({ activeView, onNavigate, badges }) => {
     // 1. State for Start/Collapse (Persisted)
-    const [isCollapsed, setIsCollapsed] = useState(() => {
-        if (typeof window !== 'undefined') {
-            return localStorage.getItem('sidebarCollapsed') === 'true';
-        }
-        return false;
-    });
+    const [isCollapsed, setIsCollapsed] = useState(false);
+    const [mounted, setMounted] = useState(false);
 
     useEffect(() => {
-        localStorage.setItem('sidebarCollapsed', isCollapsed.toString());
-    }, [isCollapsed]);
+        if (typeof window !== 'undefined') {
+            const stored = localStorage.getItem('sidebarCollapsed');
+            if (stored === 'true') {
+                setIsCollapsed(true);
+            }
+        }
+        setMounted(true);
+    }, []);
+
+    useEffect(() => {
+        if (mounted) {
+            localStorage.setItem('sidebarCollapsed', isCollapsed.toString());
+        }
+    }, [isCollapsed, mounted]);
 
     // 2. Toggle Handler
     const toggleSidebar = () => setIsCollapsed(!isCollapsed);

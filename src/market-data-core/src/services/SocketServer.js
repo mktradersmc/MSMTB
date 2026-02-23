@@ -503,8 +503,9 @@ class SocketServer {
                         ...acc,
                         status: isRunningInOs ? 'RUNNING' : 'STOPPED',
                         brokerConnectionStatus: isConnected ? 'CONNECTED' : 'DISCONNECTED',
-                        balance: status?.account?.balance,
+                        balance: status?.account?.balance !== undefined ? status.account.balance : acc.balance,
                         equity: status?.account?.equity,
+                        timezone: status?.timezone || acc.timezone,
                         platform: acc.platform || status?.platform || 'MT5' // Fallback to Status or Default
                     };
                 });
@@ -590,6 +591,14 @@ class SocketServer {
             res.json({ success: true });
         });
 
+        this.app.post('/api/accounts/:id/size', (req, res) => {
+            const { id } = req.params;
+            const { size } = req.body;
+            console.log(`[API] POST /accounts/${id}/size received. Size=${size}`);
+            const success = db.saveAccountSize(id, parseFloat(size));
+            res.json({ success });
+        });
+
         this.app.delete('/api/accounts/:id', (req, res) => {
             db.deleteAccount(req.params.id);
             res.json({ success: true });
@@ -650,6 +659,28 @@ class SocketServer {
             }
 
             res.json({ success: true, config: newConfig });
+        });
+
+        // --- NEW: Direct Bot Command Endpoint ---
+        this.app.post('/api/bot-command/:botId', (req, res) => {
+            const { botId } = req.params;
+            const { type, content } = req.body;
+
+            console.log(`[API] Forwarding Command ${type} to Bot ${botId}`);
+
+            const isOnline = systemOrchestrator.isBotOnline(botId);
+            if (!isOnline) {
+                console.warn(`[API] Cannot send command ${type} to Bot ${botId} (Offline/Not Found)`);
+                return res.status(404).json({ success: false, error: 'Bot is offline or not found' });
+            }
+
+            const success = systemOrchestrator.sendToBot(botId, type, content || {});
+
+            if (success) {
+                res.json({ success: true, message: `Command ${type} queued for ${botId}` });
+            } else {
+                res.status(500).json({ success: false, error: `Failed to send command ${type} to ${botId}` });
+            }
         });
 
         // --- Asset Mapping Endpoints ---

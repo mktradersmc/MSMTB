@@ -11,7 +11,7 @@ export function AccountsView() {
     const [accounts, setAccounts] = useState<TradingAccount[]>([]);
     const [brokers, setBrokers] = useState<Broker[]>([]);
     const [isAddOpen, setIsAddOpen] = useState(false);
-    const [configBotId, setConfigBotId] = useState<string | null>(null);
+    const [configAccount, setConfigAccount] = useState<{ botId: string, id: string, size?: number } | null>(null);
     const [loadingAction, setLoadingAction] = useState<string | null>(null);
     const [statuses, setStatuses] = useState<Record<string, StatusData>>({});
     const [serverTime, setServerTime] = useState<number>(Date.now());
@@ -135,7 +135,7 @@ export function AccountsView() {
                     </div>
 
                     <div className="mr-2">
-                        <RestartControl scope="TRADING" />
+                        <RestartControl scope="TRADING" accounts={accounts.filter(a => a.accountType !== 'DATAFEED' && !a.isDatafeed && (isTestMode ? a.isTest : !a.isTest))} onAction={handleAction} />
                     </div>
 
                     <button onClick={loadData} className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg text-slate-400 hover:text-indigo-500 transition-colors">
@@ -183,7 +183,7 @@ export function AccountsView() {
                             isDatafeedSection={false}
                             isUpdating={isUpdating}
                             updateScope={updateScope}
-                            onConfig={(id) => setConfigBotId(id)}
+                            onConfig={(botId) => setConfigAccount({ botId, id: acc.id, size: acc.accountSize })}
                         />
                     ))}
                 </div>
@@ -198,7 +198,7 @@ export function AccountsView() {
             </div>
 
             {isAddOpen && <AddAccountModal onClose={() => setIsAddOpen(false)} onSuccess={loadData} existingAccounts={accounts} isTestMode={isTestMode} />}
-            {configBotId && <AccountConfigModal botId={configBotId} onClose={() => setConfigBotId(null)} onSuccess={() => { }} />}
+            {configAccount && <AccountConfigModal botId={configAccount.botId} accountId={configAccount.id} accountSize={configAccount.size} onClose={() => { setConfigAccount(null); loadData(); }} onSuccess={loadData} />}
         </div>
     );
 }
@@ -219,31 +219,65 @@ const getBotId = (acc: TradingAccount, brokers: Broker[]) => {
     return id;
 };
 
-const RestartControl = ({ scope }: { scope: 'TRADING' | 'DATAFEED' }) => {
-    const { socket } = socketService;
+const RestartControl = ({ scope, accounts, onAction }: { scope: 'TRADING' | 'DATAFEED', accounts: TradingAccount[], onAction: (id: string, action: 'START' | 'STOP' | 'RESTART' | 'DELETE') => Promise<void> }) => {
+    const [isRestarting, setIsRestarting] = useState(false);
 
-    const handleRestart = (type: 'ALL' | 'ACTIVE') => {
-        if (!confirm(`Restart ${type === 'ALL' ? 'ALL' : 'ACTIVE'} ${scope} instances?`)) return;
-        socket.emit('cmd_restart_accounts', { type, scope });
+    const handleRestart = async (type: 'ALL' | 'ACTIVE') => {
+        if (!confirm(`Restart ${type === 'ALL' ? 'ALL' : 'ACTIVE'} ${scope} instances sequentially?`)) return;
+
+        setIsRestarting(true);
+        try {
+            let targets = accounts;
+            if (scope === 'DATAFEED') {
+                targets = accounts.filter(a => a.accountType === 'DATAFEED' || a.isDatafeed);
+            } else {
+                targets = accounts.filter(a => a.accountType === 'TRADING' || !a.isDatafeed);
+            }
+
+            if (type === 'ACTIVE') {
+                targets = targets.filter(a => a.status === 'RUNNING' || (a.pid && a.pid > 0));
+            }
+
+            for (const acc of targets) {
+                if (acc.server === 'Detected' || acc.id.startsWith('fix_') || acc.id.startsWith('gen_')) continue;
+                console.log(`[RestartControl] Restarting ${acc.login} (${acc.id})...`);
+                await onAction(acc.id, 'RESTART');
+                await new Promise(r => setTimeout(r, 1000));
+            }
+            console.log(`[RestartControl] Bulk restart completed for ${targets.length} accounts.`);
+        } catch (e) {
+            console.error(`[RestartControl] Bulk restart failed:`, e);
+        } finally {
+            setIsRestarting(false);
+        }
     };
 
     return (
-        <div className="relative group/restart">
-            <div className="flex bg-amber-600 text-white rounded-lg shadow-lg">
-                <button onClick={() => handleRestart('ACTIVE')} className="flex items-center gap-2 px-3 py-2 hover:bg-amber-500 font-bold text-sm border-r border-amber-700/50 rounded-l-lg transition-colors">
-                    <RotateCw size={16} /> Restart Active
-                </button>
-                <div className="relative group/dropdown">
-                    <button className="px-2 py-2 hover:bg-amber-500 rounded-r-lg transition-colors h-full flex items-center justify-center">
-                        <ArrowLeftRight className="rotate-90" size={12} />
-                    </button>
-                    <div className="absolute right-0 top-full mt-1 w-48 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-xl py-1 opacity-0 group-hover/dropdown:opacity-100 pointer-events-none group-hover/dropdown:pointer-events-auto transition-all z-50">
-                        <button onClick={() => handleRestart('ALL')} className="w-full text-left px-4 py-2 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-sm font-medium flex items-center gap-2">
-                            <Power size={14} className="text-red-500" /> Restart ALL (Hard)
-                        </button>
-                    </div>
-                </div>
+        <div className={`flex items-stretch text-white rounded-lg shadow-lg overflow-hidden border border-slate-300 dark:border-slate-700 ${isRestarting ? 'opacity-50 pointer-events-none' : ''}`}>
+            {/* Label - Darker, Non-clickable */}
+            <div className="flex items-center gap-2 px-3 py-2 bg-slate-700 dark:bg-slate-800 font-bold text-sm text-slate-200 border-r border-slate-600 dark:border-slate-900">
+                <RotateCw size={14} className={isRestarting ? 'animate-spin text-amber-500' : 'text-slate-400'} />
+                <span className="tracking-wide">Restart</span>
             </div>
+
+            {/* Button 1: Active */}
+            <button
+                onClick={() => handleRestart('ACTIVE')}
+                disabled={isRestarting}
+                className="px-3 py-2 bg-slate-600 dark:bg-slate-700 hover:bg-amber-600 dark:hover:bg-amber-600 font-bold text-sm transition-colors border-r border-slate-500 dark:border-slate-800 flex items-center gap-2"
+            >
+                {isRestarting ? '...' : 'Active'}
+            </button>
+
+            {/* Button 2: All */}
+            <button
+                onClick={() => handleRestart('ALL')}
+                disabled={isRestarting}
+                className="px-3 py-2 bg-slate-600 dark:bg-slate-700 hover:bg-amber-600 dark:hover:bg-amber-600 font-bold text-sm transition-colors flex items-center gap-1"
+                title="Restart ALL"
+            >
+                All
+            </button>
         </div>
     );
 };
@@ -280,6 +314,10 @@ function AccountCard({ acc, statuses, serverTime, loadingAction, onAction, onCon
     const isProcessing = loadingAction === acc.id || (!!isUpdating && isInScope && isRunning);
     const brokerName = getBrokerName(acc.brokerId, brokers);
 
+    const displayBalance = status?.account?.balance !== undefined ? status.account.balance : acc.balance;
+    const rawTz = (status?.timezone && status.timezone !== 'Unknown') ? status.timezone : acc.timezone;
+    const displayTz = rawTz ? (rawTz.split('/')[1] || rawTz) : '---';
+
     return (
         <div className={`bg-white dark:bg-slate-900 border-l-4 rounded-r-lg p-3 relative overflow-hidden group transition-colors h-[88px] flex flex-col justify-between ${statusClass} ${isDatafeedSection ? 'border-emerald-500/30' : 'shadow-sm'}`}>
             <div className="flex justify-between items-start">
@@ -289,19 +327,21 @@ function AccountCard({ acc, statuses, serverTime, loadingAction, onAction, onCon
                     </div>
                     <div className="flex flex-col">
                         <div className="text-sm font-bold text-slate-900 dark:text-white font-mono tracking-tight leading-none">{acc.login}</div>
-                        <div className="text-[10px] text-slate-400 font-medium truncate max-w-[120px] leading-tight mt-0.5">{brokerName}</div>
+                        <div className="text-[10px] text-slate-400 font-medium leading-tight mt-0.5">
+                            {brokerName}{acc.accountSize ? ` (${Math.round(acc.accountSize / 1000)}k)` : ''}
+                        </div>
                     </div>
                 </div>
                 <div className="flex flex-col items-end gap-0.5">
                     {acc.isTest ? <span className="text-[9px] font-bold text-amber-500 bg-amber-500/10 px-1 py-px rounded uppercase leading-none">TEST</span> : <span className="text-[9px] font-bold text-emerald-500 bg-emerald-500/10 px-1 py-px rounded uppercase leading-none">LIVE</span>}
                     <div className="flex items-center gap-1 text-[10px] text-slate-400 font-mono">
                         <div className={`w-1.5 h-1.5 rounded-full ${isRunning ? (isBotConnected ? 'bg-emerald-500' : 'bg-orange-500') : 'bg-slate-300'}`}></div>
-                        {(() => { const rawTz = (status?.timezone && status.timezone !== 'Unknown') ? status.timezone : (acc.timezone || 'Unknown Timezone'); return rawTz.split('/')[1] || rawTz; })()}
+                        {displayTz}
                     </div>
                 </div>
             </div>
-            <div className="flex items-end justify-between mt-auto">
-                {!isDatafeedSection && <div className={`font-mono font-bold text-lg leading-none -mb-0.5 ${status?.account?.balance ? 'text-slate-700 dark:text-slate-200' : 'text-slate-400'}`}>{status?.account?.balance ? `$${status.account.balance.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}` : '-'}</div>}
+            <div className="flex items-center justify-between mt-auto">
+                {!isDatafeedSection && <div className={`font-mono font-bold text-[17px] leading-none ${displayBalance ? 'text-slate-700 dark:text-slate-200' : 'text-slate-400'}`}>{displayBalance ? `$${displayBalance.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}` : '-'}</div>}
                 {isDatafeedSection && <div />}
                 <div className="flex items-center gap-1 opacity-20 group-hover:opacity-100 transition-opacity">
                     <button onClick={() => onConfig(botId)} className="p-1 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-400 hover:text-slate-600 rounded transition-colors" title="Settings"><Settings size={14} /></button>

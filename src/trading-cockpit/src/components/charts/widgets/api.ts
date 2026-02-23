@@ -26,7 +26,7 @@ export interface ShortPositionProperties {
 }
 
 export interface CreateShapeOptions {
-    shape: 'trend_line' | 'Riskrewardlong' | 'Riskrewardshort' | 'horizontal_line' | 'HorizontalLine' | 'HorizontalRay' | 'VerticalLine' | 'ActivePosition' | 'TradeBuilder';
+    shape: 'trend_line' | 'Fibonacci' | 'Riskrewardlong' | 'Riskrewardshort' | 'horizontal_line' | 'HorizontalLine' | 'HorizontalRay' | 'VerticalLine' | 'ActivePosition' | 'TradeBuilder';
     text?: string;
     lock?: boolean;
     disableSelection?: boolean;

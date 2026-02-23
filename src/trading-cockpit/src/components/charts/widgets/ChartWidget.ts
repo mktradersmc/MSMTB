@@ -14,7 +14,10 @@ import { ActivePositionTool, ActivePositionState } from '../ActivePositionTool';
 import { ActivePositionAdapter } from './adapters/ActivePositionAdapter';
 import { TradeBuilderPosition, TradeBuilderState } from '../TradeBuilderPosition';
 import { TradeBuilderAdapter } from './adapters/TradeBuilderAdapter';
-import { IChartApi, ISeriesApi, SeriesType } from 'lightweight-charts';
+import { FibonacciRetracement, FibonacciState, DEFAULT_FIB_LEVELS } from '../FibonacciRetracement';
+import { FibonacciAdapter } from './adapters/FibonacciAdapter';
+import { IChartApi, ISeriesApi, SeriesType, MouseEventParams } from 'lightweight-charts';
+import { MagnetService } from './MagnetService';
 
 export class ChartWidget implements IChartWidgetApi {
     private _chart: IChartApi;
@@ -37,6 +40,89 @@ export class ChartWidget implements IChartWidgetApi {
     }
 
     private _currentTimeframe: string = 'D1';
+
+    // --- Interactive Drawing State ---
+    private _drawingState: 'idle' | 'drawing_p2' = 'idle';
+    private _tempShapeId: EntityId | null = null;
+    private _tempShapeToolName: string | null = null;
+
+    public async handleChartClick(param: MouseEventParams, activeDrawingTool: string | null, onComplete: () => void) {
+        if (!param.point || !param.time) return;
+
+        const snapped = MagnetService.snap(
+            param.point.x,
+            param.point.y,
+            this._series,
+            this._data,
+            this._chart.timeScale(),
+            this._currentTimeframe
+        );
+
+        const price = snapped.snapped ? (snapped.anchor?.price ?? this._series.coordinateToPrice(param.point.y)) : this._series.coordinateToPrice(param.point.y);
+        const time = snapped.snapped ? (snapped.anchor?.time ?? param.time) : param.time;
+
+        if (price === null || price === undefined || time === null || time === undefined) return;
+
+        const timePoint: TimePoint = { time: time as number, price };
+
+        if (this._drawingState === 'idle') {
+            if (activeDrawingTool) {
+                if (['VerticalLine', 'HorizontalLine', 'HorizontalRay', 'Riskrewardlong', 'Riskrewardshort', 'TradeBuilder'].includes(activeDrawingTool)) {
+                    // Single click placement
+                    this.createShape(timePoint, { shape: activeDrawingTool as any });
+                    onComplete();
+                } else if (activeDrawingTool === 'Fibonacci' || activeDrawingTool === 'trend_line') {
+                    // Drag Mode for multi-point
+                    this._drawingState = 'drawing_p2';
+                    this._tempShapeToolName = activeDrawingTool;
+
+                    // Start drawing with both points at the same location
+                    const id = await this.createShape(timePoint, { shape: activeDrawingTool as any, disableSelection: true });
+                    this._tempShapeId = id;
+
+                    const shape = this._shapeManager.get(id);
+                    if (shape && typeof shape.setSelection === 'function') {
+                        shape.setSelection(true); // show handles immediately
+                    }
+                }
+            }
+        } else if (this._drawingState === 'drawing_p2') {
+            // Second click finalizes the drawing.
+            this._drawingState = 'idle';
+            this._tempShapeId = null;
+            this._tempShapeToolName = null;
+            onComplete(); // Reset the global active drawing tool
+        }
+    }
+
+    public handleCrosshairMove(param: MouseEventParams) {
+        if (this._drawingState === 'drawing_p2' && this._tempShapeId) {
+            if (!param.point || !param.time) return;
+
+            const snapped = MagnetService.snap(
+                param.point.x,
+                param.point.y,
+                this._series,
+                this._data,
+                this._chart.timeScale(),
+                this._currentTimeframe
+            );
+
+            const price = snapped.snapped ? (snapped.anchor?.price ?? this._series.coordinateToPrice(param.point.y)) : this._series.coordinateToPrice(param.point.y);
+            const time = snapped.snapped ? (snapped.anchor?.time ?? param.time) : param.time;
+
+            if (price === null || price === undefined || time === null || time === undefined) return;
+
+            const shape = this._shapeManager.get(this._tempShapeId);
+            if (shape && typeof shape.getPoints === 'function' && typeof shape.setPoints === 'function') {
+                const points = shape.getPoints();
+                if (points && points.length > 0) {
+                    // Keep anchor (P1), update dragging point (P2)
+                    shape.setPoints([points[0], { time: param.time as number, price }]);
+                }
+            }
+        }
+    }
 
     // --- Factory Method ---
     public async createShape(point: TimePoint, options: CreateShapeOptions & { restoreState?: any }): Promise<EntityId> {
@@ -227,6 +313,28 @@ export class ChartWidget implements IChartWidgetApi {
             const tool = new ActivePositionTool(initialState);
             shape = new ActivePositionAdapter(tool);
             primitive = tool;
+        } else if (options.shape === 'Fibonacci') {
+            // Instantiation via sidebar (single point click)
+            // Determine an offset for the second point so it's visible immediately
+            const p1 = { time: point.time as number, price: point.price };
+            // Simple offset for visibility (approx 1% price diff and some time offset)
+            const p2 = { time: (point.time as number) + 3600 * 4, price: point.price * 1.01 };
+
+            const initialState: FibonacciState = options.restoreState || {
+                p1,
+                p2,
+                levels: [...DEFAULT_FIB_LEVELS],
+                extendLeft: false,
+                extendRight: false,
+                reverse: false,
+                backgroundOpacity: 0.1,
+                showLabels: true,
+                trendLine: { color: '#787B86', visible: true, width: 1 }
+            };
+
+            const tool = new FibonacciRetracement(initialState);
+            shape = new FibonacciAdapter(tool);
+            primitive = tool;
         }
 
         if (shape && primitive) {
@@ -295,7 +403,7 @@ export class ChartWidget implements IChartWidgetApi {
     }
 
     // --- Multipoint ---
-    public async createMultipointShape(points: TimePoint[], options: CreateShapeOptions): Promise<EntityId> {
+    public async createMultipointShape(points: TimePoint[], options: CreateShapeOptions & { restoreState?: any }): Promise<EntityId> {
         let shape: IChartShape | null = null;
         let primitive: any = null;
 
@@ -312,6 +420,25 @@ export class ChartWidget implements IChartWidgetApi {
 
             const tool = new TrendLineTool(initialState);
             shape = new TrendLineAdapter(tool);
+            primitive = tool;
+        } else if (options.shape === 'Fibonacci') {
+            const p1 = points[0] || { time: 0, price: 0 };
+            const p2 = points[1] || { time: p1.time, price: p1.price };
+
+            const initialState: FibonacciState = options.restoreState || {
+                p1: { ...p1, time: p1.time as number },
+                p2: { ...p2, time: p2.time as number },
+                levels: [...DEFAULT_FIB_LEVELS],
+                extendLeft: false,
+                extendRight: false,
+                reverse: false,
+                backgroundOpacity: 0.1,
+                showLabels: true,
+                trendLine: { color: '#787B86', visible: true, width: 1 }
+            };
+
+            const tool = new FibonacciRetracement(initialState);
+            shape = new FibonacciAdapter(tool);
             primitive = tool;
         }
 
@@ -484,6 +611,25 @@ export class ChartWidget implements IChartWidgetApi {
                                 shape: s.type,
                                 restoreState: s.state,
                                 disableSelection: true // restore selection state? maybe
+                            });
+                        }
+                    } else if (s.type === 'Fibonacci') {
+                        if (s.state) {
+                            // Dummy points; the actual points are in the restored state
+                            const dummyPoints: TimePoint[] = [{ time: 0, price: 0 }, { time: 0, price: 0 }];
+                            this.createMultipointShape(dummyPoints, {
+                                shape: 'Fibonacci',
+                                restoreState: s.state,
+                                disableSelection: true
+                            });
+                        }
+                    } else if (s.type === 'trend_line') {
+                        if (s.state) {
+                            const dummyPoints: TimePoint[] = [{ time: 0, price: 0 }, { time: 0, price: 0 }];
+                            this.createMultipointShape(dummyPoints, {
+                                shape: 'trend_line',
+                                restoreState: s.state,
+                                disableSelection: true
                             });
                         }
                     } else {

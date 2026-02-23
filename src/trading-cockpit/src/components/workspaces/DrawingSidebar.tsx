@@ -4,8 +4,7 @@ import { useChartRegistryStore } from '../../stores/useChartRegistryStore';
 import { MagnetControl } from '../charts/MagnetControl';
 import {
     MousePointer2,
-    ChevronRight,
-    Star
+    ChevronRight
 } from 'lucide-react';
 
 /**
@@ -43,6 +42,17 @@ const TradeBuilderIcon = () => (
         <circle cx="20" cy="12" r="2" />
         <circle cx="20" cy="6" r="2" />
         <circle cx="20" cy="18" r="2" />
+    </svg>
+);
+
+const FibonacciIcon = () => (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="pointer-events-none">
+        <path d="M4 6h16" strokeLinecap="round" />
+        <path d="M4 12h16" strokeLinecap="round" />
+        <path d="M4 18h16" strokeLinecap="round" />
+        <path d="M6 18L18 6" strokeLinecap="round" />
+        <circle cx="6" cy="18" r="2" fill="currentColor" />
+        <circle cx="18" cy="6" r="2" fill="currentColor" />
     </svg>
 );
 
@@ -106,13 +116,16 @@ const LineToolsControl: React.FC<{ onSelectTool: (tool: string) => void }> = ({ 
         return <HorizontalLineIcon />;
     };
 
+    const { activeDrawingTool } = useWorkspaceStore();
+    const isActive = activeDrawingTool === selectedTool;
+
     return (
         <div className="relative flex flex-col items-center group w-full" ref={menuRef}>
             <div className="relative flex items-center justify-center w-full">
                 {/* Main Action Button */}
                 <button
                     onClick={handleMainClick}
-                    className={btnClass}
+                    className={isActive ? `${btnClass} bg-blue-50 dark:bg-blue-600/10 text-blue-600 dark:text-blue-400` : btnClass}
                     title="Linien-Werkzeuge"
                 >
                     {getIconForTool(selectedTool)}
@@ -150,7 +163,6 @@ const LineToolsControl: React.FC<{ onSelectTool: (tool: string) => void }> = ({ 
                             </div>
                             <div className="flex items-center gap-2">
                                 <span className="text-xs text-slate-400 dark:text-slate-500">Alt + H</span>
-                                <Star size={14} className={isActiveOption('HorizontalLine') ? "text-yellow-500 fill-yellow-500" : "text-slate-400 dark:text-slate-500"} />
                             </div>
                         </button>
 
@@ -165,7 +177,6 @@ const LineToolsControl: React.FC<{ onSelectTool: (tool: string) => void }> = ({ 
                             </div>
                             <div className="flex items-center gap-2">
                                 <span className="text-xs text-slate-400 dark:text-slate-500">Alt + J</span>
-                                <Star size={14} className={isActiveOption('HorizontalRay') ? "text-yellow-500 fill-yellow-500" : "text-slate-400 dark:text-slate-500"} />
                             </div>
                         </button>
 
@@ -180,7 +191,6 @@ const LineToolsControl: React.FC<{ onSelectTool: (tool: string) => void }> = ({ 
                             </div>
                             <div className="flex items-center gap-2">
                                 <span className="text-xs text-slate-400 dark:text-slate-500">Alt + V</span>
-                                <Star size={14} className={isActiveOption('VerticalLine') ? "text-yellow-500 fill-yellow-500" : "text-slate-400 dark:text-slate-500"} />
                             </div>
                         </button>
                     </div>
@@ -191,7 +201,7 @@ const LineToolsControl: React.FC<{ onSelectTool: (tool: string) => void }> = ({ 
 };
 
 const PredictionToolsControl: React.FC<{ onSelectTool: (tool: string) => void }> = ({ onSelectTool }) => {
-    const [selectedTool, setSelectedTool] = useState<'Long' | 'Short'>('Long');
+    const [selectedTool, setSelectedTool] = useState<'Long' | 'Short' | 'Fibonacci'>('Long');
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const menuRef = useRef<HTMLDivElement>(null);
 
@@ -210,7 +220,7 @@ const PredictionToolsControl: React.FC<{ onSelectTool: (tool: string) => void }>
         onSelectTool(selectedTool);
     };
 
-    const handleSelectOption = (tool: 'Long' | 'Short') => {
+    const handleSelectOption = (tool: 'Long' | 'Short' | 'Fibonacci') => {
         setSelectedTool(tool);
         onSelectTool(tool);
         setIsMenuOpen(false);
@@ -223,8 +233,16 @@ const PredictionToolsControl: React.FC<{ onSelectTool: (tool: string) => void }>
     const getIconForTool = (tool: string) => {
         if (tool === 'Long') return <LongPosIcon />;
         if (tool === 'Short') return <ShortPosIcon />;
+        if (tool === 'Fibonacci') return <FibonacciIcon />;
         return <LongPosIcon />;
     };
+
+    const { activeDrawingTool } = useWorkspaceStore();
+    // Map sidebar tool names to the activeDrawingTool types
+    const mappedSelectedTool = selectedTool === 'Long' ? 'Riskrewardlong' :
+        selectedTool === 'Short' ? 'Riskrewardshort' :
+            selectedTool === 'Fibonacci' ? 'Fibonacci' : '';
+    const isActive = activeDrawingTool === mappedSelectedTool;
 
     return (
         <div className="relative flex flex-col items-center group w-full" ref={menuRef}>
@@ -232,7 +250,7 @@ const PredictionToolsControl: React.FC<{ onSelectTool: (tool: string) => void }>
                 {/* Main Action Button */}
                 <button
                     onClick={handleMainClick}
-                    className={btnClass}
+                    className={isActive ? `${btnClass} bg-blue-50 dark:bg-blue-600/10 text-blue-600 dark:text-blue-400` : btnClass}
                     title="Prognose-Werkzeuge"
                 >
                     {getIconForTool(selectedTool)}
@@ -268,9 +286,6 @@ const PredictionToolsControl: React.FC<{ onSelectTool: (tool: string) => void }>
                                 <span className="shrink-0"><LongPosIcon /></span>
                                 <span>Long Position</span>
                             </div>
-                            <div className="flex items-center gap-2">
-                                <Star size={14} className={isActiveOption('Long') ? "text-yellow-500 fill-yellow-500" : "text-slate-400 dark:text-slate-500"} />
-                            </div>
                         </button>
 
                         {/* Short Position */}
@@ -282,8 +297,16 @@ const PredictionToolsControl: React.FC<{ onSelectTool: (tool: string) => void }>
                                 <span className="shrink-0"><ShortPosIcon /></span>
                                 <span>Short Position</span>
                             </div>
-                            <div className="flex items-center gap-2">
-                                <Star size={14} className={isActiveOption('Short') ? "text-yellow-500 fill-yellow-500" : "text-slate-400 dark:text-slate-500"} />
+                        </button>
+
+                        {/* Fibonacci Retracement */}
+                        <button
+                            onClick={() => handleSelectOption('Fibonacci')}
+                            className={`w-full text-left px-3 py-2 text-sm flex items-center justify-between transition-colors ${isActiveOption('Fibonacci') ? 'bg-blue-50 dark:bg-blue-600/10 text-blue-600 dark:text-blue-400' : 'text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'}`}
+                        >
+                            <div className="flex items-center gap-3">
+                                <span className="shrink-0"><FibonacciIcon /></span>
+                                <span>Fibonacci Retracement</span>
                             </div>
                         </button>
                     </div>
@@ -294,106 +317,46 @@ const PredictionToolsControl: React.FC<{ onSelectTool: (tool: string) => void }>
 };
 
 export const DrawingSidebar: React.FC = () => {
-    const { activeWorkspaceId, workspaces } = useWorkspaceStore();
-    const { getChart } = useChartRegistryStore();
-
-    // Helper to execute command on active pane
-    const executeOnActiveChart = (callback: (widget: any, pane: any) => void) => {
-        const workspace = workspaces.find(w => w.id === activeWorkspaceId);
-        if (!workspace) return;
-
-        // Diagnostic: Check for multiple active panes
-        const activePanes = workspace.panes.filter(p => p.isActive);
-        if (activePanes.length > 1) {
-            console.warn(`[DrawingSidebar] CRITICAL: Multiple panes are active! IDs: ${activePanes.map(p => p.id).join(', ')}`);
-        }
-
-        const activePane = activePanes[0];
-        if (!activePane) {
-            alert("No active chart selected.");
-            return;
-        }
-
-        console.log(`[DrawingSidebar] Targeting Active Pane: ${activePane.id}`);
-
-        const chartHandle = getChart(activePane.id);
-        if (!chartHandle) {
-            console.error(`[DrawingSidebar] No handle found for pane ${activePane.id}`);
-            return;
-        }
-
-        const widget = chartHandle.getWidget();
-        if (widget) {
-            // Optional: Check if widget ID matches pane ID (requires updating ChartWidget)
-            if ((widget as any).id && (widget as any).id !== activePane.id) {
-                console.error(`[DrawingSidebar] ID MISMATCH! Pane: ${activePane.id}, Widget: ${(widget as any).id}`);
-            }
-            callback(widget, activePane);
-        } else {
-            console.error(`[DrawingSidebar] Handle found but getWidget() returned null for pane ${activePane.id}`);
-        }
-    };
+    const { activeDrawingTool, setActiveDrawingTool } = useWorkspaceStore();
 
     const handleToolClick = (toolName: string) => {
-        executeOnActiveChart((widget, pane) => {
-            const data = (widget as any)._data;
-            if (!data || data.length === 0) {
-                alert("No data available to place object.");
-                return;
-            }
+        if (toolName === 'Cursor') {
+            setActiveDrawingTool(null);
+            return;
+        }
 
-            const latest = data[data.length - 1];
-            if (!latest) return;
+        // Mapping
+        let shapeType = '';
+        if (toolName === 'HorizontalLine') shapeType = 'HorizontalLine';
+        if (toolName === 'HorizontalRay') shapeType = 'HorizontalRay';
+        if (toolName === 'VerticalLine') shapeType = 'VerticalLine';
+        if (toolName === 'Long') shapeType = 'Riskrewardlong';
+        if (toolName === 'Short') shapeType = 'Riskrewardshort';
+        if (toolName === 'TradeBuilder') shapeType = 'TradeBuilder';
+        if (toolName === 'Fibonacci') shapeType = 'Fibonacci';
 
-            const time = latest.time as number;
-            const price = latest.close as number;
-
-            // Mapping
-            let shapeType = '';
-            let overrides = {};
-
-            if (toolName === 'HorizontalLine') shapeType = 'HorizontalLine';
-            if (toolName === 'HorizontalRay') shapeType = 'HorizontalRay';
-            if (toolName === 'VerticalLine') shapeType = 'VerticalLine';
-            if (toolName === 'Long') shapeType = 'Riskrewardlong';
-            if (toolName === 'Short') shapeType = 'Riskrewardshort';
-            if (toolName === 'TradeBuilder') shapeType = 'TradeBuilder';
-
-            if (shapeType) {
-                widget.createShape(
-                    { time, price },
-                    { shape: shapeType, overrides, disableSelection: false }
-                );
-                console.log(`[DrawingSidebar] Created ${shapeType} at ${time}, ${price}`);
-            }
-        });
+        if (shapeType) {
+            setActiveDrawingTool(shapeType);
+        }
     };
 
     const btnClass = "p-2 rounded hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-100 transition-colors text-slate-500 dark:text-slate-400";
+    const activeBtnClass = `${btnClass} bg-blue-50 dark:bg-blue-600/10 text-blue-600 dark:text-blue-400`;
 
     return (
         <div className="flex flex-col items-center gap-4 py-4 w-12 border-r border-slate-200 dark:border-slate-700 relative z-[100] pointer-events-auto">
             {/* 1. Crosshair/Cursor */}
             <button
                 onClick={() => handleToolClick('Cursor')}
-                className={btnClass}
+                className={activeDrawingTool === null ? activeBtnClass : btnClass}
                 title="Crosshair"
             >
                 <MousePointer2 size={20} strokeWidth={1.5} className="pointer-events-none" />
             </button>
-
-            <div className="w-6 h-px bg-slate-200 dark:bg-slate-800" />
-
             {/* 2. Line Tools (Grouped) */}
             <LineToolsControl onSelectTool={handleToolClick} />
-
-            <div className="w-6 h-px bg-slate-200 dark:bg-slate-800" />
-
             {/* 3. Prediction Tools (Grouped) */}
             <PredictionToolsControl onSelectTool={handleToolClick} />
-
-            <div className="w-6 h-px bg-slate-200 dark:bg-slate-800" />
-
             {/* 4. Magnet */}
             <div className="w-full">
                 <MagnetControl side="right" />

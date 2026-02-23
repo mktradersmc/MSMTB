@@ -60,7 +60,7 @@ class TradeWorker extends AbstractWorker {
                 this.log(`[ConfigPush] ⚙️ Syncing Config to Bot: ${JSON.stringify(config)}`);
                 this.sendCommand('CMD_UPDATE_CONFIG', config);
             } else {
-                this.log(`[ConfigPush] ⚠️ No Config found for BotID '${this.botId}'. Checks: data/bot_configs.json`);
+                this.log(`[ConfigPush] ℹ️ No explicit config found in DB for BotID '${this.botId}'. Using defaults.`);
             }
         } catch (e) {
             this.error(`[ConfigPush] Failed: ${e.message}`);

@@ -1,57 +1,55 @@
 const fs = require('fs');
 const path = require('path');
+const db = require('./DatabaseService'); // Singleton DB
 
 const CONFIG_FILE = path.join(__dirname, '../../data/bot_configs.json');
+const BACKUP_FILE = path.join(__dirname, '../../data/bot_configs.json.bak');
 
 class BotConfigService {
     constructor() {
-        this.configs = {};
-        this.loadConfigs();
+        this.migrateJsonToDb();
     }
 
-    loadConfigs() {
+    migrateJsonToDb() {
         try {
             if (fs.existsSync(CONFIG_FILE)) {
-                this.configs = JSON.parse(fs.readFileSync(CONFIG_FILE, 'utf8'));
-            } else {
-                // Initialize directory if needed
-                const dir = path.dirname(CONFIG_FILE);
-                if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-                this.configs = {};
+                console.log("[BotConfigService] 🔧 Found legacy bot_configs.json. Migrating to database...");
+                const configs = JSON.parse(fs.readFileSync(CONFIG_FILE, 'utf8'));
+
+                let migratedCount = 0;
+                for (const botId of Object.keys(configs)) {
+                    // Only migrate if it's not empty and no config exists in DB yet
+                    if (Object.keys(configs[botId]).length > 0) {
+                        const existingDbConfig = db.getBotConfig(botId);
+                        if (Object.keys(existingDbConfig).length === 0) {
+                            db.saveBotConfig(botId, configs[botId]);
+                            migratedCount++;
+                        }
+                    }
+                }
+
+                fs.renameSync(CONFIG_FILE, BACKUP_FILE);
+                console.log(`[BotConfigService] ✅ Migrated ${migratedCount} bot configs to database. Backup created at: ${BACKUP_FILE}`);
             }
         } catch (e) {
-            console.error("[BotConfigService] Load Error:", e);
-            this.configs = {};
-        }
-    }
-
-    saveConfigs() {
-        try {
-            const dir = path.dirname(CONFIG_FILE);
-            if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-            fs.writeFileSync(CONFIG_FILE, JSON.stringify(this.configs, null, 4));
-        } catch (e) {
-            console.error("[BotConfigService] Save Error:", e);
+            console.error("[BotConfigService] Migration Error:", e);
         }
     }
 
     getConfig(botId) {
-        return this.configs[botId] || {};
+        return db.getBotConfig(botId);
     }
 
     setConfig(botId, config) {
         // Merge with existing config
-        this.configs[botId] = {
-            ...(this.configs[botId] || {}),
+        const existingConfig = db.getBotConfig(botId) || {};
+        const newConfig = {
+            ...existingConfig,
             ...config,
             lastUpdated: Date.now()
         };
-        this.saveConfigs();
-        return this.configs[botId];
-    }
-
-    getAllConfigs() {
-        return this.configs;
+        db.saveBotConfig(botId, newConfig);
+        return newConfig;
     }
 }
 

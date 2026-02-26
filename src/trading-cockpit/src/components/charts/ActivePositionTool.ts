@@ -160,6 +160,7 @@ export class ActivePositionTool extends InteractiveChartObject {
                 } else if (referenceEntryPrice && Math.abs(price - referenceEntryPrice) < 0.00001) {
                     isSlAtBe = true;
                 }
+
             }
 
             // Positioning Logic
@@ -186,9 +187,8 @@ export class ActivePositionTool extends InteractiveChartObject {
             ctx.stroke();
 
             const isPending = this._data.status === 'CREATED' || this._data.status === 'PENDING';
-            const showRightActionBlock = (type === 'entry' && isPending) ||
-                (type === 'tp' && !isPending) ||
-                (type === 'sl' && !isSlAtBe && !isPending);
+            // Entry 'X' only visible when Pending. SL/TP boxes always visible (but text hidden when pending).
+            const showRightActionBlock = (type === 'entry' && isPending) || type === 'tp' || (type === 'sl' && !isSlAtBe);
 
             // Subtract drag button from available content area
             const contentWidth = showRightActionBlock ? hWidth - this._closeBtnWidth : hWidth;
@@ -247,17 +247,20 @@ export class ActivePositionTool extends InteractiveChartObject {
 
             ctx.fillText(labelText, textX, hY + (hHeight / 2) + 1);
 
-            // 5. Right Area Text / Icon
+            // 5. Right Area Text / Icon (Hide text/icon but keep box if pending SL/TP, per user request)
             if (showRightActionBlock) {
-                const closeX = hX + contentWidth + (this._closeBtnWidth / 2);
-                const closeY = hY + (hHeight / 2);
-                ctx.fillStyle = '#FFFFFF';
-                if (type === 'tp' || type === 'entry') {
-                    ctx.font = 'bold 13px sans-serif';
-                    ctx.fillText('×', closeX, closeY + 1);
-                } else if (type === 'sl') {
-                    ctx.font = 'bold 10px sans-serif';
-                    ctx.fillText('BE', closeX, closeY + 1);
+                const showTextAndIcon = type === 'entry' || !isPending;
+                if (showTextAndIcon) {
+                    const closeX = hX + contentWidth + (this._closeBtnWidth / 2);
+                    const closeY = hY + (hHeight / 2);
+                    ctx.fillStyle = '#FFFFFF';
+                    if (type === 'tp' || type === 'entry') {
+                        ctx.font = 'bold 13px sans-serif';
+                        ctx.fillText('×', closeX, closeY + 1);
+                    } else if (type === 'sl') {
+                        ctx.font = 'bold 10px sans-serif';
+                        ctx.fillText('BE', closeX, closeY + 1);
+                    }
                 }
             }
         };
@@ -397,7 +400,9 @@ export class ActivePositionTool extends InteractiveChartObject {
         const checkHandleToggle = (handleY: number | null, prefix: string, isSlAtBe: boolean = false): PrimitiveHoveredItem | null => {
             if (handleY === null || isSlAtBe) return null; // No toggle if already at BE
 
+            // No interactions on Entry handle if the trade is running (box is hidden).
             if (prefix === 'entry' && !isPending) return null;
+            // No interactions on TP/SL handles if the trade is pending (boxes are empty).
             if ((prefix === 'tp' || prefix === 'sl') && isPending) return null;
 
             let hX = rightEdge - hWidth;

@@ -36,18 +36,15 @@ export class ActivePositionAdapter implements IChartShape {
     }
 
     public setProperties(props: Record<string, any>): void {
-        // Update logic if needed
-        const d = this._tool.getData();
-        if (props.entryPrice !== undefined) d.entryPrice = props.entryPrice;
-        if (props.initialEntry !== undefined) d.initialEntryPrice = props.initialEntry; // Map from React space
-        if (props.stopLossPrice !== undefined) d.stopLossPrice = props.stopLossPrice;
-        if (props.takeProfitPrice !== undefined) d.takeProfitPrice = props.takeProfitPrice;
-        if (props.direction !== undefined) d.direction = props.direction;
-        if (props.currentProfit !== undefined) d.currentProfit = props.currentProfit;
-        if (props.status !== undefined) d.status = props.status;
-        if (props.orderType !== undefined) d.orderType = props.orderType;
-        if (props.allSlAtBe !== undefined) d.allSlAtBe = props.allSlAtBe;
-        if (props.anySlAtBe !== undefined) d.anySlAtBe = props.anySlAtBe;
+        // Map any external adapter-specific keys to the internal state keys
+        const mappedProps = { ...props };
+        if (mappedProps.initialEntry !== undefined) {
+            mappedProps.initialEntryPrice = mappedProps.initialEntry;
+            delete mappedProps.initialEntry;
+        }
+
+        // Let the tool handle state merging and requestUpdate triggering
+        this._tool.setProperties(mappedProps);
     }
 
     public isSelectionEnabled(): boolean {

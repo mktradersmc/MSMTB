@@ -1,45 +1,32 @@
 const AbstractWorker = require('./AbstractWorker');
 const { parentPort } = require('worker_threads');
-const path = require('path');
-const Database = require('better-sqlite3');
+const db = require('../services/DatabaseService');
 
 class DatafeedWorker extends AbstractWorker {
     constructor() {
         super();
-        this.db = null;
-        this.initDB();
-    }
-
-    initDB() {
-        try {
-            const dbPath = process.env.DB_PATH || path.resolve(__dirname, '../../market_data.db');
-            this.db = new Database(dbPath);
-            this.db.pragma('journal_mode = WAL');
-            this.db.pragma('busy_timeout = 5000');
-            this.log("✅ DB Connected.");
-        } catch (e) {
-            this.error(`DB Init Failed: ${e.message}`);
-        }
+        this.db = db; // Use centralized DB service
     }
 
     async onBotConnected(info) {
         // 1. Resolve Broker ID (New Schema)
         let brokerId = this.botId;
         try {
-            // Use Raw DB because DatafeedWorker uses its own connection
-            const accountRow = this.db.prepare("SELECT broker_id FROM accounts WHERE bot_id = ? LIMIT 1").get(this.botId);
+            const accountRow = this.db.marketDb.prepare("SELECT broker_id FROM accounts WHERE bot_id = ? LIMIT 1").get(this.botId);
             if (accountRow && accountRow.broker_id) brokerId = accountRow.broker_id;
         } catch (e) {
             this.error(`[DatafeedWorker] Failed to resolve BrokerID for ${this.botId}: ${e.message}`);
         }
 
         // 2. Check Broker Symbols (using BrokerID)
-        const row = this.db.prepare("SELECT symbols FROM broker_symbols WHERE broker_id = ?").get(brokerId);
-
         let symbols = [];
-        if (row && row.symbols) {
-            try { symbols = JSON.parse(row.symbols); } catch (e) { }
-        }
+        let row = null;
+        try {
+            row = this.db.marketDb.prepare("SELECT symbols FROM broker_symbols WHERE broker_id = ?").get(brokerId);
+            if (row && row.symbols) {
+                symbols = JSON.parse(row.symbols);
+            }
+        } catch (e) { }
 
         if (!row || symbols.length === 0) {
             this.log(`[DatafeedWorker] 🆕 New/Empty Broker '${brokerId}' (Bot: ${this.botId}). Requesting Symbols via RPC...`);
@@ -108,7 +95,7 @@ class DatafeedWorker extends AbstractWorker {
         // Resolve BrokerID if not passed (e.g. from Legacy Command)
         if (!brokerId) {
             try {
-                const accountRow = this.db.prepare("SELECT broker_id FROM accounts WHERE bot_id = ? LIMIT 1").get(this.botId);
+                const accountRow = this.db.marketDb.prepare("SELECT broker_id FROM accounts WHERE bot_id = ? LIMIT 1").get(this.botId);
                 brokerId = accountRow ? accountRow.broker_id : this.botId;
             } catch (e) { brokerId = this.botId; }
         }
@@ -120,16 +107,8 @@ class DatafeedWorker extends AbstractWorker {
             return;
         }
 
-        // Save to broker_symbols (Key: broker_id)
-        const now = Date.now();
-
         try {
-            const stmt = this.db.prepare(`
-                INSERT OR REPLACE INTO broker_symbols (broker_id, symbols, updated_at)
-                VALUES (?, ?, ?)
-            `);
-
-            stmt.run(brokerId, JSON.stringify(symbols), now);
+            this.db.saveBrokerSymbols(brokerId, symbols);
             this._log(`[DatafeedWorker] 💾 Saved ${symbols.length} symbols.`);
 
             // Now triggering Config Push since we have symbols!
@@ -154,7 +133,7 @@ class DatafeedWorker extends AbstractWorker {
             const botId = this.botId;
 
             // Fetch configured symbols from `config` table
-            const row = this.db.prepare("SELECT value FROM config WHERE key = 'selected_symbols'").get();
+            const row = this.db.marketDb.prepare("SELECT value FROM config WHERE key = 'selected_symbols'").get();
             let allConfigured = [];
             if (row && row.value) {
                 try { allConfigured = JSON.parse(row.value); } catch (e) { }

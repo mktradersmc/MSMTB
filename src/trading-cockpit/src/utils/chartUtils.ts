@@ -34,10 +34,15 @@ export const generatePhantomBars = (lastRealTime: number, basePrice: number, tim
     // Optimization: Use fixed limit (200) instead of infinite (10000) to prevent "Zoom to 2026" issue.
     const limit = minCount;
 
+    const safePrice = Number(basePrice);
+    if (isNaN(safePrice) || basePrice === null || basePrice === undefined) {
+        return [];
+    }
+
     let currentTime = lastRealTime;
     for (let i = 0; i < limit; i++) {
         currentTime += interval;
-        phantoms.push({ time: currentTime, value: basePrice });
+        phantoms.push({ time: currentTime, value: safePrice });
     }
 
     return phantoms;

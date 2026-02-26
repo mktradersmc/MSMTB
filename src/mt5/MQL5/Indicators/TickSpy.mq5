@@ -20,12 +20,12 @@
 class CCommandSubscribe : public CBaseCommand {
    CTickSpyService* s; public: CCommandSubscribe(CTickSpyService* _s){s=_s;}
    virtual string Name() { return "CMD_SUBSCRIBE_TICKS"; }
-   virtual bool Execute(CJAVal *p, CJAVal &r) { s.ProcessSubscribeCommand(p, true); r["status"]="OK"; return true; }
+   virtual bool Execute(CJAVal *p, CJAVal &r) { s.ProcessSubscribeCommand(p, true, r); return true; }
 };
 class CCommandUnsubscribe : public CBaseCommand {
    CTickSpyService* s; public: CCommandUnsubscribe(CTickSpyService* _s){s=_s;}
    virtual string Name() { return "CMD_UNSUBSCRIBE_TICKS"; }
-   virtual bool Execute(CJAVal *p, CJAVal &r) { s.ProcessSubscribeCommand(p, false); r["status"]="OK"; return true; }
+   virtual bool Execute(CJAVal *p, CJAVal &r) { s.ProcessSubscribeCommand(p, false, r); return true; }
 };
 class CCommandStartSynchronizedUpdate : public CBaseCommand {
    CTickSpyService* s; public: CCommandStartSynchronizedUpdate(CTickSpyService* _s){s=_s;}

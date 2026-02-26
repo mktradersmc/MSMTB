@@ -130,73 +130,83 @@ else {
     $wshell.SendKeys("{ESC}")
     Start-Sleep -Milliseconds 200
 
-    # 2. Find Fields via UIA Search
-    Log "Searching for input fields..."
+    $windowName = $windowElement.Current.Name
+    Log "Main Window Title: '$windowName'"
 
-    # FIX: Use correct syntax for ControlTypeProperty
-    $condEdit = New-Object System.Windows.Automation.PropertyCondition([System.Windows.Automation.AutomationElement]::ControlTypeProperty, [System.Windows.Automation.ControlType]::Edit)
-    $editsCollection = $windowElement.FindAll([System.Windows.Automation.TreeScope]::Descendants, $condEdit)
-    $editsList = @()
-    foreach ($e in $editsCollection) { $editsList += $e }
+    # STRICT CHECK: Only inject if this is the main NinjaTrader authentication window
+    # NinjaTrader 8 Login window is historically called "Log In", "Anmelden", "Welcome", or "Willkommen!"
+    if ($windowName -match "Log In" -or $windowName -match "Anmelden" -or $windowName -match "Welcome" -or $windowName -match "Willkommen") {
+        # 2. Find Fields via UIA Search
+        Log "Searching for input fields..."
 
-    Log "Found $($editsList.Count) Edit controls."
-
-    # Start Sorting Logic
-    if ($editsList.Count -ge 2) {
-        # Sort by Top (Y coordinate)
-        $sortedEdits = $editsList | Sort-Object { $_.Current.BoundingRectangle.Top }
-        
-        # Assume Top is User, Second is Pass
-        $userEdit = $sortedEdits[0]
-        $passEdit = $sortedEdits[1]
-        
-        Log "Identified Top Field as Username."
-        Log "Identified 2nd Field as Password."
-        
-        # 3. Perform Actions
-        $username = Escape-SendKeys $env:NT8_USER
-        $password = Escape-SendKeys $env:NT8_PASS
-
-        if ($userEdit) {
-            Click-Element $userEdit "Username Field"
-            
-            Log "Clearing & Typing Username..."
-            for ($k = 0; $k -lt 30; $k++) { $wshell.SendKeys("{BACKSPACE}") }
-            $wshell.SendKeys($username)
-        }
-
-        if ($passEdit) {
-            Click-Element $passEdit "Password Field"
-            
-            Log "Clearing & Typing Password..."
-            for ($k = 0; $k -lt 30; $k++) { $wshell.SendKeys("{BACKSPACE}") }
-            $wshell.SendKeys($password)
-        }
-
-        # Login Button?
-        Log "Searching for Login Button..."
         # FIX: Use correct syntax for ControlTypeProperty
-        $condBtn = New-Object System.Windows.Automation.PropertyCondition([System.Windows.Automation.AutomationElement]::ControlTypeProperty, [System.Windows.Automation.ControlType]::Button)
-        $btns = $windowElement.FindAll([System.Windows.Automation.TreeScope]::Descendants, $condBtn)
+        $condEdit = New-Object System.Windows.Automation.PropertyCondition([System.Windows.Automation.AutomationElement]::ControlTypeProperty, [System.Windows.Automation.ControlType]::Edit)
+        $editsCollection = $windowElement.FindAll([System.Windows.Automation.TreeScope]::Descendants, $condEdit)
+        $editsList = @()
+        foreach ($e in $editsCollection) { $editsList += $e }
 
-        $clickedLogin = $false
-        foreach ($b in $btns) {
-            $name = $b.Current.Name
-            if ($name -match "Log In" -or $name -match "Anmelden" -or $name -match "Connect") {
-                Click-Element $b "Login Button ($name)"
-                $clickedLogin = $true
-                break
+        Log "Found $($editsList.Count) Edit controls."
+
+        # Start Sorting Logic
+        if ($editsList.Count -ge 2) {
+            # Sort by Top (Y coordinate)
+            $sortedEdits = $editsList | Sort-Object { $_.Current.BoundingRectangle.Top }
+            
+            # Assume Top is User, Second is Pass
+            $userEdit = $sortedEdits[0]
+            $passEdit = $sortedEdits[1]
+            
+            Log "Identified Top Field as Username."
+            Log "Identified 2nd Field as Password."
+            
+            # 3. Perform Actions
+            $username = Escape-SendKeys $env:NT8_USER
+            $password = Escape-SendKeys $env:NT8_PASS
+
+            if ($userEdit) {
+                Click-Element $userEdit "Username Field"
+                
+                Log "Clearing & Typing Username..."
+                for ($k = 0; $k -lt 30; $k++) { $wshell.SendKeys("{BACKSPACE}") }
+                $wshell.SendKeys($username)
+            }
+
+            if ($passEdit) {
+                Click-Element $passEdit "Password Field"
+                
+                Log "Clearing & Typing Password..."
+                for ($k = 0; $k -lt 30; $k++) { $wshell.SendKeys("{BACKSPACE}") }
+                $wshell.SendKeys($password)
+            }
+
+            # Login Button?
+            Log "Searching for Login Button..."
+            # FIX: Use correct syntax for ControlTypeProperty
+            $condBtn = New-Object System.Windows.Automation.PropertyCondition([System.Windows.Automation.AutomationElement]::ControlTypeProperty, [System.Windows.Automation.ControlType]::Button)
+            $btns = $windowElement.FindAll([System.Windows.Automation.TreeScope]::Descendants, $condBtn)
+
+            $clickedLogin = $false
+            foreach ($b in $btns) {
+                $name = $b.Current.Name
+                if ($name -match "Log In" -or $name -match "Anmelden" -or $name -match "Connect") {
+                    Click-Element $b "Login Button ($name)"
+                    $clickedLogin = $true
+                    break
+                }
+            }
+
+            # Fallback Enter
+            if (-not $clickedLogin) {
+                Log "Sending ENTER..."
+                $wshell.SendKeys("{ENTER}")
             }
         }
-
-        # Fallback Enter
-        if (-not $clickedLogin) {
-            Log "Sending ENTER..."
-            $wshell.SendKeys("{ENTER}")
+        else {
+            Log "Less than 2 edits found. Cannot safely inject credentials."
         }
     }
     else {
-        Log "Less than 2 edits found. Already logged in or different screen? Skipping Credential Injection."
+        Log "Title '$windowName' is not the main login screen. Skipping credential injection to prevent accidental lockouts."
     }
 }
 

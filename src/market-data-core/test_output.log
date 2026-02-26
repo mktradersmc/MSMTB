@@ -1,0 +1,36 @@
+﻿[LogService] ­ƒôØ Redirecting High-Frequency Logs to: C:\Users\Michael\IdeaProjects\MSMTB\src\market-data-core\logs\traffic.log
+[AssetMapping] Loaded 11 mappings.
+[WebSocketManager] ­ƒåò Instance Created: 56rzq7
+[SystemOrchestrator] ­ƒåò Creating FRESH Instance(v1772013467960)
+[SystemOrchestrator] ­ƒÅù´©Å CONSTRUCTOR CALLED (Instance ady87)
+[SystemOrchestrator:ady87] Loaded state: 0 available, 11 configured.
+[Sync] ­ƒøæ Global Provisioning DISABLED. Waiting for TickSpy...
+[SyncManager] ­ƒÄø´©Å Loaded Features: {
+  "ENABLE_STARTUP_SANITY_CHECK": false,
+  "ENABLE_PERIODIC_SANITY_CHECK": true,
+  "ENABLE_REGISTRATION_SANITY_CHECK": false,
+  "ENABLE_CONSISTENCY_SCHEDULER": false,
+  "ENABLE_DEEP_HISTORY_SYNC": true,
+  "ENABLE_TICK_LOGGING": false,
+  "ENABLE_BAR_DATA_LOGGING": false,
+  "ENABLE_INDICATOR_LOGGING": false,
+  "ENABLE_DETAILED_PROTOCOL_LOGGING": false
+}
+[SystemOrchestrator] ­ƒöä Refreshing Available Symbols (Direct DB Fetch)...
+[SystemOrchestrator] ­ƒöä Refreshed Available Symbols. Total Count: 1802
+[Sync] Ô£¿ Enriched 11 symbols with Asset Mapping Data.
+[Sync] ­ƒù║´©Å Rebuilt Symbol Maps: 3 bots, 22 reverse mappings.
+[SystemOrchestrator] ­ƒôé Starting System File Monitor...
+[SystemOrchestrator] ­ƒôé Starting System File Monitor...
+[TradeDist] Loaded Config from DB: 1 brokers configured.
+Starting market-data-core...
+[Gateway] WebSocket Server started on port 3000
+[Framework] One-Time Route Initialization...
+[Framework] Routes initialized (Empty - Protocol handled by UnifiedBotProtocol)
+[Index] Linking SocketServer to SystemOrchestrator... Has Method: function
+[Index] SystemOrchestrator Instance ID: ady87
+[SystemOrchestrator] Ô£à SocketServer Linked Successfully.
+[Index] Link Call Complete.
+[EconomicCalendar] ­ƒùô´©Å Starting Service...
+[EconomicCalendar] Proactive fetching next month: mar.2026
+MarketDataCore Services initialized.

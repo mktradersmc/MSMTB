@@ -104,7 +104,7 @@ class DatabaseService {
             );
             CREATE TABLE IF NOT EXISTS accounts (
                 id TEXT PRIMARY KEY, bot_id TEXT, broker_id TEXT, login TEXT, password TEXT, server TEXT,
-                account_type TEXT, is_test INTEGER, status TEXT, pid INTEGER, instance_path TEXT,
+                account_type TEXT, is_test INTEGER, instance_path TEXT,
                 is_datafeed INTEGER, platform TEXT, timezone TEXT, balance REAL, account_size REAL, created_at INTEGER
             );
             CREATE TABLE IF NOT EXISTS distribution_configs (
@@ -188,16 +188,15 @@ class DatabaseService {
                 console.log("[DB] Migrating Accounts from JSON...");
                 const accounts = this._loadJson(ACCOUNTS_FILE);
                 const insert = this.marketDb.prepare(`
-                    INSERT INTO accounts (id, bot_id, broker_id, login, password, server, account_type, is_test, status, pid, instance_path, is_datafeed, platform, timezone, balance, account_size, created_at)
-                    VALUES (@id, @botId, @brokerId, @login, @password, @server, @accountType, @isTest, @status, @pid, @instancePath, @isDatafeed, @platform, @timezone, @balance, @accountSize, @createdAt)
+                    INSERT INTO accounts (id, bot_id, broker_id, login, password, server, account_type, is_test, instance_path, is_datafeed, platform, timezone, balance, account_size, created_at)
+                    VALUES (@id, @botId, @brokerId, @login, @password, @server, @accountType, @isTest, @instancePath, @isDatafeed, @platform, @timezone, @balance, @accountSize, @createdAt)
                 `);
                 const insertMany = this.marketDb.transaction((list) => {
                     for (const a of list) insert.run({
                         id: a.id, botId: a.botId, brokerId: a.brokerId, login: a.login, password: a.password,
                         server: a.server, accountType: a.accountType, isTest: a.isTest ? 1 : 0,
-                        status: a.status, pid: a.pid, instancePath: a.instancePath,
-                        isDatafeed: a.isDatafeed ? 1 : 0, platform: a.platform, timezone: a.timezone,
-                        balance: a.balance || 0, accountSize: a.accountSize || null,
+                        instancePath: a.instancePath, isDatafeed: a.isDatafeed ? 1 : 0, platform: a.platform,
+                        timezone: a.timezone, balance: a.balance || 0, accountSize: a.accountSize || null,
                         createdAt: a.createdAt || Date.now()
                     });
                 });
@@ -388,12 +387,28 @@ class DatabaseService {
     // 1. BROKERS
     getBrokers() {
         const rows = this.marketDb.prepare("SELECT * FROM brokers").all();
-        return rows.map(r => ({
-            ...r,
-            servers: JSON.parse(r.servers || '[]'),
-            symbolMappings: JSON.parse(r.symbol_mappings || '{}'),
-            defaultSymbol: r.default_symbol
-        }));
+        const mappingsDb = this.getMappings(); // Inject actual DB state mappings
+
+        return rows.map(r => {
+            let symbolMappings = JSON.parse(r.symbol_mappings || '{}');
+
+            // Reconstruct symbol dict from the centralized asset_mappings table
+            mappingsDb.forEach(m => {
+                if (m.mappings && m.mappings[r.id]) {
+                    symbolMappings[m.originalSymbol] = m.mappings[r.id];
+                } else if (m.mappings && m.mappings[r.shorthand]) {
+                    // Fallback to shorthand if stored that way
+                    symbolMappings[m.originalSymbol] = m.mappings[r.shorthand];
+                }
+            });
+
+            return {
+                ...r,
+                servers: JSON.parse(r.servers || '[]'),
+                symbolMappings: symbolMappings,
+                defaultSymbol: r.default_symbol
+            };
+        });
     }
 
     saveBroker(b) {
@@ -428,7 +443,12 @@ class DatabaseService {
             brokerId: r.broker_id,
             accountType: r.account_type,
             instancePath: r.instance_path,
-            accountSize: r.account_size
+            accountSize: r.account_size,
+            platform: r.platform,
+            timezone: r.timezone,
+            // Fallbacks for transitional runtime where consumers expect these
+            status: 'STOPPED',
+            pid: 0
         }));
     }
 
@@ -437,16 +457,31 @@ class DatabaseService {
         if (!a.id) a.id = `gen_${Date.now()}`;
 
         try {
+            // Guard against zeroing out existing balance if this is just a status update
+            let finalBalance = a.balance !== undefined ? a.balance : 0;
+            let finalAccountSize = a.accountSize || null;
+
+            if (finalBalance === 0) {
+                const existing = this.marketDb.prepare("SELECT balance, account_size FROM accounts WHERE id = ? OR bot_id = ?").get(a.id, a.botId);
+                if (existing && existing.balance > 0) {
+                    finalBalance = existing.balance;
+                    finalAccountSize = existing.account_size;
+                }
+            } else if (finalBalance > 0 && !finalAccountSize) {
+                // Auto-calc account size cleanly if provided
+                finalAccountSize = Math.round(finalBalance / 1000) * 1000;
+            }
+
             const stmt = this.marketDb.prepare(`
-                INSERT OR REPLACE INTO accounts (id, bot_id, broker_id, login, password, server, account_type, is_test, status, pid, instance_path, is_datafeed, platform, timezone, balance, account_size, created_at)
-                VALUES (@id, @botId, @brokerId, @login, @password, @server, @accountType, @isTest, @status, @pid, @instancePath, @isDatafeed, @platform, @timezone, @balance, @accountSize, @createdAt)
+                INSERT OR REPLACE INTO accounts (id, bot_id, broker_id, login, password, server, account_type, is_test, instance_path, is_datafeed, platform, timezone, balance, account_size, created_at)
+                VALUES (@id, @botId, @brokerId, @login, @password, @server, @accountType, @isTest, @instancePath, @isDatafeed, @platform, @timezone, @balance, @accountSize, @createdAt)
             `);
 
             stmt.run({
-                id: a.id, botId: a.botId, brokerId: a.brokerId, login: a.login, password: a.password,
-                server: a.server, accountType: a.accountType, isTest: a.isTest ? 1 : 0,
-                status: a.status, pid: a.pid || 0, instancePath: a.instancePath,
-                isDatafeed: a.isDatafeed ? 1 : 0, platform: a.platform, timezone: a.timezone, balance: a.balance || 0, accountSize: a.accountSize || null,
+                id: a.id, botId: a.botId || null, brokerId: a.brokerId || null, login: a.login || '', password: a.password || '',
+                server: a.server || null, accountType: a.accountType || null, isTest: a.isTest ? 1 : 0,
+                instancePath: a.instancePath || null, isDatafeed: a.isDatafeed ? 1 : 0,
+                platform: a.platform || 'MT5', timezone: a.timezone || null, balance: finalBalance, accountSize: finalAccountSize,
                 createdAt: a.createdAt || Date.now()
             });
             return true;
@@ -1116,6 +1151,7 @@ class DatabaseService {
                     tp = COALESCE(?, tp), 
                     entry_price = COALESCE(?, entry_price), 
                     volume = COALESCE(?, volume), 
+                    status = CASE WHEN ? = 'PENDING' AND status IN ('CREATED', 'PENDING') THEN 'PENDING' WHEN status IN ('CREATED', 'PENDING') THEN 'RUNNING' ELSE status END,
                     updated_at = ?
                 WHERE bot_id = ? AND magic_number = ?
             `);
@@ -1136,6 +1172,7 @@ class DatabaseService {
                         p.tp !== undefined ? p.tp : null,
                         p.open !== undefined ? p.open : null,
                         p.vol !== undefined ? p.vol : null,
+                        p.customStatus || null,
                         now,
                         botId,
                         p.magic || parseInt(p.id) // Try to get numeric magic

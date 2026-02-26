@@ -133,7 +133,8 @@ class RpcCommandHelper extends EventEmitter {
             // Protocol says: status="ERROR" in payload implies rejection.
             const payload = msg.payload || msg.content || {}; // Access payload safely
 
-            if (payload.status === 'ERROR') {
+            // If payload is an array, it's definitely not an error object with a .status property
+            if (!Array.isArray(payload) && payload.status === 'ERROR') {
                 req.reject(new Error(payload.message || `RPC Error for ${req.command}`));
             } else {
                 req.resolve(payload);

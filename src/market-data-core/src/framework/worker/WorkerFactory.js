@@ -23,13 +23,13 @@ class WorkerFactory {
      * @param {string} routingKey - The Routing Key (BotId:Func:Symbol)
      * @returns {Worker} The instantiated Worker thread
      */
-    createWorker(botId, func, symbol, routingKey, features = {}) {
+    createWorker(botId, func, symbol, routingKey, features = {}, payload = {}, timezone = null) {
         if (!botId || !func || !symbol || !routingKey) {
             throw new Error(`[WorkerFactory] ❌ Missing required parameters: botId=${botId}, func=${func}, symbol=${symbol}, routingKey=${routingKey}`);
         }
 
         const scriptPath = this.resolveScriptPath(func);
-        const workerData = this.buildWorkerData(botId, func, symbol, routingKey, features);
+        const workerData = this.buildWorkerData(botId, func, symbol, routingKey, features, timezone);
 
         console.log(`[WorkerFactory] 🏭 Creating ${func} for ${routingKey} (Script: ${path.basename(scriptPath)})`);
 
@@ -66,14 +66,15 @@ class WorkerFactory {
         return path.join(this.baseDir, scriptName);
     }
 
-    buildWorkerData(botId, func, symbol, routingKey, features = {}) {
+    buildWorkerData(botId, func, symbol, routingKey, features = {}, timezone = null) {
         return {
             botId: botId,          // Strict: Logical ID
             func: func,            // Strict: Function Type
             symbol: symbol,        // Strict: Symbol or "ALL" (passed explicitly)
             routingKey: routingKey,// Strict: Routing Key for IPC
             connectionId: routingKey,// Compatibility: Legacy scripts might still use 'connectionId'
-            features: features     // Ingest Features (Task: Global Debug)
+            features: features,      // Ingest Features (Task: Global Debug)
+            timezone: timezone       // Strict: Ensure timezone is known inside the thread
         };
     }
 }

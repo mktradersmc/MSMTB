@@ -147,8 +147,11 @@ class SystemOrchestrator {
             try {
                 const tzService = require('./TimezoneNormalizationService');
                 // If handshake has timezone, use it. Otherwise use Config/Default.
-                // For now, we assume EET (FTMO etc) if not specified.
-                const tzSignature = data.timezone || "EET";
+                const provider = data.provider || (data.payload && data.payload.provider);
+                const platform = data.platform || (data.payload && data.payload.platform);
+                const isNT8 = provider === 'NinjaTrader' || provider === 'Apex' || platform === 'NT8' || data.id.startsWith('NT8') || data.id.startsWith('Apex');
+                const defaultTz = isNT8 ? "UTC" : "EET";
+                const tzSignature = data.timezone || defaultTz;
                 tzService.registerBotTimezone(data.id, tzSignature);
             } catch (e) {
                 console.error("[SysOrch] Failed to register timezone:", e);
@@ -186,56 +189,51 @@ class SystemOrchestrator {
     // --- HELPER METHODS ---
 
     startProcessMonitor() {
-        // Run every 10 seconds
+        // Run every 2 seconds for high-fidelity state tracking
+        this.activeProcesses = new Map(); // InstancePath Basename -> PID
         setInterval(() => {
             this.checkProcessLiveness();
-        }, 10000);
+        }, 2000);
     }
 
     checkProcessLiveness() {
-        // Only valid on Windows for now (tasklist)
         if (process.platform !== 'win32') return;
 
-        exec('tasklist /FI "IMAGENAME eq terminal64.exe" /FO CSV /NH', (err, stdout, stderr) => {
-            if (err) {
-                console.error(`[ProcessMonitor] Failed to run tasklist: ${err.message}`);
+        // Query both MT5 and NinjaTrader processes
+        const psCmd = `powershell -NoProfile -Command "Get-CimInstance Win32_Process -Filter \\"Name='terminal64.exe' OR Name='NinjaTrader.exe'\\" | Select-Object Name, ProcessId, CommandLine | ConvertTo-Json -Compress"`;
+
+        exec(psCmd, { timeout: 1500 }, (err, stdout) => {
+            if (err || !stdout.trim()) {
+                this.activeProcesses.clear();
                 return;
             }
 
-            // Parse CSV output
-            // Format: "terminal64.exe","1234","Console","1","50,000 K"
-            const lines = stdout.split('\r\n');
-            const runningPids = new Set();
-            lines.forEach(line => {
-                const parts = line.split(',');
-                if (parts.length >= 2) {
-                    const pidStr = parts[1].replace(/"/g, '');
-                    const pid = parseInt(pidStr, 10);
-                    if (!isNaN(pid)) runningPids.add(pid);
-                }
-            });
+            try {
+                const raw = JSON.parse(stdout.trim());
+                const processes = Array.isArray(raw) ? raw : [raw];
+                const currentActive = new Map();
 
-            // Compare against DB Records
-            const accounts = this.db.getAccounts();
-            let updates = 0;
+                for (const p of processes) {
+                    if (!p.ProcessId || !p.Name) continue;
 
-            accounts.forEach(acc => {
-                // If tracked as RUNNING with a PID
-                if (acc.status === 'RUNNING' && acc.pid > 0) {
-                    if (!runningPids.has(acc.pid)) {
-                        console.warn(`[ProcessMonitor] 💀 DEAD PROCESS DETECTED: ${acc.botId} (PID: ${acc.pid}) is NOT running.`);
+                    if (p.Name.toLowerCase() === 'ninjatrader.exe') {
+                        // For NinjaTrader, map by the fixed generic name since it usually runs natively 
+                        currentActive.set('NinjaTrader', parseInt(p.ProcessId, 10));
+                        continue;
+                    }
 
-                        // Force STOP
-                        acc.status = 'STOPPED';
-                        acc.pid = 0; // Clear it so frontend knows it's gone
-                        this.db.saveAccount(acc);
-                        updates++;
+                    if (!p.CommandLine) continue;
+                    const cmdLine = p.CommandLine.toString();
+                    const match = cmdLine.match(/([^\\]+)\\terminal64\.exe/i);
+                    if (match && match[1]) {
+                        currentActive.set(match[1], parseInt(p.ProcessId, 10));
                     }
                 }
-            });
 
-            if (updates > 0) {
-                console.log(`[ProcessMonitor] Cleaned up ${updates} dead processes.`);
+                this.activeProcesses = currentActive;
+            } catch (e) {
+                // Silently drop errors to avoid log spam, process check is ephemeral
+                this.activeProcesses.clear();
             }
         });
     }
@@ -376,57 +374,11 @@ class SystemOrchestrator {
 
     // TASK: Ensure DB reflects Reality
     resetAllBotStatuses() {
-        try {
-            const accounts = db.getAccounts();
-            let changed = false;
-            accounts.forEach(acc => {
-                // If it was marked RUNNING, but we just restarted, it's stale (unless confirmed otherwise).
-                // We set it to STOPPED. It will auto-switch to RUNNING when the bot reconnects.
-                // FIX: Also clear PID, otherwise SocketServer thinks it's running via PID check.
-                if (acc.status === 'RUNNING' || (acc.pid && acc.pid > 0)) {
-                    acc.status = 'STOPPED';
-                    acc.pid = 0; // Clear Stale PID
-                    db.saveAccount(acc);
-                    changed = true;
-                    console.log(`[Sync] 🛑 Startup Cleanup: Mark ${acc.botId} as STOPPED (PID Cleared).`);
-                }
-            });
-            if (changed) console.log(`[Sync] 🧹 Startup: Reset Stale Bot Statuses complete.`);
-        } catch (e) {
-            console.error(`[Sync] Startup Status Reset Failed:`, e);
-        }
+        // No-Op: Status is now ephemeral and handled by real-time OS polling.
     }
 
     updateBotDbStatus(botId, status) {
-        if (!botId) return;
-        try {
-            const accounts = db.getAccounts();
-            const acc = accounts.find(a => a.botId === botId || a.id === botId);
-            if (acc) {
-                // Only update if changed
-                let shouldSave = false;
-                if (acc.status !== status) {
-                    acc.status = status;
-                    shouldSave = true;
-                }
-
-                // If STOPPED, ensure PID is cleared
-                if (status === 'STOPPED' && acc.pid !== 0) {
-                    acc.pid = 0;
-                    shouldSave = true;
-                }
-
-                if (shouldSave) {
-                    // Also update Connection Status implicitly?
-                    // Frontend uses 'brokerConnectionStatus' derived from 'botStatus' RAM.
-                    // 'status' is OS Process State.
-                    db.saveAccount(acc);
-                    console.log(`[Sync] 📝 DB Update: ${botId} -> ${status} (PID: ${acc.pid})`);
-                }
-            }
-        } catch (e) {
-            console.error(`[Sync] DB Status Update Failed for ${botId}:`, e);
-        }
+        // No-Op: Status is now ephemeral and handled by real-time OS polling.
     }
 
     setSocketServer(socketServer) {
@@ -480,82 +432,6 @@ class SystemOrchestrator {
             });
         }
     }
-
-    handleBotRegister(routingKey, payload) {
-        // payload: { id, func, symbol, ... }
-        // FIX: Extract ID from routingKey or payload
-        const id = payload.id || routingKey.split(':')[0];
-        const func = payload.func || 'UNKNOWN';
-        const symbol = payload.symbol || 'ALL';
-
-        console.log(`[SystemOrchestrator] 📝 Bot Register: ${routingKey} (Func: ${func})`);
-
-        // --- AUTO-DISCOVERY (NinjaTrader 8) ---
-        if (func === 'TRADING' && payload.provider) {
-            console.log(`[SystemOrchestrator] 🆕 Auto-Discovering NT8 Account: ${payload.accountName} (${payload.provider})`);
-
-            const accountData = {
-                id: id,
-                name: payload.accountName,
-                brokerId: payload.provider,
-                platform: 'NT8',
-                type: payload.accountType,
-                login: payload.accountName,
-                currency: 'USD',
-                leverage: 1,
-                balance: 0,
-                equity: 0,
-                isTest: payload.accountType === 'SIMULATION',
-                isConnected: true,
-                status: 'RUNNING',
-                pid: 0 // Bridge managed
-            };
-
-            this.db.saveAccount(accountData);
-        }
-
-        // 1. Update In-Memory Status
-        this.botStatus[routingKey] = {
-            id,
-            routingKey,
-            function: func,
-            symbol,
-            connected: true, // Mark as Connected
-            lastSeen: Date.now(),
-            type: func // Store Type (TICK_SPY, TRADE, etc.)
-        };
-
-        // 2. Persist to DB (Debounced?)
-        // We only persist 'RUNNING' state for the BotID (Account).
-        // Individual connections are ephemeral.
-        this.updateBotDbStatus(id, 'RUNNING');
-
-        // 3. Trigger Handshakes / Re-Sync
-        if (func === 'DATAFEED') {
-            // ... existing datafeed logic ...
-            this.sendConfigHandshake(id);
-        }
-        else if (func === 'TICK_SPY') {
-            // NEW: Broadcast "ONLINE" status for this symbol
-            this.refreshSymbolDatafeedStatus(symbol);
-        }
-        else if (func === 'DISCOVERY') {
-            console.log(`[SystemOrchestrator] 🔍 Discovery Bot Registered: ${id}. Spawning Worker...`);
-            // Worker spawning happens below naturally using 'func'
-        }
-
-        // 4. Resolve Promises (if any were waiting for this bot)
-        // ...
-
-        // Check/Spawn Worker
-        if (!this.workers.has(routingKey)) {
-            console.log(`[SystemOrchestrator] 🏭 Spawning Worker for ${routingKey}...`);
-            this.spawnWorker(routingKey, id, func, symbol);
-        } else {
-            // ... Worker exists logic
-        }
-    }
-
 
 
     // --- Datafeed Symbol Aggregation ---
@@ -928,12 +804,12 @@ class SystemOrchestrator {
     }
 
     // --- GENERIC WORKER SPAWNING ---
-    spawnWorker(routingKey, botId, func, symbol, payload = {}) {
+    spawnWorker(routingKey, botId, func, symbol, payload = {}, timezone = null) {
         if (this.workers.has(routingKey)) return;
 
         try {
             // Delegate to Factory. If func is unknown, Factory throws (we catch).
-            const worker = workerFactory.createWorker(botId, func, symbol, routingKey, this.features, payload);
+            const worker = workerFactory.createWorker(botId, func, symbol, routingKey, this.features, payload, timezone);
 
             // METADATA ATTACHMENT (Vital for getWorkerForBot lookups)
             worker.botId = botId;
@@ -1013,6 +889,15 @@ class SystemOrchestrator {
 
         if (rawTimezone) {
             tzService.registerBotTimezone(id, rawTimezone);
+        } else {
+            // Apply platform default if missing
+            const provider = data.provider || (payload && payload.provider);
+            const platform = data.platform || (payload && payload.platform);
+            const isNT8 = provider === 'NinjaTrader' || provider === 'Apex' || platform === 'NT8' || id.startsWith('NT8') || id.startsWith('Apex');
+
+            if (isNT8) {
+                tzService.registerBotTimezone(id, "UTC");
+            }
         }
 
         this.botStatus[key].timezone = tzService.getBotZone(id);
@@ -1036,14 +921,15 @@ class SystemOrchestrator {
 
         // 3. Worker Management
         if (!this.workers.has(key)) {
-            this.spawnWorker(key, id, func, symbol);
+            this.spawnWorker(key, id, func, symbol, payload, this.botStatus[key].timezone);
         } else {
             console.log(`[SystemOrchestrator] ♻️ Re-Connection for existing Worker ${key}`);
             const worker = this.workers.get(key);
             if (worker) {
                 worker.postMessage({
                     type: 'CMD_BOT_CONNECTED',
-                    botId: id, func, symbol
+                    botId: id, func, symbol,
+                    timezone: this.botStatus[key].timezone
                 });
             }
         }
@@ -1107,7 +993,7 @@ class SystemOrchestrator {
         // payload: { account: {...}, expert: {...} }
         // Broadcast to Frontend
         if (this.socketServer && this.socketServer.io) {
-            this.socketServer.io.emit('STATUS_UPDATE', {
+            this.socketServer.io.emit('EV_ACCOUNT_STATUS_UPDATE', {
                 botId: botId,
                 account: payload.account,
                 expert: payload.expert,
@@ -1325,32 +1211,33 @@ class SystemOrchestrator {
         if (routingKey) this.refreshBotHeartbeat(routingKey);
 
         if (msg.type === 'CMD_WORKER_READY') {
-            console.log(`[SymbolWorker:${symbol}] ✋ Worker Ready.Handshaking... (CID = ${connectionId})`);
+            console.log(`[Worker:${symbol}] ✋ Worker Ready.Handshaking... (CID = ${connectionId})`);
             if (this.workers.has(routingKey)) {
                 this.workers.get(routingKey).postMessage({
                     type: 'CMD_BOT_CONNECTED',
                     botId: msg.botId || `TickSpy_${symbol}`, // Ensure valid ID
                     func: 'TICK_SPY', // <--- CRITICAL: Enables Protocol Adapter
                     connectionId: connectionId,
-                    routingKey: routingKey
+                    routingKey: routingKey,
+                    timezone: this.botStatus[routingKey] ? this.botStatus[routingKey].timezone : null
                 });
-                console.log(`[SymbolWorker:${symbol}] 🤝 Handshake Sent(TICK_SPY)`);
+                console.log(`[Worker:${symbol}] 🤝 Handshake Sent(TICK_SPY)`);
             }
             return;
         }
         else if (msg.type === 'LOG') {
             // User Request: Remove internal ConnectionID. Use RoutingKey or Symbol.
-            // Format: [SymbolWorker:RoutingKey] Message
+            // Format: [Worker:RoutingKey] Message
             const id = routingKey || symbol;
             const text = msg.content || msg.msg; // Fallback for legacy
             const ts = msg.timestamp || '';
-            console.log(`[SymbolWorker:${id}] ${ts} ${text}`);
+            console.log(`[Worker:${id}] ${ts} ${text}`);
         }
         else if (msg.type === 'ERROR') {
             const id = routingKey || symbol;
             const text = msg.content || msg.msg;
             const ts = msg.timestamp || '';
-            console.error(`[SymbolWorker:${id}] ${ts} 🚨 ${text}`);
+            console.error(`[Worker:${id}] ${ts} 🚨 ${text}`);
         }
         else if (msg.type === 'EV_BAR_CLOSED' || msg.type === 'EV_BAR_UPDATE') {
             const payload = msg.payload || msg.content || msg;
@@ -1428,21 +1315,31 @@ class SystemOrchestrator {
 
             if (accounts && Array.isArray(accounts)) {
                 let updated = 0;
+
+                // Cache accounts to avoid querying inside loop if possible, but fine for small arrays
+                const existingAccounts = this.db.getAccounts() || [];
+
                 accounts.forEach(acc => {
-                    const accountData = {
-                        id: acc.name,
-                        name: acc.name,
-                        brokerId: acc.provider || 'NinjaTrader',
-                        platform: 'NT8',
-                        type: acc.isTest ? 'SIMULATION' : 'LIVE',
-                        login: acc.name,
-                        isTest: !!acc.isTest,
-                        isConnected: true,
-                        status: 'RUNNING',
-                        pid: 0
-                    };
-                    this.db.saveAccount(accountData);
-                    updated++;
+                    const existing = existingAccounts.find(a => a.id === acc.name || a.botId === acc.name);
+
+                    if (!existing) {
+                        console.log(`[SystemOrchestrator] 🆕 Auto-Discovering NEW Account from Worker: ${acc.name}`);
+                        const accountData = {
+                            id: acc.name, // Will be overridden by DB with UUID, but serves as fallback
+                            botId: acc.name,
+                            name: acc.name,
+                            brokerId: acc.provider || 'NinjaTrader',
+                            platform: 'NT8',
+                            accountType: acc.isTest ? 'SIMULATION' : 'LIVE',
+                            login: acc.name,
+                            isTest: !!acc.isTest,
+                            isDatafeed: false,
+                            status: 'STOPPED', // DB requires STOPPED, runtime status is handled by SocketServer mapping
+                            pid: 0
+                        };
+                        this.db.saveAccount(accountData);
+                        updated++;
+                    }
                 });
 
                 const worker = this.workers.get(routingKey);
@@ -1768,14 +1665,18 @@ class SystemOrchestrator {
         if (closedTrades.length === 0) return;
 
         if (this.botStatus[botId] && this.botStatus[botId].openTrades) {
-            const closedIds = new Set(closedTrades.map(t => (t.id || t.magic || '').toString()));
+            const closedIdsArr = closedTrades.map(t => (t.id || t.magic || '').toString());
+            const closedIds = new Set(closedIdsArr);
             this.botStatus[botId].openTrades = this.botStatus[botId].openTrades.filter(
                 p => !closedIds.has((p.id || p.magic || '').toString())
             );
-        }
 
-        if (this.socketServer && this.socketServer.io) {
-            this.socketServer.io.emit('trades_update_signal', { botId, event: 'closed' });
+            if (this.socketServer && this.socketServer.io) {
+                this.socketServer.io.emit('trades_update_signal', { botId, event: 'closed', closedIds: closedIdsArr });
+            }
+        } else if (this.socketServer && this.socketServer.io) {
+            const closedIdsArr = closedTrades.map(t => (t.id || t.magic || '').toString());
+            this.socketServer.io.emit('trades_update_signal', { botId, event: 'closed', closedIds: closedIdsArr });
         }
     }
 
@@ -2169,61 +2070,63 @@ class SystemOrchestrator {
     requestAvailableSymbols(targetBotId = null) {
         console.log(`[PROCESS] START Request Available Symbols. Target: ${targetBotId || 'ALL'}`);
         const start = Date.now();
-
-        // OPTIMIZATION: Check DB first. If we have symbols, rely on them to avoid startup storm.
         const assetMappingService = require('./AssetMappingService');
 
-        // Dynamically Resolve Bots from Status Map
-        const botsToQuery = [];
+        // Dynamically Resolve Bots (Online and Offline)
+        const botsToQuery = new Set();
 
         if (targetBotId) {
-            // TARGETED REQUEST
-            if (this.botStatus[targetBotId]) {
-                botsToQuery.push(targetBotId);
-            } else {
-                console.warn(`[Sync] ⚠️ Request Symbols for Unknown Bot: ${targetBotId}`);
-            }
+            botsToQuery.add(targetBotId);
         } else {
-            // BROADCAST: Find all DATAFEED or TRADING bots in Status Map
+            // Get ALL accounts to include offline ones
+            const accounts = this.db.getAccounts();
+            accounts.forEach(acc => {
+                if (acc.accountType === 'DATAFEED' || acc.isDatafeed) {
+                    // Normalize the ID similar to how UI gets it
+                    botsToQuery.add(acc.botId);
+                }
+            });
+            // Also add any currently connected Datafeed/Trading bots just in case
             Object.values(this.botStatus).forEach(status => {
-                if ((status.function === 'DATAFEED' || status.function === 'TRADING') && status.connected) {
-                    // Use the ID from status, or the key if ID is missing
+                if ((status.function === 'DATAFEED' || status.function === 'TRADING')) {
                     const bId = status.id || status.botId;
-                    if (bId) botsToQuery.push(bId);
+                    if (bId) botsToQuery.add(bId);
                 }
             });
         }
 
-        if (botsToQuery.length === 0) {
-            // Fallback for empty state
-            console.log("[Sync] ℹ️ No active bots found for symbol discovery.");
+        if (botsToQuery.size === 0) {
+            console.log("[Sync] ℹ️ No active or configured bots found for symbol discovery.");
             return;
         }
 
         let requestCount = 0;
         botsToQuery.forEach(botId => {
-            // FIX 1: Offline Check (Existing)
-            // if (!this.isBotOnline(botId)) return; // Don't skip yet, check cache first.
+            // Check Database Cache First (Works for offline bots!)
+            let cachedSymbols = assetMappingService.getBrokerSymbols(botId);
 
-            // FIX 2: DB Cache Check (New)
-            // Always try to load from DB first.
-            const cachedSymbols = assetMappingService.getBrokerSymbols(botId);
-            if (cachedSymbols && cachedSymbols.length > 0) {
-                // Populate Memory Map from DB
-                // We reuse setAvailableSymbols logic but skip persistence (already in DB)
-                this.setAvailableSymbols(cachedSymbols, botId, true);
-                // console.log(`[Sync] 💾 Loaded ${ cachedSymbols.length } symbols from DB for ${ botId }`);
-                return; // SKIP Request
+            // Try resolving by BrokerID if botId returns empty (Schema Change fallback)
+            if (!cachedSymbols || cachedSymbols.length === 0) {
+                const acc = this.db.getAccounts().find(a => a.botId === botId);
+                if (acc && acc.brokerId) {
+                    cachedSymbols = assetMappingService.getBrokerSymbols(acc.brokerId);
+                }
             }
 
-            // Only request if NOT in DB
+            if (cachedSymbols && cachedSymbols.length > 0) {
+                // Populate Memory Map from DB
+                this.setAvailableSymbols(cachedSymbols, botId, true);
+                return; // SKIP RPC Request
+            }
+
+            // Only request via RPC if NOT in DB and bot is currently ONLINE
             if (this.isBotOnline(botId)) {
                 this.requestSymbolsForBot(botId);
                 requestCount++;
             }
         });
 
-        console.log(`[PROCESS] END Request Available Symbols(Sent ${requestCount} requests, Duration: ${Date.now() - start}ms)`);
+        console.log(`[PROCESS] END Request Available Symbols(Sent ${requestCount} RPC requests, Duration: ${Date.now() - start}ms)`);
     }
 
     async requestSymbolsForBot(botId) {
@@ -2319,7 +2222,10 @@ class SystemOrchestrator {
                 command: type,
                 request_id: requestId,
                 timestamp: timestamp,
-                source: "SystemOrchestrator"
+                source: "SystemOrchestrator",
+                botId: botId,
+                func: func,
+                symbol: symbol
             },
             payload: content || {}
         };
@@ -2604,9 +2510,9 @@ class SystemOrchestrator {
         }
     }
 
-    syncSubscriptions(targetBotIdRel = null, traceId = null, targetSymbol = null) {
+    syncSubscriptions(routingKey = null, traceId = null, targetSymbol = null) {
         // DIAGNOSTIC LOG
-        console.log(`[SyncManager] syncSubscriptions called.Active Subs: ${this.activeSubscriptions.size}.TargetBot: ${targetBotIdRel || 'ALL'} TargetSym: ${targetSymbol || 'ALL'} `);
+        console.log(`[SyncManager] syncSubscriptions called.Active Subs: ${this.activeSubscriptions.size}.TargetBot: ${routingKey || 'ALL'} TargetSym: ${targetSymbol || 'ALL'} `);
         console.log(`[SyncManager] Current Active Subscriptions: ${Array.from(this.activeSubscriptions.keys()).join(', ')} `);
 
         // 1. Gather Unique Subscriptions
@@ -2646,9 +2552,26 @@ class SystemOrchestrator {
 
         // 2. Process Subscriptions (DELEGATE TO WORKER)
         for (const [botId, items] of botSubsOriginal) {
-            if (targetBotIdRel && botId !== targetBotIdRel) continue;
-
             items.forEach(item => {
+                if (routingKey) {
+                    // Reconstruct the expected routing key for this subscription
+                    const expectedRoutingKey = `${botId}:TICK_SPY:${item.symbol}`;
+
+                    if (routingKey.includes(':')) {
+                        // Reconnect trigger is a full routing key (e.g., FTMO_1:TICK_SPY:EURUSD)
+                        if (routingKey.includes(':TICK_SPY:')) {
+                            // Strict match for TICK_SPY
+                            if (routingKey !== expectedRoutingKey) return;
+                        } else {
+                            // For DATAFEED or HISTORY (e.g., FTMO_1:DATAFEED:ALL), match base BotID
+                            if (botId !== routingKey.split(':')[0]) return;
+                        }
+                    } else {
+                        // Legacy basically botId match
+                        if (botId !== routingKey) return;
+                    }
+                }
+
                 // ARCHITECTURAL PURGE (Task 0125):
                 // Do NOT send CMD_SUBSCRIBE_TICKS to Bot.
                 // Delegate purely to Worker.

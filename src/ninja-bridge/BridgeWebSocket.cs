@@ -1,12 +1,14 @@
+#region Using declarations
 using System;
 using System.Net.WebSockets;
-using System.Collections.Generic;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using NinjaTrader.Cbi;
-using Newtonsoft.Json; // Uses NT8's bundled Newtonsoft or we need to check if available. NT8 has it.
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+#endregion
 
 namespace AwesomeCockpit.NT8.Bridge
 {
@@ -21,14 +23,18 @@ namespace AwesomeCockpit.NT8.Bridge
         // Components
         private SubscriptionManager _subscriptionManager;
         private DiscoveryService _discoveryService;
+        private ExecutionManager _executionManager;
 
         public BridgeWebSocket()
         {
+            NinjaTrader.Code.Output.Process($"[Bridge] Initializing Bridge Components...", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
             _subscriptionManager = new SubscriptionManager(this);
             _discoveryService = new DiscoveryService(this);
+            _executionManager = new ExecutionManager(this, _subscriptionManager);
+            NinjaTrader.Code.Output.Process($"[Bridge] Component Initialization Complete.", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
         }
 
-        public async void Connect(string url)
+        public void Connect(string url)
         {
             _cts = new CancellationTokenSource();
 
@@ -120,11 +126,11 @@ namespace AwesomeCockpit.NT8.Bridge
             }
         }
 
-        private async void PerformHandshake()
+        private void PerformHandshake()
         {
             // 1. Register DISCOVERY Bot (Strict)
             var payload = new { id = "NT8", func = "DISCOVERY", symbol = "ALL" };
-            Send("REGISTER", payload);
+            SendProtocolMessage("REGISTER", payload, "NT8", "DISCOVERY", "ALL");
             RegisterBot("NT8", "DISCOVERY", "ALL");
         }
 
@@ -147,39 +153,42 @@ namespace AwesomeCockpit.NT8.Bridge
                                 symbol = parts[2],
                                 timestamp = DateTime.UtcNow.Ticks
                             };
-                            Send("HEARTBEAT", hb);
+                            SendProtocolMessage("HEARTBEAT", hb, parts[0], parts[1], parts[2]);
                         }
                     }
                 }
             }
         }
 
-        public void SendWithType(string command, object symbolsList, string botId)
-        {
-            // Helper to wrap payload with botId for Masquerading
-            var wrapper = new
-            {
-                symbols = symbolsList,
-                botId = botId
-            };
-            Send(command, wrapper);
-        }
-
-        public async void Send(string command, object payload)
+        public async void SendProtocolMessage(string command, object payload, string botId, string func, string symbol = "ALL", string requestId = "")
         {
             if (_ws == null || _ws.State != WebSocketState.Open) return;
 
             try
             {
-                // Fix: Wrap everything in a standard envelope to handle Arrays (List<Account>) correctly.
-                // Previously JObject.FromObject(list) caused JArray casting errors when setting ["type"].
                 var envelope = new
                 {
-                    type = command,
+                    header = new
+                    {
+                        botId = botId,
+                        func = func,
+                        symbol = symbol,
+                        command = command,
+                        requestId = requestId,
+                        request_id = requestId
+                    },
                     payload = payload
                 };
 
                 var json = JsonConvert.SerializeObject(envelope);
+
+                // USER REQUEST: Log Outgoing JSONs - Disabled for noise reduction
+                // if (command != "HEARTBEAT" && command != "EV_BAR_UPDATE" && command != "EV_BAR_CLOSED")
+                // {
+                //     string logJson = json.Length > 500 ? json.Substring(0, 500) + "... [TRUNCATED]" : json;
+                //     NinjaTrader.Code.Output.Process($"AwesomeCockpit: TX -> {logJson}", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
+                // }
+
                 var buffer = Encoding.UTF8.GetBytes(json);
 
                 await _sendLock.WaitAsync();
@@ -216,6 +225,14 @@ namespace AwesomeCockpit.NT8.Bridge
                     }
 
                     var json = Encoding.UTF8.GetString(buffer, 0, result.Count);
+
+                    // USER REQUEST: Log Incoming JSONs - Disabled for noise reduction
+                    // if (!json.Contains("\"command\":\"HEARTBEAT\"") && !json.Contains("\"type\":\"HEARTBEAT\""))
+                    // {
+                    //     string logJson = json.Length > 500 ? json.Substring(0, 500) + "... [TRUNCATED]" : json;
+                    //     NinjaTrader.Code.Output.Process($"AwesomeCockpit: RX <- {logJson}", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
+                    // }
+
                     HandleMessage(json);
                 }
                 catch (Exception ex)
@@ -237,7 +254,6 @@ namespace AwesomeCockpit.NT8.Bridge
                 if (json.Contains("CMD_INIT"))
                 {
                     NinjaTrader.Code.Output.Process($"AwesomeCockpit: RAW RX: {json}", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
-                    Send("LOG", new { msg = $"[Bridge] RAW RX: {json}" });
                 }
 
                 var msg = JObject.Parse(json);
@@ -258,8 +274,6 @@ namespace AwesomeCockpit.NT8.Bridge
                         // Inject for consistency in following block (hacky but effective)
                         msg["command"] = cmd;
                         msg["content"] = content;
-
-                        Send("LOG", new { msg = $"[Bridge] Envelope Parsed. CMD: {cmd}" });
                     }
                 }
 
@@ -268,19 +282,16 @@ namespace AwesomeCockpit.NT8.Bridge
                 {
                     string cmd = msg["command"]?.ToString();
 
-                    Send("LOG", new { msg = $"[Bridge] Dispatching COMMAND: {cmd}" });
-
                     if (cmd == "CMD_INIT")
                     {
-                        Send("LOG", new { msg = $"[Bridge] Executing CMD_INIT handler (Delayed 15s)..." });
-                        NinjaTrader.Code.Output.Process($"AwesomeCockpit: Received CMD_INIT (Version: {msg["content"]?["version"]}). Waiting 15s for Connections...", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
+                        string requestId = msg["header"]?["requestId"]?.ToString() ?? msg["header"]?["request_id"]?.ToString() ?? "";
+                        NinjaTrader.Code.Output.Process($"AwesomeCockpit: Received CMD_INIT. Waiting 10s for Datafeeds to connect...", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
 
-                        // Fire-and-forget task to avoid blocking WS Loop
-                        System.Threading.Tasks.Task.Run(async () =>
+                        Task.Run(async () =>
                         {
-                            await System.Threading.Tasks.Task.Delay(15000);
-                            NinjaTrader.Code.Output.Process($"AwesomeCockpit: 15s Wait Over. Syncing Accounts...", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
-                            _discoveryService.SendAccounts();
+                            await Task.Delay(10000);
+                            NinjaTrader.Code.Output.Process($"AwesomeCockpit: 10s delay over. Syncing Accounts via RPC...", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
+                            _discoveryService.SendAccounts(requestId);
                         });
                     }
                     else if (cmd == "CMD_DB_SYNC_CONFIRMED") // Backend confirms DB Sync
@@ -293,15 +304,123 @@ namespace AwesomeCockpit.NT8.Bridge
                         NinjaTrader.Code.Output.Process($"AwesomeCockpit: Received CMD_ACCOUNTS_SYNCED. Registering Bots...", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
                         _discoveryService.RegisterAccountBots();
                     }
+                    else if (cmd == "CMD_CONFIG_SYMBOLS")
+                    {
+                        string requestId = msg["header"]?["requestId"]?.ToString() ?? msg["header"]?["request_id"]?.ToString() ?? "";
+                        string targetBotId = msg["header"]?["botId"]?.ToString() ?? msg["header"]?["bot_id"]?.ToString() ?? "";
+
+                        _discoveryService.AcknowledgeConfig(requestId, targetBotId);
+
+                        string directSymbol = msg["payload"]?["symbol"]?.ToString() ?? msg["payload"]?["name"]?.ToString();
+                        if (!string.IsNullOrEmpty(directSymbol))
+                        {
+                            NinjaTrader.Code.Output.Process($"AwesomeCockpit: Received CMD_CONFIG_SYMBOLS for direct symbol '{directSymbol}' targeted at '{targetBotId}'. Simulating Bot Registration...", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
+                            _discoveryService.RegisterVirtualBots(targetBotId, directSymbol);
+                        }
+
+                        if (msg["payload"]?["symbols"] != null)
+                        {
+                            var syms = msg["payload"]["symbols"] as Newtonsoft.Json.Linq.JArray;
+                            if (syms != null)
+                            {
+                                foreach (var sym in syms)
+                                {
+                                    string symName = sym["broker"]?.ToString() ?? sym["internal"]?.ToString() ?? sym["symbol"]?.ToString();
+                                    if (!string.IsNullOrEmpty(symName))
+                                    {
+                                        NinjaTrader.Code.Output.Process($"AwesomeCockpit: Received CMD_CONFIG_SYMBOLS for '{symName}' targeted at '{targetBotId}'. Simulating Bot Registration...", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
+                                        _discoveryService.RegisterVirtualBots(targetBotId, symName);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    else if (cmd == "CMD_START_SYNCHRONIZED_UPDATE")
+                    {
+                        string syncSymbol = msg["payload"]?["symbol"]?.ToString() ?? msg["symbol"]?.ToString();
+                        string tf = msg["payload"]?["timeframe"]?.ToString() ?? msg["timeframe"]?.ToString();
+                        string mode = msg["payload"]?["mode"]?.ToString() ?? msg["mode"]?.ToString();
+
+                        int count = 1000;
+                        if (msg["payload"]?["count"] != null) count = (int)msg["payload"]["count"];
+                        else if (msg["count"] != null) count = (int)msg["count"];
+
+                        long lastTime = 0;
+                        if (msg["payload"]?["lastTime"] != null) lastTime = (long)msg["payload"]["lastTime"];
+                        else if (msg["lastTime"] != null) lastTime = (long)msg["lastTime"];
+
+                        string reqId = msg["header"]?["requestId"]?.ToString() ?? msg["header"]?["request_id"]?.ToString() ?? "";
+                        string targetBotId = msg["header"]?["botId"]?.ToString() ?? msg["header"]?["bot_id"]?.ToString() ?? "NT8";
+                        string func = msg["header"]?["func"]?.ToString() ?? "HISTORY";
+
+                        _subscriptionManager.StartSynchronizedUpdate(syncSymbol, tf, mode, count, lastTime, reqId, targetBotId, func);
+                    }
+                    else if (cmd == "CMD_FETCH_HISTORY")
+                    {
+                        string syncSymbol = msg["payload"]?["symbol"]?.ToString() ?? msg["symbol"]?.ToString();
+                        string tf = msg["payload"]?["timeframe"]?.ToString() ?? msg["timeframe"]?.ToString();
+                        string mode = msg["payload"]?["mode"]?.ToString() ?? msg["mode"]?.ToString() ?? "FETCH";
+
+                        int count = 1000;
+                        if (msg["payload"]?["count"] != null) count = (int)msg["payload"]["count"];
+                        else if (msg["count"] != null) count = (int)msg["count"];
+
+                        long lastTime = 0;
+                        // Frontend and HistoryWorker specify 'startTime' or 'from' which is our upper boundary going backwards.
+                        if (msg["payload"]?["startTime"] != null) lastTime = (long)msg["payload"]["startTime"];
+                        else if (msg["startTime"] != null) lastTime = (long)msg["startTime"];
+                        else if (msg["payload"]?["from"] != null) lastTime = (long)msg["payload"]["from"];
+                        else if (msg["from"] != null) lastTime = (long)msg["from"];
+
+                        string reqId = msg["header"]?["requestId"]?.ToString() ?? msg["header"]?["request_id"]?.ToString() ?? "";
+                        string targetBotId = msg["header"]?["botId"]?.ToString() ?? msg["header"]?["bot_id"]?.ToString() ?? "NT8";
+                        string func = msg["header"]?["func"]?.ToString() ?? "HISTORY";
+
+                        _subscriptionManager.StartSynchronizedUpdate(syncSymbol, tf, mode, count, lastTime, reqId, targetBotId, func);
+                    }
                     else if (cmd == "CMD_REQ_SYMBOLS")
                     {
+                        string requestId = msg["header"]?["requestId"]?.ToString() ?? msg["header"]?["request_id"]?.ToString() ?? "";
                         NinjaTrader.Code.Output.Process($"AwesomeCockpit: Received CMD_REQ_SYMBOLS. Scanning Instruments...", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
-                        _discoveryService.SendSymbols();
+                        _discoveryService.SendSymbols(requestId);
                     }
                     else if (cmd == "CMD_GET_SYMBOLS")
                     {
+                        string requestId = msg["header"]?["requestId"]?.ToString() ?? msg["header"]?["request_id"]?.ToString() ?? "";
                         NinjaTrader.Code.Output.Process($"AwesomeCockpit: Received CMD_GET_SYMBOLS. Scanning Instruments...", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
-                        _discoveryService.SendSymbols();
+                        _discoveryService.SendSymbols(requestId);
+                    }
+                    else if (cmd == "CMD_SUBSCRIBE_TICKS")
+                    {
+                        string subSymbol = msg["payload"]?["symbol"]?.ToString() ?? msg["symbol"]?.ToString();
+                        string tf = msg["payload"]?["timeframe"]?.ToString() ?? msg["timeframe"]?.ToString();
+                        string reqId = msg["header"]?["requestId"]?.ToString() ?? msg["header"]?["request_id"]?.ToString() ?? "";
+                        string targetBotId = msg["header"]?["botId"]?.ToString() ?? msg["header"]?["bot_id"]?.ToString() ?? "NT8";
+
+                        _subscriptionManager.SubscribeAndSendResponse(subSymbol, tf, reqId, targetBotId);
+                    }
+                    else if (cmd == "CMD_UNSUBSCRIBE_TICKS")
+                    {
+                        string subSymbol = msg["payload"]?["symbol"]?.ToString() ?? msg["symbol"]?.ToString();
+                        string tf = msg["payload"]?["timeframe"]?.ToString() ?? msg["timeframe"]?.ToString();
+                        string reqId = msg["header"]?["requestId"]?.ToString() ?? msg["header"]?["request_id"]?.ToString() ?? "";
+                        string targetBotId = msg["header"]?["botId"]?.ToString() ?? msg["header"]?["bot_id"]?.ToString() ?? "NT8";
+                        _subscriptionManager.Unsubscribe(subSymbol, tf);
+
+                        var responseObj = new { status = "OK", timeframe = tf };
+                        SendProtocolMessage("CMD_UNSUBSCRIBE_TICKS_RESPONSE", responseObj, targetBotId, "TICK_SPY", subSymbol, reqId);
+                    }
+                    else if (cmd == "CMD_GET_CURRENT_BAR")
+                    {
+                        string subSymbol = msg["payload"]?["symbol"]?.ToString() ?? msg["symbol"]?.ToString();
+                        string tf = msg["payload"]?["timeframe"]?.ToString() ?? msg["timeframe"]?.ToString();
+                        string reqId = msg["header"]?["requestId"]?.ToString() ?? msg["header"]?["request_id"]?.ToString() ?? "";
+                        string targetBotId = msg["header"]?["botId"]?.ToString() ?? msg["header"]?["bot_id"]?.ToString() ?? "NT8";
+                        _subscriptionManager.SendCurrentBar(subSymbol, tf, reqId, targetBotId);
+                    }
+                    else if (cmd == "CMD_EXECUTE_TRADE" || cmd == "CMD_MODIFY_POSITION" || cmd == "CMD_CLOSE_POSITION" || cmd == "CMD_ACK_TRADE")
+                    {
+                        _executionManager.ExecuteCommand(msg);
                     }
                 }
 
@@ -312,11 +431,9 @@ namespace AwesomeCockpit.NT8.Bridge
                         _discoveryService.SendSymbols();
                         break;
                     case "CMD_SUBSCRIBE_TICKS":
-                        string symbol = msg["symbol"]?.ToString();
-                        _subscriptionManager.Subscribe(symbol);
-                        break;
-                    case "EXECUTE_TRADE":
-                        // _executionManager.Execute(msg);
+                        string subSymbolLeg = msg["symbol"]?.ToString();
+                        string tfLeg = msg["timeframe"]?.ToString();
+                        _subscriptionManager.Subscribe(subSymbolLeg, tfLeg);
                         break;
                 }
             }

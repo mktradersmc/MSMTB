@@ -491,22 +491,28 @@ class SocketServer {
 
                 // Merge with Live Status from SyncManager
                 const merged = accounts.map(acc => {
+                    // MERGE REAL-TIME RUNTIME STATE
                     const status = systemOrchestrator.botStatus[acc.botId];
-                    const isConnected = !!(status?.account?.connected || (systemOrchestrator.botStatus[acc.botId] && systemOrchestrator.botStatus[acc.botId].connected));
+                    const isConnected = !!(status?.account?.connected || status?.connected);
 
-                    // LOGIC FIX: Trust DB 'RUNNING' status as primary source for "OS Process State"
-                    // Connection State is secondary. "Zombie" detection is handled by 'isAlive' in UI.
-                    // We must NOT require isConnected for 'RUNNING', otherwise Startup phase (Process Running, Socket Connecting) shows as STOPPED.
-                    const isRunningInOs = (acc.status === 'RUNNING' || (acc.pid && acc.pid > 0));
+                    // LAYER A: Truth from OS Process Loop (WMI Scanner in SystemOrchestrator)
+                    const path = require('path');
+                    const instanceFolder = acc.platform === 'NT8' ? 'NinjaTrader' : (acc.instancePath ? path.basename(acc.instancePath) : null);
+                    const activePid = (instanceFolder && systemOrchestrator.activeProcesses)
+                        ? systemOrchestrator.activeProcesses.get(instanceFolder)
+                        : null;
+
+                    const isRunningInOs = activePid !== null && activePid !== undefined;
 
                     return {
                         ...acc,
-                        status: isRunningInOs ? 'RUNNING' : 'STOPPED',
+                        status: isRunningInOs ? 'RUNNING' : 'STOPPED', // Reconstructed ephemeral status
+                        pid: activePid || 0,                           // Real-time OS PID
                         brokerConnectionStatus: isConnected ? 'CONNECTED' : 'DISCONNECTED',
                         balance: status?.account?.balance !== undefined ? status.account.balance : acc.balance,
                         equity: status?.account?.equity,
                         timezone: status?.timezone || acc.timezone,
-                        platform: acc.platform || status?.platform || 'MT5' // Fallback to Status or Default
+                        platform: acc.platform || status?.platform || 'MT5'
                     };
                 });
 
@@ -1626,24 +1632,6 @@ class SocketServer {
                         } else {
                             console.warn(`[SocketServer] ⚠️ SYMBOLS_LIST Dropped. Invalid Content or BotID.`);
                         }
-                    } else if (msgType === 'CMD_EXECUTION_RESULT' || msgType === 'CMD_EXECUTE_TRADE_RESPONSE' || msgType === 'CMD_MODIFY_POSITION_RESPONSE' || msgType === 'CMD_CLOSE_POSITION_RESPONSE') {
-                        // FIX: Handle Execution Result from Bot
-                        // Payload: { status, message, requested, executed, id }
-
-                        // DEBUG: Log RAW DATA
-                        console.log(`[SocketServer] 📥 RAW EXECUTION_RESULT:`, JSON.stringify(data, null, 2));
-
-                        // 1. Unwrap Transport Envelope
-                        const envelope = data.payload || data;
-
-                        // 2. Unwrap Message Body (TradingExpert wraps content in 'payload')
-                        // envelope has keys: payload, symbol, botId, timestamp
-                        const content = envelope.payload || envelope;
-
-                        const botId = envelope.botId || ws.botId;
-
-                        console.log(`[SocketServer] 📥 RX EXECUTION_RESULT from ${botId}: ${content.status}`);
-                        systemOrchestrator.handleExecutionResult(botId, content);
                     } else {
                         // ---------------------------------------------------------
                         // DELEGATE TO UNIFIED PROTOCOL (RPC Responses / New Commands)

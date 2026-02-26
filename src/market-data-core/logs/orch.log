@@ -1,0 +1,24 @@
+[LogService] 📝 Redirecting High-Frequency Logs to: C:\Users\Michael\IdeaProjects\MSMTB\src\market-data-core\logs\traffic.log
+[AssetMapping] Loaded 12 mappings.
+[WebSocketManager] 🆕 Instance Created: nfk3vn
+[SystemOrchestrator] 🆕 Creating FRESH Instance(v1772100134768)
+[SystemOrchestrator] 🏗️ CONSTRUCTOR CALLED (Instance 0y0no9)
+[SystemOrchestrator:0y0no9] Loaded state: 0 available, 12 configured.
+[Sync] 🛑 Global Provisioning DISABLED. Waiting for TickSpy...
+[SyncManager] 🎛️ Loaded Features: {
+  "ENABLE_STARTUP_SANITY_CHECK": false,
+  "ENABLE_PERIODIC_SANITY_CHECK": true,
+  "ENABLE_REGISTRATION_SANITY_CHECK": false,
+  "ENABLE_CONSISTENCY_SCHEDULER": false,
+  "ENABLE_DEEP_HISTORY_SYNC": true,
+  "ENABLE_TICK_LOGGING": false,
+  "ENABLE_BAR_DATA_LOGGING": false,
+  "ENABLE_INDICATOR_LOGGING": false,
+  "ENABLE_DETAILED_PROTOCOL_LOGGING": true
+}
+[SystemOrchestrator] 🔄 Refreshing Available Symbols (Direct DB Fetch)...
+[SystemOrchestrator] 🔄 Refreshed Available Symbols. Total Count: 1802
+[Sync] ✨ Enriched 12 symbols with Asset Mapping Data.
+[Sync] 🗺️ Rebuilt Symbol Maps: 3 bots, 24 reverse mappings.
+[SystemOrchestrator] 📂 Starting System File Monitor...
+[SystemOrchestrator] 📂 Starting System File Monitor...

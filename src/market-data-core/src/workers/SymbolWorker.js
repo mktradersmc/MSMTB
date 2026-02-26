@@ -91,12 +91,14 @@ class SymbolWorker extends AbstractWorker {
                 return;
             }
         }
-        const { timeframe, time, open, high, low, close, volume } = payload;
+        const { timeframe, candle } = payload;
 
-        if (!timeframe) {
-            console.log("[SymbolWorker] ❌ No timeframe in Bar Event payload");
+        if (!timeframe || !candle) {
+            console.log(`[SymbolWorker:${this.symbol}] ❌ No timeframe or candle in Bar Event payload: ${JSON.stringify(payload)}`);
             return; // Silent Guard
         }
+
+        const { time, open, high, low, close, volume } = candle;
 
         let timeMS = time;
         if (timeMS < 10000000000) {
@@ -104,7 +106,7 @@ class SymbolWorker extends AbstractWorker {
             timeMS = timeSec * 1000;
         }
 
-        const candle = {
+        const dbCandle = {
             time: timeMS,
             open: parseFloat(open),
             high: parseFloat(high),
@@ -131,7 +133,7 @@ class SymbolWorker extends AbstractWorker {
                 }
             }
             // 3. PERSIST (Only Closed)
-            this.saveCandle(timeframe, candle);
+            this.saveCandle(timeframe, dbCandle);
             this.updateStatus(timeframe, this.STATUS.READY);
             if (this.features && this.features.ENABLE_BAR_DATA_LOGGING) {
                 this.log(`[BarData] 💾 Saved COMPLETE ${timeframe} Bar: ${new Date(timeMS).toISOString()}`);
@@ -146,7 +148,7 @@ class SymbolWorker extends AbstractWorker {
             symbol: this.symbol,
             timeframe: timeframe,
             candle: {
-                ...candle
+                ...dbCandle
             },
             botId: this.botId // Identity Added (Fixes Routing Identity Error)
         });
@@ -498,7 +500,11 @@ class SymbolWorker extends AbstractWorker {
                 let maxTime = 0;
                 const dbCandles = data.map(c => {
                     let timeMS = c.time;
+                    // Note: NT8 already returns accurate UTC Milliseconds, unlike MT5 which returned Broker Seconds.
+                    // We removed the broker->UTC conversion here since it corrupted NT8 timestamps.
+
                     if (timeMS < 10000000000) {
+                        // Fallback ONLY for actual seconds (e.g. from an MT5 origin)
                         const timeSec = tzService.convertBrokerToUtc(this.botId || 'default', timeMS);
                         timeMS = timeSec * 1000;
                     }
@@ -541,26 +547,35 @@ class SymbolWorker extends AbstractWorker {
 
     async subscribe(timeframe) {
         this.log(`[Subscription] ➕ Subscribing to ${this.symbol} ${timeframe}`);
-        this.sendCommand('CMD_SUBSCRIBE_TICKS', {
-            symbol: this.symbol,
-            timeframe: timeframe
-        });
 
         try {
-            this.log(`[Subscription] ⏳ Fetching current forming bar for ${timeframe}...`);
-            const response = await this.sendRpc('CMD_GET_CURRENT_BAR', {
+            this.log(`[Subscription] ⏳ Sending SUBSCRIBE_TICKS and fetching current forming bar for ${timeframe}...`);
+            const response = await this.sendRpc('CMD_SUBSCRIBE_TICKS', {
                 symbol: this.symbol,
                 timeframe: timeframe
             }, 5000); // 5 sec timeout
 
-            if (response && response.status === 'OK' && response.content) {
-                this.log(`[Subscription] ✅ Current forming bar received for ${timeframe}`);
-                this.handleBarEvent({ content: response.content }, false);
+            if (response && response.status === 'OK') {
+                this.log(`[Subscription] ✅ Subscription successful for ${timeframe}`);
+
+                // Check if candle is included in response
+                if (response.candle) {
+                    this.log(`[Subscription] ✅ Current forming bar received via SUBSCRIBE for ${timeframe}`);
+                    this.handleBarEvent({
+                        content: {
+                            symbol: this.symbol,
+                            timeframe: timeframe,
+                            candle: response.candle
+                        }
+                    }, false);
+                } else {
+                    this.warn(`[Subscription] ⚠️ Subscription successful but no forming candle returned for ${timeframe}`);
+                }
             } else {
-                this.error(`⚠️ Failed to get current bar for ${timeframe}: ${response ? response.message : 'Unknown Error'}`);
+                this.error(`⚠️ Failed to subscribe and get forming bar for ${timeframe}: ${response ? response.message : 'Unknown Error'}`);
             }
         } catch (e) {
-            this.error(`⚠️ RPC Error getting current bar for ${timeframe}: ${e.message}`);
+            this.error(`⚠️ RPC Error subscribing to ${timeframe}: ${e.message}`);
         }
     }
 

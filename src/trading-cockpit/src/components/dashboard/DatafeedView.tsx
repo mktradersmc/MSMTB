@@ -1,20 +1,12 @@
 import React, { useEffect, useState, useMemo } from 'react';
-import { Database, RefreshCw, Save, CheckCircle2, AlertCircle, Trash2, AlertTriangle, Play, Square, RotateCw, Download, Plus, Clock, Edit2, Link, Link2, Search, Power, ArrowLeftRight } from 'lucide-react';
+import { Database, RefreshCw, Save, CheckCircle2, AlertCircle, Trash2, AlertTriangle, Play, Square, RotateCw, Download, Plus, Clock, Edit2, Link, Link2, Search, Power, ArrowLeftRight, Settings } from 'lucide-react';
 import { socketService } from '../../services/socket';
 import { AddAccountModal } from './AddAccountModal';
 import { DatafeedSelectionModal } from './DatafeedSelectionModal';
+import { NinjaTraderCredentialsModal } from './NinjaTraderCredentialsModal';
 import { fetchDirect, fetchSystem, API_URLS } from '../../lib/client-api';
 
-import { TradingAccount } from '@/lib/mt-manager/types';
-
-interface StatusData {
-    lastSeen: number;
-    timezone?: string;
-    account?: {
-        connected: boolean;
-        balance: number;
-    }
-}
+import { TradingAccount, StatusData } from '@/lib/mt-manager/types';
 
 interface SymbolItem {
     name: string;
@@ -52,6 +44,7 @@ export function DatafeedView() {
     // Modal State
     const [isSelectionOpen, setIsSelectionOpen] = useState(false);
     const [activeRowId, setActiveRowId] = useState<string | null>(null);
+    const [ntCredentialsAccount, setNtCredentialsAccount] = useState<TradingAccount | null>(null);
 
     const [hasChanges, setHasChanges] = useState(false);
 
@@ -391,6 +384,7 @@ export function DatafeedView() {
                                     serverTime={serverTime}
                                     loading={loadingAction === acc.id || isUpdating}
                                     onAction={handleAction}
+                                    onConfig={(account) => setNtCredentialsAccount(account)}
                                     brokerName={brokers.find(b => b.id === acc.brokerId)?.name || 'Unknown'}
                                     brokers={brokers}
                                 />
@@ -522,6 +516,14 @@ export function DatafeedView() {
                 />
             )}
 
+            {ntCredentialsAccount && (
+                <NinjaTraderCredentialsModal
+                    account={ntCredentialsAccount}
+                    onClose={() => setNtCredentialsAccount(null)}
+                    onSuccess={handleRefreshAll}
+                />
+            )}
+
             <DatafeedSelectionModal
                 isOpen={isSelectionOpen}
                 onClose={() => { setIsSelectionOpen(false); setActiveRowId(null); }}
@@ -623,23 +625,25 @@ const RestartControl = ({ scope, accounts, onAction }: { scope: 'TRADING' | 'DAT
     );
 };
 
-function CompactAccountCard({ acc, status, serverTime, loading, onAction, brokerName, brokers }: {
+function CompactAccountCard({ acc, status, serverTime, loading, onAction, onConfig, brokerName, brokers }: {
     acc: TradingAccount;
     status: StatusData;
     serverTime: number;
     loading: boolean;
     onAction: (id: string, action: 'START' | 'STOP' | 'RESTART' | 'DELETE') => void;
+    onConfig: (account: TradingAccount) => void;
     brokerName: string;
     brokers: BrokerInfo[];
 }) {
     // Status Logic matches AccountCard
     const lastSeen = status?.lastSeen || 0;
     const timeRef = serverTime || Date.now();
-    const isAlive = (timeRef - lastSeen) < 30000;
+    const isAlive = (timeRef - lastSeen) < 30000 && (status?.connected !== false);
 
     // For Datafeed, we care if the process is running and if the EA is reporting (Alive)
     // "Connected" means Broker Connection is OK
-    const isRunning = acc.status === 'RUNNING';
+    // UI correctly shows RUNNING if the actual backend worker is sending heartbeats, overriding a stale DB STOPPED state.
+    const isRunning = acc.status === 'RUNNING' || isAlive;
     const accOk = status ? !!status.account?.connected : (acc.brokerConnectionStatus === 'CONNECTED');
     // Extract Timezone short code (e.g. "New_York")
     const rawTz = acc.timezone;
@@ -652,17 +656,23 @@ function CompactAccountCard({ acc, status, serverTime, loading, onAction, broker
 
     const statusClass = getStatusBorder(isRunning, isBotConnected);
 
+    const isNt8 = acc.platform === 'NT8';
+    const ntMissingCreds = isNt8 && (!acc.login || !acc.password);
+
     return (
         <div className={`bg-white dark:bg-slate-900 border-l-4 rounded-r-lg p-3 relative overflow-hidden group transition-colors min-h-[88px] flex items-center justify-between ${statusClass} shadow-sm min-w-[280px]`}>
 
             {/* Left: Logo + Info */}
             <div className="flex items-center gap-3">
                 {/* Logo */}
-                <div className="opacity-90 shrink-0">
+                <div className="opacity-90 shrink-0 relative">
                     {acc.platform === 'NT8' ?
                         <img src={`/images/nt8_logo.png`} alt="NinjaTrader" className="w-8 h-8 object-contain" /> :
                         <img src={`/images/mt5_logo.png`} alt="MetaTrader 5" className="w-8 h-8 object-contain" />
                     }
+                    {ntMissingCreds && (
+                        <div className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full border border-white dark:border-slate-900" title="Missing Credentials"></div>
+                    )}
                 </div>
                 {/* Info Text */}
                 <div className="flex flex-col justify-center">
@@ -680,8 +690,18 @@ function CompactAccountCard({ acc, status, serverTime, loading, onAction, broker
 
             {/* Right: Actions */}
             <div className="flex items-center gap-1 opacity-60 group-hover:opacity-100 transition-opacity pl-2">
+                {isNt8 && (
+                    <button onClick={() => onConfig(acc)} className="p-1.5 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-500 rounded transition-colors" title="Settings">
+                        <Settings size={16} />
+                    </button>
+                )}
                 {!isRunning ? (
-                    <button onClick={() => onAction(acc.id, 'START')} className="p-1.5 hover:bg-emerald-500/20 text-emerald-500 rounded transition-colors" title="Start">
+                    <button
+                        onClick={() => onAction(acc.id, 'START')}
+                        disabled={ntMissingCreds}
+                        className={`p-1.5 rounded transition-colors ${ntMissingCreds ? 'text-slate-300 dark:text-slate-700 cursor-not-allowed' : 'hover:bg-emerald-500/20 text-emerald-500'}`}
+                        title={ntMissingCreds ? "Missing Credentials" : "Start"}
+                    >
                         <Play size={16} />
                     </button>
                 ) : (

@@ -50,9 +50,6 @@ class TradeWorker extends AbstractWorker {
 
     pushConfiguration() {
         try {
-            // Force Reload from Disk to get latest updates from API/UI
-            BotConfigService.loadConfigs();
-
             const config = BotConfigService.getConfig(this.botId);
 
             if (config && Object.keys(config).length > 0) {
@@ -90,7 +87,6 @@ class TradeWorker extends AbstractWorker {
                 break;
             case 'EV_ACCOUNT_STATUS_UPDATE': // WAS: CMD_REPORT_ACCOUNTS / STATUS_UPDATE
             case 'CMD_REPORT_ACCOUNTS': // Legacy Support
-            case 'STATUS_UPDATE':
                 this.handleAccountsReport(msg.content, msg.botId || msg.sender);
                 break;
             case 'CMD_LOCAL_EXECUTE_TRADE':
@@ -191,37 +187,68 @@ class TradeWorker extends AbstractWorker {
     }
 
     /**
-     * Handle Account Discovery Report
+     * Handle Account Discovery / Status Report
      */
     handleAccountsReport(content, botId) {
-        // content: { source, accounts: [] } or just accounts array
         // payload extraction handled by Protocol
 
-        const accounts = Array.isArray(content) ? content : (content.accounts || []);
+        // NinjaTrader `EV_ACCOUNT_STATUS_UPDATE` sends { account: {...}, expert: {...} }
+        // MT5 / Older Discovery sends { accounts: [...] } or [...]
+        let accounts = [];
+        if (Array.isArray(content)) {
+            accounts = content;
+        } else if (content.accounts && Array.isArray(content.accounts)) {
+            accounts = content.accounts;
+        } else if (content.account) {
+            // It's a single account live status update from NT8 / MT5 Strategy
+            accounts = [content.account];
+        }
+
         console.log(`[TradeWorker] 📥 Accounts Report from ${botId}: ${accounts.length} found.`);
 
         if (accounts.length > 0) {
             let updated = 0;
+            const now = Date.now();
             accounts.forEach(acc => {
-                // Normalize & Save
-                const accountData = {
-                    id: acc.name, // Strict: ID = Name for mapping
-                    name: acc.name,
-                    brokerId: acc.provider || 'NinjaTrader',
-                    platform: 'NT8', // or infer from Bot?
-                    type: acc.isTest ? 'SIMULATION' : 'LIVE',
-                    login: acc.name,
-                    isTest: !!acc.isTest,
-                    isConnected: true,
-                    status: 'RUNNING',
-                    pid: 0
-                };
-                this.db.saveAccount(accountData);
-                updated++;
+                // Determine name: NinjaTrader sends `login` as 12345 in the dummy object, we better use the botId if name is missing
+                // In EV_ACCOUNT_STATUS_UPDATE for NT8, the botId IS the account name (e.g. APEX123)
+                const accName = acc.name || (typeof acc.login === 'string' ? acc.login : botId);
+
+                // Normalizing balance/equity fields sent directly from EV_ACCOUNT_STATUS_UPDATE
+                const providedBalance = acc.balance !== undefined ? parseFloat(acc.balance) : 0;
+                const providedEquity = acc.equity !== undefined ? parseFloat(acc.equity) : providedBalance;
+
+                try {
+                    // Check if account already exists to avoid overwriting user-configured fields (like broker_id)
+                    const existing = this.db.marketDb.prepare("SELECT id FROM accounts WHERE id = ? OR bot_id = ?").get(accName, botId);
+
+                    if (existing) {
+                        // Only update balance if account exists
+                        this.db.saveAccountBalance(existing.id, providedBalance);
+                        updated++;
+                    } else {
+                        // Create new account with fallbacks
+                        const brokerIdFallback = acc.provider || 'NinjaTrader';
+                        const platformFallback = acc.platform || 'NT8';
+
+                        this.db.saveAccount({
+                            id: accName,
+                            botId: botId,
+                            brokerId: brokerIdFallback,
+                            login: acc.login || accName,
+                            accountType: acc.isTest ? 'SIMULATION' : (acc.accountType || 'Trading'),
+                            isTest: acc.isTest ? true : false,
+                            isDatafeed: acc.isDatafeed ? true : false,
+                            platform: platformFallback,
+                            balance: providedBalance
+                        });
+                        updated++;
+                    }
+                } catch (e) {
+                    console.error(`[TradeWorker] Failed to save/update account ${accName}:`, e.message);
+                }
             });
 
-            // Confirm to Bot (if it waits for it, NT8 adapter might)
-            this.sendCommand('CMD_DB_SYNC_CONFIRMED', { count: updated });
             this.log(`✅ Synced ${updated} accounts.`);
         }
     }

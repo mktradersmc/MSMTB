@@ -196,20 +196,65 @@ export async function checkProcessRunning(pid: number): Promise<boolean> {
                 } else {
                     console.warn(`[Process] tasklist error for PID ${pid}:`, error.message);
                 }
-                // Assiming running if check fails? Or not? 
-                // Safest to assume NOT running if we can't verify, implies zombie or system load.
-                // But specifically for SHUTDOWN check, we want to know if it IS running.
-                // Let's resolve false to avoid infinite loops in shutdownTerminal.
                 resolve(false);
                 return;
             }
             if (stdout.includes(pid.toString())) {
-                // console.log(`[Process] PID ${pid} is RUNNING.`);
                 resolve(true);
             } else {
-                // console.log(`[Process] PID ${pid} is NOT running.`);
                 resolve(false);
             }
+        });
+    });
+}
+
+/**
+ * NEW: Real-Time OS Process Fetcher (Truth Layer A)
+ * Scans Windows for all running terminal64.exe instances and extracts their 
+ * InstancePath from the CommandLine arguments.
+ * Returns a Map of { "FTMO_1" (basename) -> 12345 (PID) }
+ */
+export async function getAllRunningTerminals(): Promise<Map<string, number>> {
+    return new Promise((resolve) => {
+        // WMI query to get ProcessId and CommandLine for all terminal64.exe AND NinjaTrader.exe
+        const psCmd = `powershell -NoProfile -Command "Get-CimInstance Win32_Process -Filter \\"Name='terminal64.exe' OR Name='NinjaTrader.exe'\\" | Select-Object Name, ProcessId, CommandLine | ConvertTo-Json -Compress"`;
+
+        exec(psCmd, { timeout: 3000 }, (error, stdout) => {
+            const activeMap = new Map<string, number>();
+            if (error || !stdout.trim()) {
+                resolve(activeMap);
+                return;
+            }
+
+            try {
+                // powershell ConvertTo-Json might return a single object or an array
+                const raw = JSON.parse(stdout.trim());
+                const processes = Array.isArray(raw) ? raw : [raw];
+
+                for (const p of processes) {
+                    if (!p.ProcessId || !p.Name) continue;
+
+                    if (p.Name.toLowerCase() === 'ninjatrader.exe') {
+                        // For NinjaTrader, we might not have a distinct portable folder in CommandLine.
+                        // Assuming a single instance or matching by NT8 prefix logic if needed.
+                        // For now, mapping 'NinjaTrader' to the PID to support NT8 single-instance.
+                        activeMap.set('NinjaTrader', parseInt(p.ProcessId, 10));
+                        continue;
+                    }
+
+                    if (!p.CommandLine) continue;
+
+                    // Match the MT5 instance path from the command line (e.g., C:\Users\...\FTMO_1\terminal64.exe)
+                    const cmdLine = p.CommandLine.toString();
+                    const match = cmdLine.match(/([^\\]+)\\terminal64\.exe/i);
+                    if (match && match[1]) {
+                        activeMap.set(match[1], parseInt(p.ProcessId, 10));
+                    }
+                }
+            } catch (e) {
+                console.error("[Process] Failed to parse WMI output for terminals:", e);
+            }
+            resolve(activeMap);
         });
     });
 }

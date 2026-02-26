@@ -30,14 +30,20 @@ class NT8DiscoveryWorker extends AbstractWorker {
     /**
      * Triggered when the Bridge (NT8:DISCOVERY) connects.
      */
-    onBotConnected(info) {
+    async onBotConnected(info) {
         this._log(`[NT8DiscoveryWorker] 🟢 Bridge Connected. Sending Handshake (CMD_INIT)...`);
 
-        // 1. Send Handshake to Bridge
-        this.sendCommand('CMD_INIT', {
-            version: '2.0',
-            mode: 'STRICT_SYNC'
-        });
+        try {
+            // 1. Send Handshake to Bridge via RPC (NT8 Bridge waits 10 seconds artificially)
+            const response = await this.sendRpc('CMD_INIT', {
+                version: '2.0',
+                mode: 'STRICT_SYNC'
+            }, 30000);
+
+            this.handleReportAccounts(response);
+        } catch (e) {
+            this._error(`[NT8DiscoveryWorker] Handshake Failed or Timeout: ${e.message}`);
+        }
     }
 
     /**
@@ -60,22 +66,15 @@ class NT8DiscoveryWorker extends AbstractWorker {
         const now = Date.now();
 
         const insertBrokerStmt = this.db.prepare(`
-            INSERT OR IGNORE INTO brokers (id, name, type, api, environment, updated_at) 
-            VALUES (?, ?, ?, ?, ?, ?)
+            INSERT OR IGNORE INTO brokers (id, name, type, api, environment) 
+            VALUES (?, ?, ?, ?, ?)
         `);
 
-        // We use INSERT OR REPLACE for Accounts to update status
+        // The actual schema in DatabaseService: id, bot_id, broker_id, login, password, server, account_type, is_test, instance_path, is_datafeed, platform, timezone, balance, account_size, created_at
         const upsertAccountStmt = this.db.prepare(`
-            INSERT OR REPLACE INTO accounts (id, name, broker_id, platform, type, is_test, is_datafeed, status, updated_at, balance, equity, currency, leverage)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT OR REPLACE INTO accounts (id, bot_id, broker_id, login, password, server, account_type, is_test, instance_path, is_datafeed, platform, timezone, balance, account_size, created_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `);
-
-        // We need to preserve existing fields if possible? 
-        // INSERT OR REPLACE overwrites. 
-        // SystemOrchestrator logic tried to preserve.
-        // But Workers usually are authoritative for technical status.
-        // Let's stick to UPSERT logic (SQLite 3.24+ supports ON CONFLICT, strictly speaking 'better-sqlite3' acts as SQLite).
-        // Simple REPLACE is fine for Discovery.
 
         this.db.transaction(() => {
             accounts.forEach(acc => {
@@ -83,33 +82,47 @@ class NT8DiscoveryWorker extends AbstractWorker {
                     // 1. Broker Logic
                     let brokerId = 'NinjaTrader';
                     if (acc.provider && acc.provider !== 'Unknown') {
-                        // Check/Create Broker
-                        // Use Provider Name as ID for simplicity or sanitize
-                        const cleanProvider = acc.provider.replace(/[^a-zA-Z0-9]/g, '_');
-                        brokerId = cleanProvider;
+                        // 1. Try to find an existing broker by name (case-insensitive) to get the real UUID
+                        const existingBroker = this.db.prepare('SELECT id FROM brokers WHERE name = ? COLLATE NOCASE LIMIT 1').get(acc.provider);
 
-                        insertBrokerStmt.run(
-                            brokerId,
-                            acc.provider,
-                            'NinjaTrader',
-                            'Bridge',
-                            acc.isTest ? 'demo' : 'live',
-                            now
-                        );
+                        if (existingBroker) {
+                            brokerId = existingBroker.id;
+                        } else {
+                            // 2. Only if no broker exists, create a new simple fallback
+                            const cleanProvider = acc.provider.replace(/[^a-zA-Z0-9]/g, '_');
+                            brokerId = cleanProvider;
+
+                            insertBrokerStmt.run(
+                                brokerId,
+                                acc.provider,
+                                'NinjaTrader',
+                                'Bridge',
+                                acc.isTest ? 'demo' : 'live'
+                            );
+                        }
                     }
+
+                    // Parse provided balance and equity, calculating account_size dynamically
+                    const providedBalance = acc.balance !== undefined ? parseFloat(acc.balance) : 0;
+                    const accountSize = providedBalance > 0 ? (Math.round(providedBalance / 1000) * 1000) : 0;
 
                     // 2. Account Logic
                     upsertAccountStmt.run(
                         acc.name,           // id
-                        acc.name,           // name
+                        acc.name,           // bot_id
                         brokerId,           // broker_id
-                        'NT8',              // platform
-                        acc.accountType || 'Trading', // type
+                        acc.name,           // login
+                        '',                 // password
+                        'NinjaTrader',      // server
+                        acc.accountType || 'Trading', // account_type
                         acc.isTest ? 1 : 0, // is_test
-                        0,                  // is_datafeed (FORCE 0: User Req: Only TradingAccount)
-                        'RUNNING',          // status
-                        now,                // updated_at
-                        0, 0, 'USD', 1      // defaults
+                        '',                 // instance_path
+                        0,                  // is_datafeed
+                        'NT8',              // platform
+                        'UTC',              // timezone
+                        providedBalance,    // balance
+                        accountSize,        // account_size
+                        now                 // created_at
                     );
 
                     successCount++;
@@ -140,10 +153,9 @@ class NT8DiscoveryWorker extends AbstractWorker {
      */
     onCommand(msg) {
         switch (msg.command) {
-            case 'CMD_REPORT_ACCOUNTS': // From Bridge
-                this.handleReportAccounts(msg.content);
+            case 'CMD_REPORT_ACCOUNTS': // Legacy Push (No RPC)
+                this.handleReportAccounts(msg.content || msg.payload || msg);
                 break;
-
             default:
                 super.onCommand(msg); // Log unknown
                 break;

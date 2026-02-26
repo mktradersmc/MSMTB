@@ -2,7 +2,7 @@
 import { NextResponse } from 'next/server';
 import { getAccounts, saveAccount, deleteAccount, updateAccountStatus, getBrokers } from '@/lib/mt-manager/data';
 import { getInstancesRoot } from '@/lib/mt-manager/deployer';
-import { startTerminal, killTerminal, shutdownTerminal, checkProcessRunning, killTerminalByPath } from '@/lib/mt-manager/process';
+import { startTerminal, killTerminal, shutdownTerminal, checkProcessRunning, killTerminalByPath, getAllRunningTerminals } from '@/lib/mt-manager/process';
 import path from 'path';
 
 import fs from 'fs/promises';
@@ -38,29 +38,17 @@ export async function POST(req: Request, props: { params: Promise<{ id: string }
             }
         }
 
-        if (account.platform === 'NT8') {
-            console.log(`[ActionAPI] Handling NT8 Action: ${action} for ${id}`);
-
-            if (action === 'DELETE') {
-                // Fallthrough to deletion logic
-            } else if (action === 'STOP') {
-                await updateAccountStatus(id, 'STOPPED', 0);
-                return NextResponse.json({ success: true, status: 'STOPPED', message: "Marked as STOPPED (Bridge Managed)" });
-            } else if (action === 'START') {
-                await updateAccountStatus(id, 'RUNNING', 0);
-                return NextResponse.json({ success: true, status: 'RUNNING', message: "Marked as RUNNING (Waiting for Bridge)" });
-            } else if (action === 'RESTART') {
-                await updateAccountStatus(id, 'STOPPED', 0);
-                await new Promise(r => setTimeout(r, 1000));
-                await updateAccountStatus(id, 'RUNNING', 0);
-                return NextResponse.json({ success: true, status: 'RUNNING', message: "Cycle Complete (Bridge Managed)" });
-            } else {
-                return NextResponse.json({ error: "Action not supported for NinjaTrader" }, { status: 400 });
-            }
-        }
+        // Removed the global blocker for NT8. We will handle NT8 actions specifically below.
 
         if (action === 'STOP') {
-            if (account.pid) {
+            const activeMap = await getAllRunningTerminals();
+            let currentPid = 0;
+            if (instancePath) {
+                const folderName = path.basename(instancePath);
+                currentPid = activeMap.get(folderName) || 0;
+            }
+
+            if (currentPid) {
                 const brokers = await getBrokers();
                 const broker = brokers.find(b => b.id === account.brokerId);
                 let botId = broker ? `${broker.shorthand.replace(/\s+/g, '')}_${account.login}` : account.botId;
@@ -88,40 +76,88 @@ export async function POST(req: Request, props: { params: Promise<{ id: string }
                     }
                 }
 
-                if (await checkProcessRunning(account.pid)) {
-                    console.log(`[ActionAPI] Process ${account.pid} still running. Force killing...`);
-                    await shutdownTerminal(account.pid);
+                if (await checkProcessRunning(currentPid)) {
+                    console.log(`[ActionAPI] Process ${currentPid} still running. Force killing...`);
+                    await shutdownTerminal(currentPid);
                 } else {
-                    console.log(`[ActionAPI] Process ${account.pid} exited gracefully.`);
+                    console.log(`[ActionAPI] Process ${currentPid} exited gracefully.`);
                 }
+            } else {
+                console.log(`[ActionAPI] No active PID found in OS for ${id}.`);
+            }
 
-                if (instancePath) {
-                    await killTerminalByPath(instancePath, true);
-                }
-            } else if (instancePath) {
-                // Failsafe: No PID tracked but we have an instancePath. 
-                console.log(`[ActionAPI] No PID tracked for ${id}, ensuring shutdown by path...`);
+            if (instancePath) {
                 await killTerminalByPath(instancePath, true);
             }
+
             await updateAccountStatus(id, 'STOPPED', undefined);
             return NextResponse.json({ success: true, status: 'STOPPED' });
-        }
+        } else if (action === 'START') {
+            if (account.platform === 'NT8') {
+                const username = account.login;
+                const password = account.password;
 
-        if (action === 'START') {
-            if (account.pid && await checkProcessRunning(account.pid)) {
-                return NextResponse.json({ success: true, status: 'RUNNING', message: 'Already running' });
+                if (!username || !password) {
+                    return NextResponse.json({ error: "NinjaTrader credentials (username/password) are missing on this account." }, { status: 400 });
+                }
+
+                try {
+                    console.log(`[ActionAPI] Forwarding NT8 Start request to backend...`);
+                    const response = await fetch('http://127.0.0.1:3005/api/admin/ninjatrader/start', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ username, password })
+                    });
+
+                    const data = await response.json().catch(() => ({}));
+
+                    if (response.ok && data.success) {
+                        await updateAccountStatus(id, 'RUNNING', undefined);
+                        return NextResponse.json({ success: true, status: 'RUNNING', message: "NinjaTrader Start Triggered" });
+                    } else {
+                        throw new Error(data.error || "Failed to start NinjaTrader on backend");
+                    }
+                } catch (e: any) {
+                    console.error("[ActionAPI] Failed to start NT8:", e);
+                    return NextResponse.json({ error: e.message }, { status: 500 });
+                }
+            } else {
+                const activeMap = await getAllRunningTerminals();
+                let isAlreadyRunning = false;
+
+                if (instancePath) {
+                    const folderName = path.basename(instancePath);
+                    if (activeMap.has(folderName)) isAlreadyRunning = true;
+                }
+
+                if (isAlreadyRunning) {
+                    console.log(`[ActionAPI] Terminal already running for ${instancePath}. Modifying config strictly...`);
+                }
+
+                if (!instancePath) throw new Error("Instance path not found");
+                // Start anyway (MT5 portable guards against multi-instance on same folder, but wait 3s if just stopped)
+                // Use login.ini for restarts to avoid opening duplicate charts
+                const pid = await startTerminal(instancePath, 'login.ini');
+                await updateAccountStatus(id, 'RUNNING', pid);
+                return NextResponse.json({ success: true, status: 'RUNNING', pid });
             }
-            if (!instancePath) throw new Error("Instance path not found");
-            // Use login.ini for restarts to avoid opening duplicate charts
-            const pid = await startTerminal(instancePath, 'login.ini');
-            await updateAccountStatus(id, 'RUNNING', pid);
-            return NextResponse.json({ success: true, status: 'RUNNING', pid });
         }
 
         if (action === 'RESTART') {
-            console.log(`[ActionAPI] RESTART Initiated for ${id} (PID: ${account.pid || 'None'})`);
+            if (account.platform === 'NT8') {
+                return NextResponse.json({ error: "NinjaTrader cannot currently be soft-restarted via this API. Please use STOP and then START." }, { status: 400 });
+            }
 
-            if (account.pid) {
+            console.log(`[ActionAPI] RESTART Initiated for ${id}`);
+
+            const activeMap = await getAllRunningTerminals();
+            let currentPid = 0;
+            if (instancePath) {
+                const folderName = path.basename(instancePath);
+                currentPid = activeMap.get(folderName) || 0;
+            }
+
+            if (currentPid) {
                 const brokers = await getBrokers();
                 const broker = brokers.find(b => b.id === account.brokerId);
                 let botId = broker ? `${broker.shorthand.replace(/\s+/g, '')}_${account.login}` : account.botId;
@@ -149,22 +185,20 @@ export async function POST(req: Request, props: { params: Promise<{ id: string }
                     }
                 }
 
-                if (await checkProcessRunning(account.pid)) {
-                    console.log(`[ActionAPI] Process ${account.pid} still running. Shutting down...`);
-                    await shutdownTerminal(account.pid);
+                if (await checkProcessRunning(currentPid)) {
+                    console.log(`[ActionAPI] Process ${currentPid} still running. Shutting down...`);
+                    await shutdownTerminal(currentPid);
                     console.log(`[ActionAPI] Shutdown complete.`);
                 } else {
-                    console.log(`[ActionAPI] Process ${account.pid} exited gracefully.`);
+                    console.log(`[ActionAPI] Process ${currentPid} exited gracefully.`);
                 }
-
-                if (instancePath) {
-                    await killTerminalByPath(instancePath, true);
-                }
-            } else if (instancePath) {
-                console.log(`[ActionAPI] No PID tracked for ${id}, ensuring shutdown by path before restart...`);
-                await killTerminalByPath(instancePath, true);
+            } else {
+                console.log(`[ActionAPI] No active PID found in OS for ${id} before restart.`);
             }
 
+            if (instancePath) {
+                await killTerminalByPath(instancePath, true);
+            }
             // Small delay to ensure file locks are released even after process exit
             await new Promise(r => setTimeout(r, 1000));
 
@@ -183,10 +217,17 @@ export async function POST(req: Request, props: { params: Promise<{ id: string }
         if (action === 'DELETE') {
             const errors: string[] = [];
 
-            // 1. Force Kill (No parsing needed for delete)
-            if (account.pid) {
+            const activeMap = await getAllRunningTerminals();
+            let currentPid = 0;
+            if (instancePath) {
+                const folderName = path.basename(instancePath);
+                currentPid = activeMap.get(folderName) || 0;
+            }
+
+            // 1. Force Kill
+            if (currentPid) {
                 try {
-                    await killTerminal(account.pid, true);
+                    await killTerminal(currentPid, true);
                     // Wait for process to fully exit
                     await new Promise(r => setTimeout(r, 1000));
                 } catch (e: any) {
@@ -195,6 +236,9 @@ export async function POST(req: Request, props: { params: Promise<{ id: string }
                 }
             }
 
+            if (instancePath) {
+                await killTerminalByPath(instancePath, true);
+            }
             // 2. Delete Folder (if exists) with Retry
             if (instancePath) {
                 let deleted = false;

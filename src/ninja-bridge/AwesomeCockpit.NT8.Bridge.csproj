@@ -30,6 +30,10 @@
       <HintPath>C:\Program Files\NinjaTrader 8\bin\Newtonsoft.Json.dll</HintPath>
       <Private>False</Private>
     </Reference>
+    <Reference Include="NinjaTrader.Custom">
+      <HintPath>C:\Users\Michael\Documents\NinjaTrader 8\bin\Custom\NinjaTrader.Custom.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
   </ItemGroup>
 
   <!-- IMPORTANT: NinjaTrader AddOns do not need Main() -->

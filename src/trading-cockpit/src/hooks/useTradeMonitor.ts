@@ -214,8 +214,9 @@ export const useTradeMonitor = () => {
                                 // PREFER: Server Injected Name > Parsed Name > Live > GUID
                                 brokerId: exec.brokerName || parsedBroker || liveMatch.brokerId || exec.broker_id,
                                 errorMessage: exec.error_message || exec.params?.error, // Map from DB Column or Params
-                                // Use explicit status from DB. It correctly reflects ERROR if MQL5 failed.
-                                status: exec.status || 'RUNNING',
+                                // FIX: If we have a live position match, the broker execution is undoubtedly RUNNING.
+                                // Don't let a stale PENDING/CREATED DB status hide this fact.
+                                status: (exec.status === 'CREATED' || exec.status === 'PENDING') ? 'RUNNING' : (exec.status || 'RUNNING'),
                                 realizedPl: (liveMatch as any).metrics?.realizedPl || exec.realized_pl || 0, // FIX: Map from Metrics or DB
                                 comment: liveMatch.comment || `[${exec.status}]`,
                                 riskPercent: (() => {
@@ -242,7 +243,7 @@ export const useTradeMonitor = () => {
                                         : (open - current);
                                     return distRun / distSl;
                                 })(),
-                                slAtBe: exec.sl_at_be === 1 // Map from DB
+                                slAtBe: exec.sl_at_be === 1 || exec.sl_at_be === true // Map from DB
                             });
                         } else {
                             // Fallback numeric ID for UI keys if ticket missing
@@ -277,8 +278,8 @@ export const useTradeMonitor = () => {
                                 comment: `[${exec.status}]`,
                                 time: (exec.open_time && exec.open_time > 0) ? (exec.open_time / 1000) : 0,
                                 errorMessage: exec.error_message || exec.params?.error, // Map from DB Column or Params
-                                // Use explicit status from DB
-                                status: exec.status || 'PENDING',
+                                // FIX: If sl_at_be is set, it implies the trade executed (is RUNNING) even if no live match is temporarily present.
+                                status: (exec.sl_at_be && (exec.status === 'CREATED' || exec.status === 'PENDING')) ? 'RUNNING' : (exec.status || 'PENDING'),
                                 runningRr: (() => {
                                     // Calculate Run R for DB Fallback
                                     const open = exec.entry_price || 0;
@@ -299,7 +300,7 @@ export const useTradeMonitor = () => {
                                         : (open - current);
                                     return distRun / distSl;
                                 })(),
-                                slAtBe: exec.sl_at_be === 1 // Map from DB
+                                slAtBe: exec.sl_at_be === 1 || exec.sl_at_be === true // Map from DB
                             });
                         }
                     });
@@ -470,7 +471,9 @@ export const useTradeMonitor = () => {
                     totalProfit: realizedPl + unrealizedPl,
                     totalCommission: totalComm,
                     totalSwap: totalSwap,
-                    status: isClosed ? mt.status : (mt.status === 'CREATED' || mt.status === 'PENDING' ? mt.status : (matches.length > 0 ? 'RUNNING' : (mt.status || 'PENDING'))),
+                    // FIX: If there are active positions, ONLY upgrade to RUNNING if at least one is truly running.
+                    // A 'CREATED' limit order will have a match but is NOT running yet.
+                    status: isClosed ? mt.status : (matches.some(m => m.status === 'RUNNING' || m.status === 'PARTIAL') ? 'RUNNING' : (mt.status === 'CREATED' || mt.status === 'PENDING' ? mt.status : (mt.status || 'PENDING'))),
                     positions: matches,
                     avgEntry: avgEntry,
                     avgSl: calculatedAvgSl, // Use calculated dynamically moving SL 
@@ -623,8 +626,20 @@ export const useTradeMonitor = () => {
         // Push Protocol Listener
         const socket = socketService.getSocket();
 
-        const onSignal = () => {
-            // Instant Trigger for BOTH Live and Master Data
+        const onSignal = (payload: any) => {
+            // OPTIMISTIC DELETION: Instantly drop closed trades from the UI
+            if (payload && payload.event === 'closed' && Array.isArray(payload.closedIds)) {
+                const closedSet = new Set(payload.closedIds);
+                masterTradesRef.current = masterTradesRef.current.filter(t => !closedSet.has(t.id));
+                livePositionsRef.current = livePositionsRef.current.filter(p => !closedSet.has(p.id) && !closedSet.has(p.magic?.toString()));
+
+                const filteredAggregated = aggregatedTradesRef.current.filter(g => !closedSet.has(g.tradeId));
+                aggregatedTradesRef.current = filteredAggregated;
+                setAggregatedTradesState(filteredAggregated);
+                console.log(`[TradeMonitor] ⚡ Optimistic Delete: Dropped ${payload.closedIds.length} trades instantly.`);
+            }
+
+            // Instant Trigger for BOTH Live and Master Data (Background synchronization)
             fetchLivePositions();
             fetchMasterTrades();
         };

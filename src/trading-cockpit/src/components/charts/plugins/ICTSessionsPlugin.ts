@@ -56,6 +56,7 @@ export interface ICTSessionsState {
     sessions: ICTSession[];
     lastCandleTime?: number; // Added to track server/chart time for clamping
     timeframe?: string;
+    lastActualCandle?: any; // Added to re-apply live modifications after async data fetches
 }
 
 export class ICTSessionsPlugin extends BaseWidget<ICTSessionsState> {
@@ -70,6 +71,7 @@ export class ICTSessionsPlugin extends BaseWidget<ICTSessionsState> {
             console.log(`[ICTPlugin] Updated Sessions: ${sessions.length}`, sessions[0]);
         }
         this._data.sessions = sessions;
+        this._applyLiveCandleToSessions();
         this.requestUpdate();
     }
 
@@ -82,6 +84,52 @@ export class ICTSessionsPlugin extends BaseWidget<ICTSessionsState> {
         if (this._data.lastCandleTime !== time) {
             this._data.lastCandleTime = time;
             this.requestUpdate();
+        }
+    }
+
+    /**
+     * Updates the active session with live candle data.
+     * Adjusts the high/low boundaries if the current candle is within an active session.
+     */
+    public updateLiveCandle(candle: any) {
+        if (!candle || !candle.time) return;
+        this._data.lastActualCandle = candle;
+        this._applyLiveCandleToSessions();
+    }
+
+    private _applyLiveCandleToSessions() {
+        const candle = this._data.lastActualCandle;
+        if (!candle || !candle.time) return;
+
+        const timeS = candle.time as number; // Seconds
+        let changed = false;
+
+        for (let i = 0; i < this._data.sessions.length; i++) {
+            const session = this._data.sessions[i];
+
+            // Convert DB MS timestamps to Seconds for comparison
+            const startTimeS = session.start_time / 1000;
+            const endTimeS = session.end_time ? session.end_time / 1000 : Infinity;
+
+            // Check if candle is within this session
+            if (timeS >= startTimeS && timeS <= endTimeS) {
+                // Update High/Low boundaries
+                if (candle.high > session.high) {
+                    session.high = candle.high;
+                    changed = true;
+                }
+                if (candle.low < session.low) {
+                    session.low = candle.low;
+                    changed = true;
+                }
+
+                // Usually only one session is active at a time, but we check all just in case
+            }
+        }
+
+        if (changed) {
+            this.requestUpdate();
+            // console.log(`[ICTPlugin] Live updated session bounds.`);
         }
     }
 

@@ -24,10 +24,10 @@ export interface TradingAccount {
     timezone?: string; // Persisted Timezone (e.g. "EET", "UTC", "Europe/New_York")
     accountSize?: number; // Base Account Size (e.g., 50000, 100000)
 
-    // Deployment Status
-    status: 'DEPLOYING' | 'RUNNING' | 'STOPPED' | 'ERROR';
-    pid?: number; // OS Process ID
-    lastHeartbeat?: number; // Timestamp
+    // Live Runtime Status (Injected by Backend, NOT saved to DB anymore)
+    status?: 'DEPLOYING' | 'RUNNING' | 'STOPPED' | 'ERROR';
+    pid?: number; // OS Process ID (Discovered via polling)
+    lastHeartbeat?: number; // Timestamp (Discovered via Socket)
 
     // Live Data (from Hub)
     balance?: number;
@@ -43,6 +43,7 @@ export type AccountAction = 'START' | 'STOP' | 'RESTART' | 'DELETE';
 export interface StatusData {
     alive: boolean;
     lastSeen: number;
+    connected?: boolean;
     timezone?: string; // e.g. "Europe/Athens" or "EET"
     account?: {
         connected: boolean;

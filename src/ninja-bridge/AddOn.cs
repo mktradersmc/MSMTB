@@ -29,14 +29,21 @@ namespace AwesomeCockpit.NT8.Bridge
             else if (State == State.Active)
             {
                 // Startup
-                lock (_lock)
+                try
                 {
-                    if (_webSocket == null)
+                    lock (_lock)
                     {
-                        NinjaTrader.Code.Output.Process("AwesomeCockpit: Starting Bridge...", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
-                        _webSocket = new BridgeWebSocket();
-                        _webSocket.Connect("ws://localhost:3000"); // TODO: Configurable
+                        if (_webSocket == null)
+                        {
+                            NinjaTrader.Code.Output.Process("AwesomeCockpit: Starting Bridge...", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
+                            _webSocket = new BridgeWebSocket();
+                            _webSocket.Connect("ws://localhost:3000"); // TODO: Configurable
+                        }
                     }
+                }
+                catch (Exception ex)
+                {
+                    NinjaTrader.Code.Output.Process($"AwesomeCockpit AddOn INIT ERROR: {ex.Message} {ex.StackTrace}", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
                 }
             }
             else if (State == State.Terminated)

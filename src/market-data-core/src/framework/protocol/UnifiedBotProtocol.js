@@ -108,9 +108,9 @@ class UnifiedBotProtocol {
 
             // 2. LOGIC SWITCH (The Single Source of Truth)
             // UPDATED: Generic Routing to Workers via SystemOrchestrator
-            if (this.features && this.features.ENABLE_DETAILED_PROTOCOL_LOGGING) {
+            if (this.features && this.features.ENABLE_DETAILED_PROTOCOL_LOGGING && type !== 'HEARTBEAT') {
                 console.log("[UnifiedProtocol] Handle Raw Message " + rawMessage);
-                console.log("[UnifiedProtocol] from " + msg.header.botId + ":" + msg.header.func + ":" + msg.header.symbol);
+                console.log("[UnifiedProtocol] from " + (msg.header?.botId || msg.botId || 'UNKNOWN') + ":" + (msg.header?.func || msg.func || 'UNKNOWN') + ":" + (msg.header?.symbol || msg.symbol || 'UNKNOWN'));
             }
 
             switch (type) {
@@ -132,7 +132,6 @@ class UnifiedBotProtocol {
                 case 'HISTORY_SNAPSHOT':
                 case 'CMD_EXECUTION_RESULT':
                 case 'CMD_REPORT_ACCOUNTS':
-                case 'EV_ACCOUNT_STATUS_UPDATE': // NEW: Account Status Update
                 case 'EV_TRADE_CLOSED': // NEW: Closed Trades Support
                     // Generic Routing
                     require('../../services/SystemOrchestrator').routeToWorker(msg);
@@ -164,8 +163,11 @@ class UnifiedBotProtocol {
                     }
                     break;
 
-                case 'STATUS_UPDATE':
-                    require('../../services/SystemOrchestrator').handleStatusUpdate(msg.botId, msg.payload || msg);
+                case 'EV_ACCOUNT_STATUS_UPDATE':
+                    // Route to Worker for Account Discovery/Sync
+                    require('../../services/SystemOrchestrator').routeToWorker(msg);
+                    // Broadcast to Frontend and Persist to DB
+                    require('../../services/SystemOrchestrator').handleStatusUpdate(msg.botId, msg.content || msg.payload || msg);
                     break;
 
                 case 'CMD_Error':

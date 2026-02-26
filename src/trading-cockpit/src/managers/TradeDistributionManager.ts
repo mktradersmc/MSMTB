@@ -55,14 +55,23 @@ export class TradeDistributionManager {
     ): ExecutionBatch[] {
         const batches: ExecutionBatch[] = [];
 
-        console.log(`[TradeDistribution] Distributing Trade. TestMode: ${isTestMode}, Preview: ${previewOnly}`);
+        console.log(`\n======================================================`);
+        console.log(`[TradeDistribution] 🚀 DISTRIBUTE TRADE INITIATED`);
+        console.log(`[TradeDistribution] Symbol: ${baseTrade?.symbol}, isTestMode: ${isTestMode}, previewOnly: ${previewOnly}`);
+        console.log(`[TradeDistribution] Input Config:`, config ? `Loaded (${Object.keys(config.brokers||{}).length} live, ${Object.keys(config.test_brokers||{}).length} test)` : 'NULL');
+        console.log(`[TradeDistribution] Input Accounts Count: ${accounts ? accounts.length : 0}`);
+        if (accounts && accounts.length > 0) {
+            console.log(`[TradeDistribution] Input Accounts Dump:`, accounts.map(a => `${a.login} (ID: ${a.id}, isTest: ${a.isTest}, type: ${a.accountType})`));
+        }
+        console.log(`======================================================\n`);
 
         // 1. Group Accounts by Broker (FILTERED by Mode)
         const accountsByBroker: Record<string, TradingAccount[]> = {};
 
         accounts.forEach(acc => {
             // STRICT CHECK: Only allow TRADING accounts. Explicitly block DATAFEED.
-            if (acc.accountType !== 'TRADING' || acc.isDatafeed) {
+            const typeUpper = (acc.accountType || '').toUpperCase();
+            if (typeUpper !== 'TRADING' || acc.isDatafeed) {
                 // console.log(`[TradeDistribution] Excluding Datafeed: ${acc.login}`);
                 return;
             }
@@ -70,11 +79,19 @@ export class TradeDistributionManager {
             // MODE CHECK:
             if (isTestMode) {
                 // In Test Mode, ONLY accept Test Accounts
-                if (!acc.isTest) return;
+                if (!acc.isTest) {
+                    console.log(`[TradeDistribution] 🛑 DISCARDING ${acc.login} (ID: ${acc.id}) -> isTestMode=true but acc.isTest=${acc.isTest}`);
+                    return;
+                }
             } else {
                 // In Live Mode, ONLY accept Live Accounts (isTest false/undefined)
-                if (acc.isTest) return;
+                if (acc.isTest) {
+                    console.log(`[TradeDistribution] 🛑 DISCARDING ${acc.login} (ID: ${acc.id}) -> isTestMode=false but acc.isTest=${acc.isTest}`);
+                    return;
+                }
             }
+
+            console.log(`[TradeDistribution] ✅ ACCEPTED into Stage 1 (Mode Filter): ${acc.login} (Broker: ${acc.brokerId})`);
 
             if (!accountsByBroker[acc.brokerId]) accountsByBroker[acc.brokerId] = [];
             accountsByBroker[acc.brokerId].push(acc);
@@ -86,18 +103,40 @@ export class TradeDistributionManager {
             const brokerNode = brokers.find(b => b.id === brokerId);
 
             if (!brokerNode) {
-                console.warn(`[TradeDistribution] Unknown broker ID: ${brokerId}`);
+                console.warn(`[TradeDistribution] ⚠️ Unknown broker ID: ${brokerId} for accounts:`, brokerAccounts.map(a => a.login));
                 return;
             }
+            
+            console.log(`\n[TradeDistribution] --- Processing Broker: ${brokerNode.name} (${brokerId}) ---`);
+            console.log(`[TradeDistribution] Accounts surviving Stage 1 for this broker:`, brokerAccounts.map(a => `${a.login} (ID: ${a.id})`));
 
             // --- Symbol Mapping ---
             // Clone the trade to avoid mutating the original
             const mappedTrade = { ...baseTrade };
 
-            // Apply Mapping if exists
-            if (brokerNode.symbolMappings && brokerNode.symbolMappings[baseTrade.symbol]) {
-                mappedTrade.symbol = brokerNode.symbolMappings[baseTrade.symbol];
+            // STRICT MAPPING ENFORCEMENT
+            let mappedSym;
+            if (brokerNode.symbolMappings) {
+                // Perform case-insensitive search
+                const targetKey = baseTrade.symbol.toUpperCase().trim();
+                const matchedKey = Object.keys(brokerNode.symbolMappings).find(k => k.toUpperCase().trim() === targetKey);
+                
+                if (matchedKey) {
+                    mappedSym = brokerNode.symbolMappings[matchedKey];
+                }
+            }
+
+            if (mappedSym) {
+                if (mappedSym === '__IGNORE__') {
+                    console.log(`[TradeDistribution] 🛑 Broker ${brokerNode.name}: Symbol ${baseTrade.symbol} explicitly ignored (__IGNORE__). EXCLUDING BROKER.`);
+                    return; // Skip this broker
+                }
+
+                mappedTrade.symbol = mappedSym;
                 console.log(`[TradeDistribution] Mapped ${baseTrade.symbol} -> ${mappedTrade.symbol} for ${brokerNode.name}`);
+            } else {
+                console.log(`[TradeDistribution] ❌ Broker ${brokerNode.name} has no mapping for ${baseTrade.symbol}. STRICT EXCLUDE.`);
+                return; // Skip this broker entirely
             }
 
             // --- Distribution Matrix Logic ---
@@ -106,6 +145,8 @@ export class TradeDistributionManager {
             // Select Correct Config Section based on Mode
             const brokerConfigMap = isTestMode ? config?.test_brokers : config?.brokers;
             const prefix = isTestMode ? 'TEST_' : '';
+
+            console.log(`[TradeDistribution] Broker ${brokerNode.name}: Look up config in '${isTestMode ? 'test_brokers' : 'brokers'}' matrix`);
 
             // Fuzzy Lookup: Try ID -> Name -> Shorthand
             let brokerConfig = brokerConfigMap?.[brokerId];
@@ -137,8 +178,9 @@ export class TradeDistributionManager {
 
                 if (stepAccounts && stepAccounts.length > 0) {
                     targetAccountIds = stepAccounts;
+                    console.log(`[TradeDistribution] Broker ${brokerNode.name}: Config mapped Step ${currentStep} to Account IDs:`, targetAccountIds);
                 } else {
-                    console.warn(`[TradeDistribution] No accounts configured for Step ${currentStep} in ${brokerNode.name}`);
+                    console.warn(`[TradeDistribution] ⚠️ No accounts configured for Step ${currentStep} in ${brokerNode.name} Matrix.`);
                 }
 
                 // 3. Increment Counter for NEXT time (ONLY if not preview)
@@ -166,17 +208,26 @@ export class TradeDistributionManager {
             }
 
             // Filter out Accounts that might be in config but not in the passed accounts list
-            const validAccounts = brokerAccounts.filter(a => targetAccountIds.includes(a.id));
+            console.log(`[TradeDistribution] Broker ${brokerNode.name}: Filtering surviving accounts against target IDs rules...`);
+            const validAccounts = brokerAccounts.filter(a => {
+                const isValid = targetAccountIds.includes(a.id);
+                if (!isValid) console.log(`[TradeDistribution] 🛑 Filtered out ${a.login} (ID: ${a.id}) - Not in target IDs list:`, targetAccountIds);
+                return isValid;
+            });
 
             if (validAccounts.length > 0) {
+                console.log(`[TradeDistribution] ✅ SUCCESS: Broker ${brokerNode.name} final execution accounts:`, validAccounts.map(a => a.login));
                 batches.push({
                     brokerId: brokerId,
                     trade: mappedTrade,
                     accounts: validAccounts // Send full objects for backend routing
                 });
+            } else {
+                console.log(`[TradeDistribution] ❌ FAIL: Broker ${brokerNode.name} has no valid accounts left after final matrix filtering.`);
             }
         });
 
+        console.log(`[TradeDistribution] 🏁 FINAL RESULT: Returning ${batches.length} execution batches.\n`);
         return batches;
     }
 }

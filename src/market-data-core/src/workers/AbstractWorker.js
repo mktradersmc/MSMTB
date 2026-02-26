@@ -1,5 +1,6 @@
 const { parentPort, workerData } = require('worker_threads');
 const LogService = require('../services/LogService');
+const tzService = require('../services/TimezoneNormalizationService');
 
 /**
  * Base class for all Market Data Workers.
@@ -22,6 +23,11 @@ class AbstractWorker {
 
         if (!this.botId || !this.botFunc || this.botId === 'unknown') {
             throw new Error(`[AbstractWorker] Missing Critical Identity Params: ${this.botId}:${this.botFunc}`);
+        }
+
+        // Initialize Timezone for this specific thread
+        if (workerData.timezone) {
+            tzService.registerBotTimezone(this.botId, workerData.timezone);
         }
 
         // State
@@ -51,8 +57,12 @@ class AbstractWorker {
                 case 'CMD_BOT_CONNECTED':
                     this._log(`[State] 🟢 CMD_BOT_CONNECTED Received! Calling onBotConnected...`);
                     this.isConnected = true;
-                    // Update Bot Identity if changed (Rare but possible)
                     if (msg.botId) this.botId = msg.botId;
+
+                    // Update Timezone if provided
+                    if (msg.timezone) {
+                        tzService.registerBotTimezone(this.botId, msg.timezone);
+                    }
 
                     this._log(`[State] 🟢 Bot Connected (Re-attach): ${this.botId}`);
                     this.onBotConnected(msg); // Triggers Gap Check in Subclasses

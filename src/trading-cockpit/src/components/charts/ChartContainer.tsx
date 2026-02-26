@@ -206,6 +206,12 @@ export const ChartContainer = React.forwardRef<ChartContainerHandle, ChartContai
 
     const indicatorPluginsRef = useRef<Map<string, any>>(new Map());
 
+    // --- PROGRAMMATIC CROSSHAIR PERSISTENCE ---
+    // Lightweight Charts natively clears programmatically set crosshairs when series.setData or series.update is called.
+    // We store the last synced position to immediately re-apply it after a tick.
+    const slaveCrosshairARef = useRef<{ price: number, time: number, active: boolean }>({ price: 0, time: 0, active: false });
+    const slaveCrosshairBRef = useRef<{ price: number, time: number, active: boolean }>({ price: 0, time: 0, active: false });
+
     // --- INCREMENTAL UPDATE STATE ---
     const prevDataLengthRef = useRef(0);
     const prevStartTimeRef = useRef(0);
@@ -248,6 +254,9 @@ export const ChartContainer = React.forwardRef<ChartContainerHandle, ChartContai
             const slPrice = trade.avgSl || logEntry?.initialSL || 0;
             const tpPrice = trade.avgTp || logEntry?.initialTP || 0;
 
+            // Extract the original execution entry price from DB matches or local log fallback
+            const initialEntryPrice = trade.positions?.[0]?.initialEntry || logEntry?.initialEntry || trade.avgEntry || 0;
+
             // 3. Create/Update Tool
             // We use createShape with ID override. If it exists, it might duplicate or we rely on ChartWidget to handle?
             // ChartWidget.createShape always creates new. We need check if exists.
@@ -276,7 +285,8 @@ export const ChartContainer = React.forwardRef<ChartContainerHandle, ChartContai
                             volume: trade.volume || trade.size || 0, // Pass Volume
                             contractSize: 1, // Default to 1 (CFD/Crypto) or need to fetch from broker info
                             allSlAtBe: trade.allSlAtBe,
-                            anySlAtBe: trade.anySlAtBe
+                            anySlAtBe: trade.anySlAtBe,
+                            initialEntry: initialEntryPrice
                         }
                     }
                 );
@@ -292,6 +302,7 @@ export const ChartContainer = React.forwardRef<ChartContainerHandle, ChartContai
                         takeProfitPrice: tpPrice,
                         allSlAtBe: trade.allSlAtBe,
                         anySlAtBe: trade.anySlAtBe,
+                        initialEntry: initialEntryPrice
                         // volume: trade.volume // If volume changes?
                     });
 
@@ -494,9 +505,14 @@ export const ChartContainer = React.forwardRef<ChartContainerHandle, ChartContai
 
         let isMounted = true;
         const fetchPlan = async () => {
+            console.log(`[ChartContainer] EFFECT TRIGGERED: fetchPlan initiated for trade ID ${pendingTrade?.id}`);
             try {
                 const config = await TradeDistributionManager.getDistributionConfig();
+                console.log(`[ChartContainer] Config fetched:`, config ? 'SUCCESS' : 'NULL');
                 if (!isMounted) return;
+
+                console.log(`[ChartContainer] Calling distributeTrade...`);
+                // Note: The distributeTrade call SHOULD log its own output now.
                 const batches = TradeDistributionManager.distributeTrade(
                     pendingTrade,
                     accounts,
@@ -505,9 +521,10 @@ export const ChartContainer = React.forwardRef<ChartContainerHandle, ChartContai
                     isTestMode,
                     true // Preview Mode
                 );
+                console.log(`[ChartContainer] distributeTrade returned ${batches.length} batches.`);
                 if (isMounted) setExecutionPlan(batches);
             } catch (e) {
-                console.error("Failed to calculate execution plan", e);
+                console.error("[ChartContainer] 🛑 Failed to calculate execution plan! Error:", e);
                 if (isMounted) setExecutionPlan([]);
             }
         };
@@ -591,8 +608,11 @@ export const ChartContainer = React.forwardRef<ChartContainerHandle, ChartContai
     useEffect(() => {
         const applyTimezone = (chart: IChartApi | null) => {
             if (!chart) return;
+            const isHighTimeframe = typeof timeframe === 'string' && (timeframe.startsWith('D') || timeframe.startsWith('W') || timeframe.startsWith('MN'));
+
             chart.applyOptions({
                 timeScale: {
+                    timeVisible: !isHighTimeframe,
                     tickMarkFormatter: (time: Time, tickMarkType: TickMarkType, locale: string) => {
                         const date = new Date((time as number) * 1000);
                         const opts: Intl.DateTimeFormatOptions = { timeZone: selectedTimezone };
@@ -605,8 +625,10 @@ export const ChartContainer = React.forwardRef<ChartContainerHandle, ChartContai
                             case TickMarkType.DayOfMonth:
                                 return date.toLocaleDateString('en-US', { ...opts, day: 'numeric', month: 'short' });
                             case TickMarkType.Time:
+                                if (isHighTimeframe) return date.toLocaleDateString('en-US', { ...opts, day: 'numeric', month: 'short' });
                                 return date.toLocaleTimeString('en-US', { ...opts, hour: '2-digit', minute: '2-digit', hour12: false });
                             case TickMarkType.TimeWithSeconds:
+                                if (isHighTimeframe) return date.toLocaleDateString('en-US', { ...opts, day: 'numeric', month: 'short' });
                                 return date.toLocaleTimeString('en-US', { ...opts, hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
                             default:
                                 return "";
@@ -617,6 +639,18 @@ export const ChartContainer = React.forwardRef<ChartContainerHandle, ChartContai
                     dateFormat: 'yyyy-MM-dd',
                     timeFormatter: (time: Time) => {
                         const date = new Date((time as number) * 1000);
+                        const isHighTimeframe = typeof timeframe === 'string' && (timeframe.startsWith('D') || timeframe.startsWith('W') || timeframe.startsWith('MN'));
+
+                        if (isHighTimeframe) {
+                            return date.toLocaleDateString('en-US', {
+                                timeZone: selectedTimezone,
+                                weekday: 'short',
+                                day: 'numeric',
+                                month: 'short',
+                                year: 'numeric'
+                            });
+                        }
+
                         return date.toLocaleString('en-US', {
                             timeZone: selectedTimezone,
                             hour: '2-digit',
@@ -844,6 +878,12 @@ export const ChartContainer = React.forwardRef<ChartContainerHandle, ChartContai
                     isCrosshairOverridden = false;
                 }
             } else if (isCrosshairOverridden) {
+                // Only clear if we were previously overriding it due to snapping.
+                // However, clearCrosshairPosition() completely removes the crosshair until the next mouse move.
+                // If it's a real mouse move, the chart normally redraws it automatically.
+                // BUT if this executes during a synthetic or slightly delayed frame, it might hide it.
+                // Let's rely on native Lightweight Charts behavior for standard cursor mode by NOT manually clearing
+                // unless we explicitly need to dismiss a programmatic lock.
                 chartA.clearCrosshairPosition();
                 isCrosshairOverridden = false;
             }
@@ -987,25 +1027,86 @@ export const ChartContainer = React.forwardRef<ChartContainerHandle, ChartContai
             syncRange(chartA, chartB);
             syncRange(chartB, chartA);
 
-            // Crosshair Sync
+            // Crosshair Sync - STRICT MASTER/SLAVE PATTERN
+            let activeChartId: 'A' | 'B' | null = null;
+
             const syncCrosshair = (
                 sourceChart: IChartApi,
                 targetChart: IChartApi,
-                targetSeries: ISeriesApi<"Candlestick"> | null
+                targetSeries: ISeriesApi<"Candlestick"> | null,
+                sourceSeries: ISeriesApi<"Candlestick"> | null,
+                sourceId: 'A' | 'B'
             ) => {
                 sourceChart.subscribeCrosshairMove((param) => {
-                    if (isSyncing || !targetSeries) return;
-                    isSyncing = true;
+                    // Update active chart based on raw mouse input.
+                    // If sourceEvent is present, the mouse is actively on THIS chart.
+                    if (param.sourceEvent) {
+                        activeChartId = sourceId;
+                        // Determine which crosshair is native vs programmatic
+                        if (sourceId === 'A') slaveCrosshairARef.current.active = false;
+                        else slaveCrosshairBRef.current.active = false;
+                    }
+
+                    // Strict Rule: If this chart is NOT the active leading chart,
+                    // it is strictly forbidden from broadcasting crosshair events.
+                    if (activeChartId !== sourceId) {
+                        return;
+                    }
+
+                    if (!targetSeries || !sourceSeries) return;
+
                     try {
-                        if (param.time) targetChart.setCrosshairPosition(param.point?.y || 0, param.time, targetSeries);
-                        else targetChart.clearCrosshairPosition();
+                        if (param.time && param.point) {
+                            // Proportional Height Mapping
+                            // If Chart A and Chart B have different physical pixel heights, sending the raw Y-coordinate
+                            // from Chart A to Chart B will result in an out-of-bounds coordinate, causing the line to vanish.
+                            const domA = containerRefA.current;
+                            const domB = containerRefB.current;
+
+                            if (domA && domB) {
+                                const sourceHeight = sourceId === 'A' ? domA.clientHeight : domB.clientHeight;
+                                const targetHeight = sourceId === 'A' ? domB.clientHeight : domA.clientHeight;
+
+                                // Data-Driven Snapping vs Proportional Mapping
+                                const targetData = param.seriesData.get(targetSeries) as any;
+                                let finalPrice: number | null = null;
+
+                                // 1. Real Data (Candles/Indicators) -> Snap to exact data value to prevent LWC native crash
+                                if (targetData) {
+                                    if (targetData.value !== undefined) {
+                                        finalPrice = targetData.value;
+                                    } else if (targetData.close !== undefined) {
+                                        finalPrice = targetData.close;
+                                    }
+                                }
+
+                                // 2. Ghost Area -> Fallback to proportional pixel mapping
+                                if (finalPrice === null) {
+                                    const yRatio = sourceHeight > 0 ? param.point.y / sourceHeight : 0;
+                                    const mappedY = yRatio * targetHeight;
+                                    finalPrice = targetSeries.coordinateToPrice(mappedY);
+                                }
+
+                                if (finalPrice !== null) {
+                                    targetChart.setCrosshairPosition(finalPrice, param.time, targetSeries);
+
+                                    // Save state for persistence across ticks
+                                    const targetRef = sourceId === 'A' ? slaveCrosshairBRef : slaveCrosshairARef;
+                                    targetRef.current = { price: finalPrice, time: param.time as number, active: true };
+                                }
+                            }
+                        } else {
+                            // Only clear explicitly if we leave the chart canvas completely
+                            targetChart.clearCrosshairPosition();
+                            const targetRef = sourceId === 'A' ? slaveCrosshairBRef : slaveCrosshairARef;
+                            targetRef.current.active = false;
+                        }
                     } catch (e) { /* Silent */ }
-                    isSyncing = false;
                 });
             };
 
-            syncCrosshair(chartA, chartB, seriesB);
-            syncCrosshair(chartB, chartA, seriesA); // Chart A always has series
+            syncCrosshair(chartA, chartB, seriesB, seriesA, 'A');
+            syncCrosshair(chartB, chartA, seriesA, seriesB, 'B'); // Chart A always has series
         }
 
         // --- Crosshair Move Handler for OHLC Overlay ---
@@ -1412,6 +1513,15 @@ export const ChartContainer = React.forwardRef<ChartContainerHandle, ChartContai
                                 seriesARef.current.update(lastCandle); // Then last
                             }
 
+                            // Restore Programmatic Crosshair if active on Chart A
+                            if (slaveCrosshairARef.current.active && chartARef.current) {
+                                chartARef.current.setCrosshairPosition(
+                                    slaveCrosshairARef.current.price,
+                                    slaveCrosshairARef.current.time as any,
+                                    seriesARef.current
+                                );
+                            }
+
                             appliedIncremental = true;
                             // console.log(`[ChartContainer:Diagnose] Incremental Tick Applied. Last: ${lastCandle.time}`);
                         } catch (e) {
@@ -1427,6 +1537,15 @@ export const ChartContainer = React.forwardRef<ChartContainerHandle, ChartContai
             if (!appliedIncremental) {
                 // console.log(`[ChartContainer:Diagnose] FALLBACK TO SETDATA. Len: ${processedData.length}`);
                 seriesARef.current.setData(processedData);
+
+                // Restore Programmatic Crosshair if active on Chart A
+                if (slaveCrosshairARef.current.active && chartARef.current) {
+                    chartARef.current.setCrosshairPosition(
+                        slaveCrosshairARef.current.price,
+                        slaveCrosshairARef.current.time as any,
+                        seriesARef.current
+                    );
+                }
             }
 
             if (processedData.length > 0) {
@@ -1536,6 +1655,16 @@ export const ChartContainer = React.forwardRef<ChartContainerHandle, ChartContai
     useEffect(() => {
         if (seriesBRef.current && dataB.length > 0 && !isSingleMode) {
             seriesBRef.current.setData(dataB);
+
+            // Restore Programmatic Crosshair if active on Chart B
+            if (slaveCrosshairBRef.current.active && chartBRef.current) {
+                chartBRef.current.setCrosshairPosition(
+                    slaveCrosshairBRef.current.price,
+                    slaveCrosshairBRef.current.time as any,
+                    seriesBRef.current
+                );
+            }
+
             if (!hasFittedBRef.current) {
                 chartBRef.current?.timeScale().fitContent();
                 hasFittedBRef.current = true;
@@ -1592,13 +1721,18 @@ export const ChartContainer = React.forwardRef<ChartContainerHandle, ChartContai
             }
 
             // 2. Latest Time (for precise clamping)
-            if (pluginAsAny && pluginAsAny.updateCurrentTime && dataA.length > 0) {
-                const latestTime = dataA[dataA.length - 1].time;
+            if (pluginAsAny && pluginAsAny.updateCurrentTime && dataARef.current.length > 0) {
+                const latestTime = dataARef.current[dataARef.current.length - 1].time;
                 pluginAsAny.updateCurrentTime(latestTime);
             }
             // NEW: Push Full Data to Plugin (for Client-Side Calculation)
             if (pluginAsAny && pluginAsAny.updateData) {
-                pluginAsAny.updateData(dataA);
+                pluginAsAny.updateData(dataARef.current);
+            }
+            // NEW: Push Live Candle Update explicitly
+            if (pluginAsAny && pluginAsAny.updateLiveCandle && dataARef.current.length > 0) {
+                const latestCandle = dataARef.current[dataARef.current.length - 1];
+                pluginAsAny.updateLiveCandle(latestCandle);
             }
 
             // NEW: Push Visibility
@@ -1611,8 +1745,9 @@ export const ChartContainer = React.forwardRef<ChartContainerHandle, ChartContai
                 const def = indicatorRegistry.get(ind.defId);
                 if (def && def.dataFetcher) {
                     // Fetch Data logic
-                    const fromTime = dataA.length > 0 ? dataA[0].time : Math.floor(Date.now() / 1000) - 86400 * 30;
-                    const toTime = dataA.length > 0 ? dataA[dataA.length - 1].time : Math.floor(Date.now() / 1000);
+                    const currentDataA = dataARef.current;
+                    const fromTime = currentDataA.length > 0 ? currentDataA[0].time : Math.floor(Date.now() / 1000) - 86400 * 30;
+                    const toTime = currentDataA.length > 0 ? currentDataA[currentDataA.length - 1].time : Math.floor(Date.now() / 1000);
 
                     def.dataFetcher({
                         symbol: symbol,
@@ -1629,7 +1764,28 @@ export const ChartContainer = React.forwardRef<ChartContainerHandle, ChartContai
             }
         });
 
-    }, [activeIndicators, symbol, timeframe, dataA, chartReady]);
+    }, [activeIndicators, symbol, timeframe, chartReady]);
+
+    // --- PUSH DATA TO PLUGINS ON TICK ---
+    useEffect(() => {
+        if (!chartReady || dataA.length === 0) return;
+        const plugins = indicatorPluginsRef.current;
+        const latestCandle = dataA[dataA.length - 1];
+        const latestTime = latestCandle.time;
+
+        plugins.forEach((plugin) => {
+            const pluginAsAny = plugin as any;
+            if (pluginAsAny.updateCurrentTime) {
+                pluginAsAny.updateCurrentTime(latestTime);
+            }
+            if (pluginAsAny.updateData) {
+                pluginAsAny.updateData(dataA);
+            }
+            if (pluginAsAny.updateLiveCandle) {
+                pluginAsAny.updateLiveCandle(latestCandle);
+            }
+        });
+    }, [dataA, chartReady]);
 
     // Cleanup Plugins on Unmount
     useEffect(() => {
@@ -1740,11 +1896,14 @@ export const ChartContainer = React.forwardRef<ChartContainerHandle, ChartContai
 
     // --- SEPARATE EFFECT: PRECISION ---
     useEffect(() => {
-        if (!seriesARef.current) return;
+        if (!seriesARef.current || !chartARef.current) return;
 
-        const minMove = 1 / Math.pow(10, precision);
-        console.log(`[ChartContainer] Applying Precision: ${precision} (minMove: ${minMove})`);
+        // Use safe math
+        const power = Math.pow(10, precision);
+        const minMove = 1 / power;
+        console.log(`[ChartContainer] Applying Precision: ${precision} (minMove: ${minMove}) for symbol: ${symbol}`);
 
+        // Update Series Options
         seriesARef.current.applyOptions({
             priceFormat: { type: 'price', precision: precision, minMove: minMove },
         });
@@ -1754,7 +1913,16 @@ export const ChartContainer = React.forwardRef<ChartContainerHandle, ChartContai
                 priceFormat: { type: 'price', precision: precision, minMove: minMove },
             });
         }
-    }, [precision, chartReady]); // Depend on chartReady to ensure series exists // Removed precision dependency from here
+
+        // Force Right Price Scale to visually redraw by toggling autoScale temporarily if needed, 
+        // or just applyOptions on the price scale.
+        // LightweightCharts often needs scale options reapplied to force a re-render of the tick math.
+        const currentOptions = chartARef.current.priceScale('right').options();
+        chartARef.current.priceScale('right').applyOptions({
+            autoScale: currentOptions.autoScale // Re-applying the same value often triggers the internal format recalculation
+        });
+
+    }, [precision, symbol, chartReady]); // ADDED SYMBOL DEPENDENCY
 
     // Tool Toggle Logic
     // --- UPDATE MAGNET DATA ---

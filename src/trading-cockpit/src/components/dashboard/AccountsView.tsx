@@ -299,8 +299,11 @@ function AccountCard({ acc, statuses, serverTime, loadingAction, onAction, onCon
     const status = statuses[botId];
     const lastSeen = status?.lastSeen || 0;
     const timeRef = serverTime || Date.now();
-    const isAlive = (timeRef - lastSeen) < 30000;
-    const isRunning = acc.status === 'RUNNING';
+    const isAlive = (timeRef - lastSeen) < 30000 && (status?.connected !== false);
+
+    // UI correctly shows RUNNING if the actual backend worker is sending heartbeats, overriding a stale DB STOPPED state.
+    const isRunning = acc.status === 'RUNNING' || isAlive;
+
     const accOk = status ? !!status.account?.connected : (acc.brokerConnectionStatus === 'CONNECTED');
     const isBotConnected = acc.platform === 'NT8' ? (isRunning && (status?.account?.connected || acc.brokerConnectionStatus === 'CONNECTED')) : (isRunning && isAlive && accOk);
 

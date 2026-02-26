@@ -1,8 +1,17 @@
+#region Using declarations
 using System;
-using System.Collections.Generic;
-using System.Linq;
+using System.IO;
+using System.IO.Pipes;
+using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
+using NinjaTrader.Code;
 using NinjaTrader.Cbi;
 using Newtonsoft.Json;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Linq;
+#endregion
 
 namespace AwesomeCockpit.NT8.Bridge
 {
@@ -15,45 +24,70 @@ namespace AwesomeCockpit.NT8.Bridge
             _socket = socket;
         }
 
-        public void SendSymbols()
+        public void SendSymbols(string requestId = "")
         {
-            // TEMPORARY: Hardcoded Common Futures to unblock Discovery
-            // TODO: Find correct API to list all instruments in C# class library context
-            var commonFutures = new string[] {
-                "ES 03-25", "NQ 03-25", "YM 03-25", "RTY 03-25",
-                "GC 04-25", "CL 04-25", "SI 05-25", "HG 05-25",
-                "6E 03-25", "6B 03-25", "6J 03-25", "6C 03-25",
-                "ZC 05-25", "ZS 05-25", "ZW 05-25"
+            var commonMasters = new string[] {
+                // Indices (Die Klassiker)
+                "NQ", "MNQ",   // Nasdaq 100 & Micro
+                "ES", "MES",   // S&P 500 & Micro
+                "YM", "MYM",   // Dow Jones & Micro
+                "RTY", "M2K",  // Russell 2000 & Micro
+
+                // Metalle
+                "GC", "MGC",   // Gold & Micro
+                "SI", "SIL",   // Silber & Micro (manchmal SIL oder MSI je nach Feed)
+                "HG",          // Kupfer
+
+                // Energie
+                "CL", "MCL",   // Crude Oil & Micro
+                "NG", "QG",    // Natural Gas & Mini
+
+                // Währungen (FX Futures)
+                "6E", "M6E",   // Euro & Micro
+                "6B", "M6B",   // Britisches Pfund & Micro
+                "6J",          // Japanischer Yen
+                "6A",          // Australischer Dollar
+                "6C",          // Kanadischer Dollar
+
+                // Agrar (Vorsicht: Andere Handelszeiten!)
+                "ZC", "ZS", "ZW" // Mais, Soja, Weizen
             };
 
             var payload = new List<object>();
             int count = 0;
 
-            foreach (string name in commonFutures)
+            foreach (string name in commonMasters)
             {
                 try
                 {
-                    // Try to get instrument details if possible, or just mock
-                    Instrument inst = Instrument.GetInstrument(name);
-                    if (inst != null)
+                    MasterInstrument master = null;
+                    foreach (MasterInstrument m in MasterInstrument.All)
+                    {
+                        if (m.Name == name)
+                        {
+                            master = m;
+                            break;
+                        }
+                    }
+
+                    if (master != null)
                     {
                         payload.Add(new
                         {
-                            name = inst.FullName, // MT5 Standard: name is the Identifier (e.g. "ES 03-25")
-                            desc = inst.MasterInstrument.Name, // Description goes here
-                            path = "Futures/" + inst.Exchange.ToString(), // Mock Path
-                            digits = GetDigits(inst.MasterInstrument.TickSize),
-                            tick_size = inst.MasterInstrument.TickSize,
-                            point_value = inst.MasterInstrument.PointValue,
-                            currency = inst.MasterInstrument.Currency.ToString(),
-                            exchange = inst.Exchange.ToString()
+                            name = master.Name, // e.g. "ES"
+                            desc = master.Description, // e.g. "E-mini S&P 500"
+                            path = $"{master.InstrumentType}/Default", // e.g "Future/Default"
+                            digits = GetDigits(master.TickSize),
+                            tick_size = master.TickSize,
+                            point_value = master.PointValue,
+                            currency = master.Currency.ToString(),
+                            exchange = "Default"
                         });
                         count++;
                     }
                     else
                     {
-                        // Fallback if not found locally
-                        NinjaTrader.Code.Output.Process($"AwesomeCockpit: Instrument '{name}' not found locally.", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
+                        NinjaTrader.Code.Output.Process($"AwesomeCockpit: MasterInstrument '{name}' not found locally.", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
                     }
                 }
                 catch { }
@@ -62,14 +96,13 @@ namespace AwesomeCockpit.NT8.Bridge
             NinjaTrader.Code.Output.Process($"AwesomeCockpit: Sending {count} Instruments (Broadcasting to Datafeed Accounts)...", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
 
             // LOG for User Verification
-            string symbolListStr = string.Join(", ", commonFutures);
-            _socket.Send("LOG", new { msg = $"[Discovery] Found Sim Futures: {symbolListStr}" });
+            string symbolListStr = string.Join(", ", commonMasters);
 
             // BROADCAST STRATEGY: Send on behalf of ALL Datafeed Accounts
-            // This ensures every registered account gets the symbols assigned.
-            // We need to iterate known accounts and spoof the sender ID.
+            // This ensures every registered Datafeed account gets the symbols assigned.
 
-            lock (Account.All)
+            var uniqueProviders = new System.Collections.Generic.HashSet<string>();
+            NinjaTrader.Core.Globals.RandomDispatcher.Invoke(new Action(() =>
             {
                 NinjaTrader.Code.Output.Process($"AwesomeCockpit: Iterating {Account.All.Count} accounts for symbol broadcast...", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
                 foreach (Account acc in Account.All)
@@ -78,14 +111,20 @@ namespace AwesomeCockpit.NT8.Bridge
                     string n = acc.Name.ToUpper();
                     if (n.Contains("BACKTEST") || n.Contains("PLAYBACK") || n.StartsWith("SIM")) continue;
 
-                    string safeName = acc.Name.Replace(" ", "_");
-                    string datafeedBotId = safeName + "_DATAFEED";
+                    string providerName = (acc.Connection != null && acc.Connection.Options != null) ? acc.Connection.Options.Name : "Unknown";
+                    if (providerName == "Unknown" || providerName == "") continue;
 
-                    NinjaTrader.Code.Output.Process($"AwesomeCockpit: Broadcasting Symbols for {datafeedBotId}...", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
-
-                    // We need to wrap this manually because BridgeWebSocket.Send uses internal socket identity
-                    _socket.SendWithType("SYMBOLS_LIST", payload, datafeedBotId);
+                    uniqueProviders.Add(providerName);
                 }
+            }));
+
+            foreach (var provider in uniqueProviders)
+            {
+                string datafeedBotId = provider + "_DATAFEED";
+                NinjaTrader.Code.Output.Process($"AwesomeCockpit: Broadcasting Symbols for {datafeedBotId}...", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
+
+                // We need to wrap this manually because BridgeWebSocket.Send uses internal socket identity
+                _socket.SendProtocolMessage("CMD_GET_SYMBOLS_RESPONSE", payload, datafeedBotId, "DATAFEED", "ALL", requestId);
             }
         }
 
@@ -97,88 +136,74 @@ namespace AwesomeCockpit.NT8.Bridge
             if (i < 0) return 0;
             return s.Length - i - 1;
         }
-        public void SendAccounts()
+        public void SendAccounts(string requestId = "")
         {
             try
             {
                 NinjaTrader.Code.Output.Process("AwesomeCockpit: DiscoveryService - Reporting Accounts...", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
 
-                lock (Account.All)
-                {
-                    var accountList = new List<object>();
-                    int count = 0;
+                var accountList = new System.Collections.Generic.List<object>();
+                var uniqueProviders = new System.Collections.Generic.HashSet<string>();
 
+                NinjaTrader.Core.Globals.RandomDispatcher.Invoke(new Action(() =>
+                {
+                    int count = 0;
                     foreach (Account acc in Account.All)
                     {
                         if (acc == null) continue;
 
-                        // FILTER: Exclude Backtest/Playback/Sim
-                        // User requested to filter "Backtest" and "Playback"
                         string n = acc.Name.ToUpper();
-                        if (n.Contains("BACKTEST") || n.Contains("PLAYBACK") || n.StartsWith("SIM")) continue;
+                        if (n.Contains("BACKTEST") || n.Contains("PLAYBACK")) continue;
 
                         count++;
                         try
                         {
-                            NinjaTrader.Code.Output.Process($"[Discovery] Processing Account: {acc.Name}", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
-
                             string providerName = "Unknown";
-                            if (acc.Connection != null)
+                            if (acc.Connection != null && acc.Connection.Options != null && !string.IsNullOrEmpty(acc.Connection.Options.Name))
                             {
-                                if (acc.Connection.Options != null)
-                                {
-                                    providerName = acc.Connection.Options.Name;
-                                    NinjaTrader.Code.Output.Process($"[Discovery] Connection: {providerName} (Type: {acc.Connection.GetType().Name})", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
-                                }
-                                else
-                                {
-                                    NinjaTrader.Code.Output.Process($"[Discovery] Connection Options is NULL for {acc.Name}", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
-                                }
-                            }
-                            else
-                            {
-                                NinjaTrader.Code.Output.Process($"[Discovery] Connection is NULL for {acc.Name}", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
-                                // Fallback: Check if we can find it in Connections collection?
-                                // For now just log.
+                                providerName = acc.Connection.Options.Name;
                             }
 
-                            bool isTest = true;
-                            if (acc.Name.IndexOf("Live", StringComparison.OrdinalIgnoreCase) >= 0 ||
-                                acc.Name.IndexOf("Real", StringComparison.OrdinalIgnoreCase) >= 0 ||
-                                acc.Name.IndexOf("PA", StringComparison.OrdinalIgnoreCase) >= 0 ||
-                                acc.Name.IndexOf("Funded", StringComparison.OrdinalIgnoreCase) >= 0)
-                            {
-                                isTest = false;
-                            }
+                            // Filter out disconnected/phantom accounts, but explicitly allow Sim101
+                            if (providerName == "Unknown" && !acc.Name.Equals("Sim101", StringComparison.OrdinalIgnoreCase)) continue;
+                            if (providerName == "Unknown") providerName = "NinjaTrader";
 
+                            bool isTest = n.StartsWith("SIM");
                             string safeName = acc.Name.Replace(" ", "_");
+
+                            double balance = acc.Get(AccountItem.CashValue, Currency.UsDollar);
+                            if (balance <= 0) balance = acc.Get(AccountItem.RealizedProfitLoss, Currency.UsDollar) + acc.Get(AccountItem.InitialMargin, Currency.UsDollar);
+                            if (balance <= 0) balance = 50000;
+
+                            double equity = balance + acc.Get(AccountItem.UnrealizedProfitLoss, Currency.UsDollar);
+                            double profit = acc.Get(AccountItem.UnrealizedProfitLoss, Currency.UsDollar);
 
                             accountList.Add(new
                             {
                                 name = safeName,
                                 provider = providerName,
-                                isTest = isTest
-                            });
-
-                            // 2. Report DATAFEED Account (Shadow Account)
-                            // Allows separate configuration in Frontend
-                            accountList.Add(new
-                            {
-                                name = safeName + "_DATAFEED",
-                                provider = providerName, // Same Broker
                                 isTest = isTest,
-                                isDatafeed = true // Optional flag if backend uses it
+                                isDatafeed = false,
+                                timezone = "UTC",
+                                balance = balance,
+                                equity = equity,
+                                profit = profit
                             });
+                            uniqueProviders.Add(providerName);
                         }
                         catch (Exception ex)
                         {
                             NinjaTrader.Code.Output.Process($"AwesomeCockpit: Error reading account: {ex.Message}", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
                         }
                     }
+                }));
 
-                    _socket.Send("CMD_REPORT_ACCOUNTS", accountList);
-                    NinjaTrader.Code.Output.Process($"AwesomeCockpit: Sent {accountList.Count} accounts.", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
-                }
+                // The backend now creates DATAFEED accounts internally using the actual account balance and provider.
+                // Removed the legacy loop that forcefully appended faux 'PROVIDER_DATAFEED' accounts,
+                // which caused the bug where 3 real accounts resulted in 6 reported accounts.
+
+                _socket.SendProtocolMessage("CMD_INIT_RESPONSE", accountList, "NT8", "DISCOVERY", "ALL", requestId);
+                NinjaTrader.Code.Output.Process($"AwesomeCockpit: Sent {accountList.Count} accounts (RPC Response).", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
             }
             catch (Exception ex)
             {
@@ -190,53 +215,106 @@ namespace AwesomeCockpit.NT8.Bridge
         {
             NinjaTrader.Code.Output.Process("AwesomeCockpit: DiscoveryService - Registering Account Bots...", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
 
-            lock (Account.All)
+            var uniqueProviders = new System.Collections.Generic.HashSet<string>();
+            var accountsToRegister = new System.Collections.Generic.List<Tuple<string, string, bool>>();
+
+            NinjaTrader.Core.Globals.RandomDispatcher.Invoke(new Action(() =>
             {
                 foreach (Account acc in Account.All)
                 {
                     if (acc == null) continue;
 
-                    // FILTER: Exclude Backtest/Playback/Sim
-                    // User requested to filter "Backtest" and "Playback" and "Sim*"
                     string n = acc.Name.ToUpper();
-                    if (n.Contains("BACKTEST") || n.Contains("PLAYBACK") || n.StartsWith("SIM")) continue;
+                    if (n.Contains("BACKTEST") || n.Contains("PLAYBACK")) continue;
 
                     try
                     {
                         string safeName = acc.Name.Replace(" ", "_");
-                        string providerName = (acc.Connection != null && acc.Connection.Options != null) ? acc.Connection.Options.Name : "Unknown";
-                        bool isTest = !(acc.Name.IndexOf("Live", StringComparison.OrdinalIgnoreCase) >= 0 || acc.Name.IndexOf("Real", StringComparison.OrdinalIgnoreCase) >= 0);
 
-                        // 1. Register TRADING Bot
-                        var tradingPayload = new
+                        string providerName = "Unknown";
+                        if (acc.Connection != null && acc.Connection.Options != null && !string.IsNullOrEmpty(acc.Connection.Options.Name))
                         {
-                            id = safeName,
-                            func = "TRADING",
-                            symbol = "ALL",
-                            provider = providerName,
-                            isTest = isTest
-                        };
-                        _socket.Send("REGISTER", tradingPayload);
-                        _socket.RegisterBot(safeName, "TRADING", "ALL"); // Track for Heartbeat
+                            providerName = acc.Connection.Options.Name;
+                        }
 
-                        // 2. Register DATAFEED Bot
-                        var datafeedPayload = new
-                        {
-                            id = safeName + "_DATAFEED",
-                            func = "DATAFEED",
-                            symbol = "ALL"
-                        };
-                        _socket.Send("REGISTER", datafeedPayload);
-                        _socket.RegisterBot(safeName, "DATAFEED", "ALL"); // Track for Heartbeat
+                        if (providerName == "Unknown" && !acc.Name.Equals("Sim101", StringComparison.OrdinalIgnoreCase)) continue;
+                        if (providerName == "Unknown") providerName = "NinjaTrader";
 
-                        NinjaTrader.Code.Output.Process($"AwesomeCockpit: Registered Bots for {safeName}", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
+                        bool isTest = n.StartsWith("SIM");
+                        accountsToRegister.Add(new Tuple<string, string, bool>(safeName, providerName, isTest));
+                        uniqueProviders.Add(providerName);
                     }
                     catch (Exception ex)
                     {
                         NinjaTrader.Code.Output.Process($"AwesomeCockpit: Error registering account {acc.Name}: {ex.Message}", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
                     }
                 }
+            }));
+
+            // Perform network sending OUTSIDE the Dispatcher
+            foreach (var item in accountsToRegister)
+            {
+                string safeName = item.Item1;
+                string providerName = item.Item2;
+                bool isTest = item.Item3;
+
+                var tradingPayload = new
+                {
+                    id = safeName,
+                    func = "TRADING",
+                    symbol = "ALL",
+                    provider = providerName,
+                    isTest = isTest,
+                    timezone = "UTC"
+                };
+                _socket.SendProtocolMessage("REGISTER", tradingPayload, safeName, "TRADING", "ALL");
+                _socket.RegisterBot(safeName, "TRADING", "ALL"); // Track for Heartbeat
+
+                NinjaTrader.Code.Output.Process($"AwesomeCockpit: Registered Bots for {safeName}", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
             }
+
+            foreach (var provider in uniqueProviders)
+            {
+                string dfId = provider + "_DATAFEED";
+                var datafeedPayload = new
+                {
+                    id = dfId,
+                    func = "DATAFEED",
+                    symbol = "ALL",
+                    provider = provider,
+                    isTest = false,
+                    timezone = "UTC"
+                };
+                _socket.SendProtocolMessage("REGISTER", datafeedPayload, dfId, "DATAFEED", "ALL");
+                _socket.RegisterBot(dfId, "DATAFEED", "ALL");
+                NinjaTrader.Code.Output.Process($"AwesomeCockpit: Registered DATAFEED Bot for {provider}", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
+            }
+
+            // Flag that initialization and bot creation is complete, unlocking Live Account Status Updates
+            ExecutionManager.IsDiscoveryComplete = true;
+        }
+
+        public void AcknowledgeConfig(string requestId, string botId)
+        {
+            var payload = new { status = "OK", message = "Configuration accepted" };
+            _socket.SendProtocolMessage("CMD_CONFIG_SYMBOLS_RESPONSE", payload, botId, "DATAFEED", "ALL", requestId);
+        }
+
+        public void RegisterVirtualBots(string botId, string symbol)
+        {
+            if (string.IsNullOrEmpty(symbol) || string.IsNullOrEmpty(botId)) return;
+
+            // 1. Register TICK_SPY
+            var tsPayload = new { id = botId, func = "TICK_SPY", symbol = symbol, provider = "Datafeed", isTest = false, timezone = "UTC" };
+            _socket.SendProtocolMessage("REGISTER", tsPayload, botId, "TICK_SPY", symbol);
+            _socket.RegisterBot(botId, "TICK_SPY", symbol);
+
+            // 2. Register HISTORY
+            var histPayload = new { id = botId, func = "HISTORY", symbol = symbol, provider = "Datafeed", isTest = false, timezone = "UTC" };
+            _socket.SendProtocolMessage("REGISTER", histPayload, botId, "HISTORY", symbol);
+            _socket.RegisterBot(botId, "HISTORY", symbol);
+
+            NinjaTrader.Code.Output.Process($"AwesomeCockpit: Registered Virtual TICK_SPY and HISTORY for '{botId}' on '{symbol}'.", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
         }
     }
 }

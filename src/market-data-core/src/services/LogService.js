@@ -54,8 +54,7 @@ class LogService {
 
     isHighFrequency(type) {
         const hf = [
-            'STATUS_HEARTBEAT',
-            'STATUS_UPDATE',
+            'EV_ACCOUNT_STATUS_UPDATE',
             'TICK_DATA',
             'TICKS_BATCH',
             'CMD_POLL' // Polls are frequent if no data, but usually we filter empty polls elsewhere

@@ -84,5 +84,5 @@ if (Test-Path $SystemJsonPath) {
     Write-Host "[-] Konnte system.json unter $SystemJsonPath nicht finden." -ForegroundColor Red
 }
 
-Write-Host "`n[✓] Fertig! Zertifikat bereit unter: $PfxPath" -ForegroundColor Green
+Write-Host "`n[OK] Fertig! Zertifikat bereit unter: $PfxPath" -ForegroundColor Green
 Write-Host "Das PFX-Passwort lautet: $Password" -ForegroundColor Yellow

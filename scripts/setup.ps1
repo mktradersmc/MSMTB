@@ -165,11 +165,10 @@ Pop-Location
 
 pm2 save *>> $LogFile
 
-Write-Log "  Richte PM2-Windows-Dienst ein (pm2-installer)..." "Cyan"
-npm install -g pm2-installer 2>&1 | Out-File -Append -FilePath $LogFile
-npx pm2-installer install *>> $LogFile
-
-
+Write-Log "  Richte PM2-Autostart für den aktuellen Benutzer ein..." "Cyan"
+npm install -g pm2-windows-startup 2>&1 | Out-File -Append -FilePath $LogFile
+pm2-startup install *>> $LogFile
+pm2 save *>> $LogFile
 Write-Log "`n=========================================" "Green"
 Write-Log "   SETUP ERFOLGREICH ABGESCHLOSSEN       " "Green"
 Write-Log "=========================================" "Green"

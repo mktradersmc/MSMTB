@@ -31,14 +31,24 @@ if (Get-Command pm2 -ErrorAction SilentlyContinue) {
     npm uninstall -g pm2 pm2-windows-startup pm2-windows-service 2> $null
 }
 
-# Falls der Service hartnäckig als Windows-Dienst registriert wurde:
-$serviceName = "pm2"
-$pm2Svc = Get-Service -Name $serviceName -ErrorAction SilentlyContinue
-if ($pm2Svc) {
-    Write-Host "  Entferne Windows-Dienst $serviceName..."
-    Stop-Service -Name $serviceName -Force -ErrorAction SilentlyContinue
-    sc.exe delete $serviceName | Out-Null
+# Falls der Service hartnäckig als Windows-Dienst registriert wurde (pm2-installer oder alt):
+$serviceNames = @("pm2", "PM2")
+foreach ($svcName in $serviceNames) {
+    if (Get-Service -Name $svcName -ErrorAction SilentlyContinue) {
+        Write-Host "  Entferne Windows-Dienst $svcName..."
+        Stop-Service -Name $svcName -Force -ErrorAction SilentlyContinue
+        sc.exe delete $svcName | Out-Null
+    }
 }
+
+# Try to uninstall pm2-installer correctly if it exists
+if (Test-Path "$env:APPDATA\npm\pm2-installer") {
+    Write-Host "  Entferne pm2-installer Setup..."
+    npx pm2-installer remove 2> $null
+}
+
+Write-Host "  Deinstalliere pm2, pm2-installer und pm2-windows-startup global..."
+npm uninstall -g pm2 pm2-windows-startup pm2-windows-service pm2-installer 2> $null
 
 Write-Host "`n[2/6] Deinstalliere Node.js..." -ForegroundColor Cyan
 # Wir suchen nach Node.js Installationen

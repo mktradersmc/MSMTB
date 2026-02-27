@@ -116,14 +116,20 @@ if (-not (Get-Command pm2 -ErrorAction SilentlyContinue)) {
     $env:Path += ";$env:APPDATA\npm"
 }
 
+# Log-Verzeichnis erstellen
+$AppLogDir = Join-Path $TargetDir "logs"
+if (-not (Test-Path $AppLogDir)) { New-Item -ItemType Directory -Path $AppLogDir | Out-Null }
+
 Write-Log "  Starte Backend in PM2..." "Cyan"
 Push-Location $BackendDir
-pm2 start index.js --name "awesome-backend" *>> $LogFile
+$BackendLog = Join-Path $AppLogDir "awesome-backend.log"
+pm2 start index.js --name "awesome-backend" --log $BackendLog --time *>> $LogFile
 Pop-Location
 
-Write-Log "  Starte Frontend in PM2 (Next.js start)..." "Cyan"
+Write-Log "  Starte Frontend in PM2 (Next.js start:ssl)..." "Cyan"
 Push-Location $FrontendDir
-pm2 start npm --name "awesome-frontend" -- start *>> $LogFile
+$FrontendLog = Join-Path $AppLogDir "awesome-frontend.log"
+pm2 start npm --name "awesome-frontend" --log $FrontendLog --time -- run start:ssl *>> $LogFile
 Pop-Location
 
 pm2 save *>> $LogFile

@@ -9,8 +9,8 @@ const app = next({ dev });
 const handle = app.getRequestHandler();
 
 // Konfiguration laden
-const projectRoot = path.join(__dirname, '../../../'); 
-const configPath = path.join(__dirname, '../../market-data-core/data/system.json');
+const projectRoot = path.resolve(__dirname, '../../'); 
+const configPath = path.resolve(projectRoot, 'src/market-data-core/data/system.json');
 
 let sysConfig = {};
 try {

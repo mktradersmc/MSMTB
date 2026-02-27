@@ -2,3 +2,9 @@ src/market-data-core/db/symbols/
 src/market-data-core/logs/
 src/market-data-core/.env
 
+src/market-data-core/market_data.db
+src/market-data-core/market_data.db-wal
+src/market-data-core/trades.db-wal
+bridge_debug.log
+src/market-data-core/logs/console-parallel.log
+src/market-data-core/debug_probe.log

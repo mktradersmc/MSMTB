@@ -17,6 +17,7 @@ const botConfigService = require('./BotConfigService'); // Import Service
 const systemConfigService = require('./SystemConfigService');
 // ... imports
 const fs = require('fs');
+const path = require('path');
 const https = require('https');
 
 class SocketServer {

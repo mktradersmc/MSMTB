@@ -33,10 +33,16 @@ if (-not $isAdmin) {
 # 2. Interaktive Abfragen (PAT)
 Write-Log "`n[1/3] Konfiguration abfragen..." "Cyan"
 
-$GithubPAT = Read-Host "Bitte gib deinen GitHub Personal Access Token (PAT) ein (fuer private Repos)"
-if ([string]::IsNullOrWhiteSpace($GithubPAT)) {
-    Write-Log "Kein PAT eingegeben. Abbruch." "Red"
-    Pause; exit
+$GithubPAT = "DEIN_GITHUB_PAT_HIER_EINTRAGEN" # <--- HIER DEINEN PAT EINTRAGEN
+
+if ($GithubPAT -eq "DEIN_GITHUB_PAT_HIER_EINTRAGEN" -or [string]::IsNullOrWhiteSpace($GithubPAT)) {
+    $GithubPAT = Read-Host "Bitte gib deinen GitHub Personal Access Token (PAT) ein (fuer private Repos)"
+    if ([string]::IsNullOrWhiteSpace($GithubPAT)) {
+        Write-Log "Kein PAT eingegeben. Abbruch." "Red"
+        Pause; exit
+    }
+} else {
+    Write-Log "GitHub PAT aus Skript-Konfiguration geladen." "Green"
 }
 
 # 3. System-Abhängigkeiten installieren (Git)

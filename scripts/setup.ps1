@@ -11,6 +11,17 @@ if ([string]::IsNullOrWhiteSpace($Password)) {
     }
 }
 
+Write-Host "`n===============================================" -ForegroundColor Cyan
+Write-Host " Hardware Profil auswaehlen (Compiler-Setup)" -ForegroundColor Cyan
+Write-Host "===============================================" -ForegroundColor Cyan
+Write-Host "[1] Modern Hardware (Schnellerer SWC Compiler)"
+Write-Host "[2] Legacy / Virtuell (Babel Compiler, z.B. fuer Ceph/KVM ohne POPCNT)"
+$HardwareChoice = ""
+while ($HardwareChoice -notmatch "^[12]$") {
+    $HardwareChoice = Read-Host "Bitte 1 oder 2 eingeben"
+}
+$IsLegacyHardware = ($HardwareChoice -eq '2')
+
 # 0. Logging Initialisieren (Append-Mode, führt das install.log fort)
 $LogFile = Join-Path $TargetDir "install.log"
 function Write-Log {
@@ -89,6 +100,24 @@ Write-Log "  system.json für den Live-Betrieb (core.db) eingerichtet." "Green"
 
 # 5. NPM Dependencies & Build
 Write-Log "`n[5/6] NPM Pakete installieren und Frontend bauen (Das kann dauern)..." "Cyan"
+
+$FrontendEnvPath = Join-Path $FrontendDir ".env.production"
+$BabelRcPath = Join-Path $FrontendDir ".babelrc"
+
+if ($IsLegacyHardware) {
+    Write-Log "  -> Konfiguriere Legacy/Babel Compiler (Kompatibilitaetsmodus)..." "Yellow"
+    Set-Content -Path $FrontendEnvPath -Value "NEXT_COMPILER_MODE=legacy" -Force
+    $BabelRcContent = @'
+{
+  "presets": ["next/babel"]
+}
+'@
+    Set-Content -Path $BabelRcPath -Value $BabelRcContent -Force
+} else {
+    Write-Log "  -> Konfiguriere Modern/SWC Compiler (Performance-Modus)..." "Green"
+    Set-Content -Path $FrontendEnvPath -Value "NEXT_COMPILER_MODE=modern" -Force
+    if (Test-Path $BabelRcPath) { Remove-Item -Path $BabelRcPath -Force }
+}
 
 Write-Log "  -> Installiere Backend Dependencies..." "Cyan"
 Push-Location $BackendDir

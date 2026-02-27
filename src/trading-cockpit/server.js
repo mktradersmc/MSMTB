@@ -23,7 +23,7 @@ const port = sysConfig?.frontend?.port || 443;
 const pfxPassword = sysConfig?.backend?.pfxPassword || 'cockpit';
 
 const dev = process.env.NODE_ENV === 'development'; // Standard: Production! Umgeht Rust/SWC Dev-Compiler
-const app = next({ dev, hostname: '0.0.0.0', port });
+const app = next({ dev, hostname: '0.0.0.0', port, dir: __dirname });
 const handle = app.getRequestHandler();
 
 app.prepare().then(() => {

@@ -1,7 +1,6 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  swcMinify: false, // Fallback on older CPUs without `popcnt` instruction
   async rewrites() {
     return [
       {

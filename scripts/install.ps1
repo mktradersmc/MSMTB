@@ -30,18 +30,12 @@ if (-not $isAdmin) {
     exit
 }
 
-# 2. Interaktive Abfragen (PAT & Cockpit Credentials)
+# 2. Interaktive Abfragen (PAT)
 Write-Log "`n[1/3] Konfiguration abfragen..." "Cyan"
 
 $GithubPAT = Read-Host "Bitte gib deinen GitHub Personal Access Token (PAT) ein (fuer private Repos)"
 if ([string]::IsNullOrWhiteSpace($GithubPAT)) {
     Write-Log "Kein PAT eingegeben. Abbruch." "Red"
-    Pause; exit
-}
-
-$CockpitPass = Read-Host "Bitte gib ein Passwort fuer das Trading Cockpit Backend ein"
-if ([string]::IsNullOrWhiteSpace($CockpitPass)) {
-    Write-Log "Passwort darf nicht leer sein. Abbruch." "Red"
     Pause; exit
 }
 
@@ -84,8 +78,8 @@ if (-not (Test-Path $SetupScript)) {
 
 Write-Log "  Starte dynamisches Applikations-Setup ($SetupScript)..." "Yellow"
 
-# Aufruf von Setup.ps1 und Weitergabe der Parameter
-& $SetupScript -TargetDir $TargetDir -Password $CockpitPass
+# Aufruf von Setup.ps1
+& $SetupScript -TargetDir $TargetDir
 
 # Da setup.ps1 bereits ein Wait hat, lassen wir das hier enden,
 # oder falls wir hierhin zurückkehren, warten wir nur im Fehlerfall nochmal.

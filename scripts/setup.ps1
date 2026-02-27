@@ -4,8 +4,11 @@ param(
 )
 
 if ([string]::IsNullOrWhiteSpace($Password)) {
-    Write-Host "Fehler: Kein Passwort uebergeben. Setup muss vom install.ps1 Bootstrapper aus aufgerufen werden!" -ForegroundColor Red
-    Pause; exit 1
+    $Password = Read-Host "Bitte gib ein Passwort fuer das Trading Cockpit Backend ein"
+    if ([string]::IsNullOrWhiteSpace($Password)) {
+        Write-Host "Fehler: Passwort darf nicht leer sein. Abbruch." -ForegroundColor Red
+        Pause; exit 1
+    }
 }
 
 # 0. Logging Initialisieren (Append-Mode, führt das install.log fort)

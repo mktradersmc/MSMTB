@@ -1,5 +1,6 @@
 
 const path = require('path');
+const systemConfigService = require('./services/SystemConfigService');
 
 module.exports = {
     // Communication
@@ -9,12 +10,12 @@ module.exports = {
     PIPE_NAME_HISTORY: '\\\\.\\pipe\\MT5_Node_History',
     PIPE_NAME_HEARTBEAT: '\\\\.\\pipe\\MT5_Node_Heartbeat',
     HTTP_PORT: 3005,
-    DB_MARKET_PATH: path.join(__dirname, '..', 'market_data.db'),
+    DB_MARKET_PATH: systemConfigService.getConfig().marketDbPath ? path.resolve(__dirname, '..', systemConfigService.getConfig().marketDbPath) : path.join(__dirname, '..', 'market_data.db'),
     DB_TRADES_PATH: path.join(__dirname, '..', 'trades.db'),
 
+
     // Deployment & Restart Configuration
-    // PLEASE VERIFY THESE PATHS (Placeholder: Update with actual paths)
-    MT5_MQL5_DIR: 'C:\\Users\\Michael\\AppData\\Roaming\\MetaQuotes\\Terminal\\D0E8209F77C8CF37AD8BF550E51FF075\\MQL5',
+    MT5_MQL5_DIR: path.join(systemConfigService.getConfig().projectRoot, 'metatrader', 'master', 'MQL5'),
     MT5_TERMINAL_EXE: 'C:\\Program Files\\MetaTrader 5\\terminal64.exe',
     // Default timeframes we care about if not specified
     DEFAULT_TIMEFRAMES: [

@@ -28,8 +28,55 @@ export function SettingsView() {
     const [editingBroker, setEditingBroker] = useState<Broker | null>(null);
     const [mappingList, setMappingList] = useState<{ key: string, value: string }[]>([]);
 
+    // System Config State
+    const [sysProjectRoot, setSysProjectRoot] = useState('');
+    const [sysUsername, setSysUsername] = useState('');
+    const [sysPassword, setSysPassword] = useState('');
+    const [isSysLoading, setIsSysLoading] = useState(true);
+
+    const loadSystemConfig = async () => {
+        try {
+            const res = await fetchDirect('/system/config');
+            if (res.ok) {
+                const data = await res.json();
+                if (data.config) {
+                    setSysProjectRoot(data.config.projectRoot || '');
+                    setSysUsername(data.config.systemUsername || '');
+                }
+            }
+        } catch (e) {
+            console.error("Failed to load system config", e);
+        } finally {
+            setIsSysLoading(false);
+        }
+    };
+
+    const handleSaveSystemConfig = async () => {
+        try {
+            const res = await fetchDirect('/system/config', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    projectRoot: sysProjectRoot,
+                    systemUsername: sysUsername,
+                    systemPassword: sysPassword ? sysPassword : undefined
+                })
+            });
+            if (res.ok) {
+                setStatusMsg({ type: 'success', text: 'System configuration updated successfully!' });
+                setSysPassword(''); // Clear password field after saving
+            } else {
+                setStatusMsg({ type: 'error', text: 'Failed to update system config.' });
+            }
+        } catch (e) {
+            console.error("Failed to save system config", e);
+            setStatusMsg({ type: 'error', text: `Failed to save system config: ${(e as Error).message}` });
+        }
+    };
+
     useEffect(() => {
         loadBrokers();
+        loadSystemConfig();
     }, []);
 
     const loadBrokers = async () => {
@@ -165,6 +212,54 @@ export function SettingsView() {
                         {statusMsg.text}
                     </div>
                 )}
+
+                {/* System Config Card */}
+                <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-6 mb-8 shadow-sm">
+                    <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
+                        <Server size={20} className="text-indigo-500" />
+                        System Configuration
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div>
+                            <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Project Root Directory</label>
+                            <input
+                                type="text"
+                                placeholder="e.g. C:\Trading"
+                                className="bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg p-2.5 text-slate-900 dark:text-white text-sm w-full"
+                                value={sysProjectRoot}
+                                onChange={e => setSysProjectRoot(e.target.value)}
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-xs font-bold text-slate-500 uppercase mb-1">System Username</label>
+                            <input
+                                type="text"
+                                className="bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg p-2.5 text-slate-900 dark:text-white text-sm w-full"
+                                value={sysUsername}
+                                onChange={e => setSysUsername(e.target.value)}
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-xs font-bold text-slate-500 uppercase mb-1">New System Password</label>
+                            <input
+                                type="password"
+                                placeholder="Leave blank to keep unchanged"
+                                className="bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg p-2.5 text-slate-900 dark:text-white text-sm w-full"
+                                value={sysPassword}
+                                onChange={e => setSysPassword(e.target.value)}
+                            />
+                        </div>
+                    </div>
+                    <div className="flex justify-end mt-4">
+                        <button 
+                            onClick={handleSaveSystemConfig}
+                            disabled={!sysProjectRoot || !sysUsername}
+                            className="flex items-center gap-2 px-5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium rounded-lg shadow-md transition-colors disabled:opacity-50"
+                        >
+                            <Save size={16} /> Save Configuration
+                        </button>
+                    </div>
+                </div>
 
                 {/* Brokers List */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 animate-in slide-in-from-right-4 fade-in duration-300">

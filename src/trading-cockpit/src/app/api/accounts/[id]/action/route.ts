@@ -32,9 +32,12 @@ export async function POST(req: Request, props: { params: Promise<{ id: string }
             const brokers = await getBrokers();
             const broker = brokers.find(b => b.id === account.brokerId);
             if (broker) {
-                const root = getInstancesRoot();
-                const botId = `${broker.shorthand.replace(/\s+/g, '')}_${account.login}`;
-                instancePath = path.join(root, `MT_${botId}`);
+                const root = await getInstancesRoot();
+                let instanceName = `MT_${broker.shorthand.replace(/\s+/g, '')}_${account.login}`;
+                if (account.accountType === 'DATAFEED' || (account as any).isDatafeed) {
+                    instanceName += '_DATAFEED';
+                }
+                instancePath = path.join(root, instanceName);
             }
         }
 

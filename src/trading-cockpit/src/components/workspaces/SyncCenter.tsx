@@ -63,36 +63,36 @@ export const SyncCenter: React.FC = () => {
     return (
         <div className="relative" ref={dropdownRef}>
             {/* Main Split Button */}
-            <div className={`flex items-center h-8 rounded-md transition-all ${isAnyActive ? 'bg-blue-500/20 text-blue-400' : 'bg-transparent text-slate-400'}`}>
+            <div className={`flex items-center h-8 rounded-md transition-all ${isAnyActive ? 'bg-blue-500/20 text-blue-600 dark:text-blue-400' : 'bg-transparent text-slate-600 dark:text-slate-400'}`}>
 
                 {/* Main Toggle Action */}
                 <button
                     onClick={toggleTotalSync}
-                    className={`flex items-center justify-center pl-2 pr-1 h-full transition-colors rounded-l-md ${isAnyActive ? 'hover:bg-blue-500/30' : 'hover:bg-slate-800'}`}
+                    className={`flex items-center justify-center pl-2 pr-1 h-full transition-colors rounded-l-md ${isAnyActive ? 'hover:bg-blue-100 dark:hover:bg-blue-500/30' : 'hover:bg-slate-200 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-100'}`}
                     title={isAnyActive ? "Disable All Sync" : "Enable All Sync"}
                 >
-                    {isAnyActive ? <Link size={14} /> : <Link2 size={14} />}
+                    {isAnyActive ? <Link size={18} /> : <Link2 size={18} />}
                 </button>
 
                 {/* Dropdown Trigger */}
                 <button
                     onClick={() => setIsOpen(!isOpen)}
-                    className={`flex items-center justify-center px-1 h-full transition-colors rounded-r-md ${isAnyActive ? 'hover:bg-blue-500/30' : 'hover:bg-slate-800'}`}
+                    className={`flex items-center justify-center px-1 h-full transition-colors rounded-r-md ${isAnyActive ? 'hover:bg-blue-100 dark:hover:bg-blue-500/30' : 'hover:bg-slate-200 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-100'}`}
                 >
-                    <ChevronDown size={12} />
+                    <ChevronDown size={14} />
                 </button>
             </div>
 
             {/* Dropdown Menu */}
             {isOpen && (
-                <div className="absolute top-full right-0 mt-1 w-48 bg-slate-900 border border-slate-700 rounded-lg shadow-xl z-50 overflow-hidden flex flex-col py-1">
+                <div className="absolute top-full right-0 mt-1 w-48 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg shadow-xl z-[100] overflow-hidden flex flex-col py-1">
 
                     {/* Timeframe Item */}
                     <div
-                        className="flex items-center justify-between px-3 py-2 hover:bg-slate-800 cursor-pointer group"
+                        className="flex items-center justify-between px-3 py-2 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer group"
                         onClick={toggleTimeframe}
                     >
-                        <div className="flex items-center gap-2 text-slate-300 group-hover:text-slate-100">
+                        <div className="flex items-center gap-2 text-slate-600 dark:text-slate-300 group-hover:text-slate-900 dark:group-hover:text-slate-100">
                             <ScanLine size={14} />
                             <span className="text-xs font-medium">Timeframe</span>
                         </div>
@@ -105,10 +105,10 @@ export const SyncCenter: React.FC = () => {
 
                     {/* Crosshair Item */}
                     <div
-                        className="flex items-center justify-between px-3 py-2 hover:bg-slate-800 cursor-pointer group"
+                        className="flex items-center justify-between px-3 py-2 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer group"
                         onClick={togglePosition}
                     >
-                        <div className="flex items-center gap-2 text-slate-300 group-hover:text-slate-100">
+                        <div className="flex items-center gap-2 text-slate-600 dark:text-slate-300 group-hover:text-slate-900 dark:group-hover:text-slate-100">
                             <Link size={14} />
                             <span className="text-xs font-medium">Cross/Scroll</span>
                         </div>

@@ -1,14 +1,20 @@
-
 import fs from 'fs/promises';
 import path from 'path';
 
-import { DATA_DIR } from './paths';
+import { DATA_DIR, getMarketDataCoreRoot } from './paths';
 
 const SYSTEM_FILE = path.join(DATA_DIR, 'system.json');
+const CORE_SYSTEM_FILE = path.join(getMarketDataCoreRoot(), 'data', 'system.json');
 
 export interface SystemData {
     lastDeploymentTime: number;
     MT5_MQL5_DIR?: string;
+}
+
+export interface CoreSystemData {
+    projectRoot?: string;
+    systemUsername?: string;
+    systemPassword?: string;
 }
 
 async function ensureDataDir() {
@@ -53,4 +59,31 @@ export async function setSystemConfig(newConfig: Partial<SystemData>): Promise<v
     const data = await readSystemFile();
     const updated = { ...data, ...newConfig };
     await writeSystemFile(updated);
+}
+
+// Core Config Additions
+export async function getCoreSystemData(): Promise<CoreSystemData | null> {
+    try {
+        const data = await fs.readFile(CORE_SYSTEM_FILE, 'utf-8');
+        return JSON.parse(data);
+    } catch {
+        return null; // or default
+    }
+}
+
+export async function updateCoreSystemData(updates: Partial<CoreSystemData>): Promise<boolean> {
+    try {
+        let current: any = {};
+        try {
+            const data = await fs.readFile(CORE_SYSTEM_FILE, 'utf-8');
+            current = JSON.parse(data);
+        } catch {}
+        
+        const next = { ...current, ...updates };
+        await fs.writeFile(CORE_SYSTEM_FILE, JSON.stringify(next, null, 4));
+        return true;
+    } catch (e) {
+        console.error("Failed writing core system json", e);
+        return false;
+    }
 }

@@ -95,9 +95,9 @@ export const TradesPanel: React.FC<{
             </div>
 
             {/* Content */}
-            <div className="flex-1 overflow-auto">
-                <table className="w-full text-left border-collapse">
-                    <thead className="bg-white dark:bg-slate-900 text-[10px] text-slate-500 font-mono sticky top-0 z-10 shadow-sm border-b border-slate-200 dark:border-slate-800">
+            <div className="flex-1 overflow-auto flex flex-col">
+                <table className="w-full text-left border-collapse flex-1 min-h-0">
+                    <thead className="bg-slate-100 dark:bg-slate-900 text-[10px] text-slate-600 dark:text-slate-400 font-sans tracking-wide sticky top-0 z-10 shadow-sm border-b border-slate-300 dark:border-slate-800">
                         <tr>
                             <th className="p-1 w-6"></th>
                             <th className="p-1">Time</th>
@@ -114,25 +114,24 @@ export const TradesPanel: React.FC<{
                             <th className="p-1 text-right">Risk %</th>
                         </tr>
                     </thead>
-                    <tbody className="text-[11px] text-slate-600 dark:text-slate-300 font-mono">
+                    <tbody className="text-[11px] text-slate-800 dark:text-slate-300 font-sans tabular-nums">
                         {groupedTrades.map(group => (
                             <React.Fragment key={group.date}>
                                 {/* Date Header */}
                                 <tr>
-                                    <td colSpan={12} className="bg-slate-100/80 dark:bg-slate-800/80 px-2 py-1 text-[10px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wide border-b border-slate-200 dark:border-slate-800">
+                                    <td colSpan={12} className="bg-slate-200 dark:bg-slate-800/80 px-2 py-1 text-[10px] font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wide border-b border-slate-300 dark:border-slate-800">
                                         {group.date}
                                     </td>
                                 </tr>
 
-                                {group.trades.map(trade => (
+                                {group.trades.map((trade, tIndex) => (
                                     <React.Fragment key={trade.tradeId}>
                                         {/* Parent Row */}
-                                        <tr className={`border-b ${(trade.status as string) === 'OFFLINE' ? 'border-slate-200 dark:border-slate-800/20 bg-slate-100/50 dark:bg-slate-900/50 opacity-60' : ((trade.status as string) === 'ERROR' || (trade.status as string) === 'REJECTED' ? 'bg-red-50 dark:bg-red-900/10 border-red-200 dark:border-red-900/30' : 'border-slate-200 dark:border-slate-800/50 hover:bg-slate-50 dark:hover:bg-slate-800/30')} transition-colors`}>
+                                        <tr className={`border-b ${(trade.status as string) === 'OFFLINE' ? 'border-slate-300 dark:border-slate-800/20 bg-slate-200/50 dark:bg-slate-900/50 opacity-60' : ((trade.status as string) === 'ERROR' || (trade.status as string) === 'REJECTED' ? 'bg-red-50 dark:bg-red-900/10 border-red-200 dark:border-red-900/30' : `${tIndex % 2 === 0 ? 'bg-slate-50 dark:bg-transparent' : 'bg-slate-200/60 dark:bg-slate-800/20'} border-slate-300 dark:border-slate-800/50 hover:bg-slate-200 dark:hover:bg-slate-800/40`)} transition-colors`}>
                                             <td className="p-1 text-center cursor-pointer" onClick={() => toggleExpand(trade.tradeId)}>
                                                 {expandedIds.has(trade.tradeId) ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
                                             </td>
-                                            <td className="p-1 text-slate-500 dark:text-slate-400">
-                                                {/* Master Trade: Created Locally (Correct) */}
+                                            <td className="p-1 text-slate-800 dark:text-slate-400 font-medium">
                                                 {new Date(trade.openTime).toLocaleTimeString()}
                                             </td>
                                             <td className="p-1">
@@ -169,11 +168,11 @@ export const TradesPanel: React.FC<{
                                                 {(trade.unrealizedPl || 0).toFixed(2)}
                                             </td>
 
-                                            <td className="p-1 text-right text-slate-500">{trade.currentRr > 0 ? trade.currentRr.toFixed(2) : '-'}</td>
-                                            <td className="p-1 text-right font-bold text-slate-700 dark:text-slate-300">
+                                            <td className="p-1 text-right text-slate-700 dark:text-slate-400">{trade.currentRr > 0 ? trade.currentRr.toFixed(2) : '-'}</td>
+                                            <td className="p-1 text-right font-bold text-slate-900 dark:text-slate-300">
                                                 {(trade.runningRr || 0).toFixed(2)}
                                             </td>
-                                            <td className="p-1 text-right font-mono text-slate-500">
+                                            <td className="p-1 text-right text-slate-700 dark:text-slate-400">
                                                 {trade.riskPercent !== undefined ? `${trade.riskPercent.toFixed(1)}%` : '-'}
                                             </td>
                                         </tr>
@@ -210,9 +209,9 @@ export const TradesPanel: React.FC<{
                                             }
 
                                             return (
-                                                <tr key={`${pos.botId}-${pos.brokerId}-${index}`} className={`bg-slate-50 dark:bg-slate-900/50 text-[10px] text-slate-500 ${pos.status === 'OFFLINE' ? 'opacity-40 grayscale pointer-events-none' : ''}`}>
+                                                <tr key={`${pos.botId}-${pos.brokerId}-${index}`} className={`bg-slate-100 dark:bg-slate-900/50 text-[10px] text-slate-700 dark:text-slate-400 ${pos.status === 'OFFLINE' ? 'opacity-40 grayscale pointer-events-none' : ''}`}>
                                                     <td className="p-1"></td>
-                                                    <td className="p-1 pl-4 text-[10px] font-mono font-bold">
+                                                    <td className="p-1 pl-4 text-[10px] font-bold">
                                                         {(() => {
                                                             // Unified Badge Logic (User Request)
                                                             // RUNNING (Green), SENT (Blue), OFFLINE (Gray), ERROR (Red), REJECTED (Orange)
@@ -253,7 +252,7 @@ export const TradesPanel: React.FC<{
 
                                                             return (
                                                                 <span
-                                                                    className={`font-bold border px-1 rounded-[2px] cursor-help ${colorClass}`}
+                                                                    className={`font-bold border px-1.5 py-0.5 rounded-[3px] cursor-help ${colorClass}`}
                                                                     title={pos.errorMessage || status}
                                                                 >
                                                                     {label}
@@ -261,7 +260,7 @@ export const TradesPanel: React.FC<{
                                                             );
                                                         })()}
                                                     </td>
-                                                    <td className="p-1 font-mono font-bold text-slate-900 dark:text-white">{pos.brokerId}</td>
+                                                    <td className="p-1 font-bold text-slate-900 dark:text-white">{pos.brokerId}</td>
                                                     {/* <td className="p-1 text-right">{(pos.vol || 0).toFixed(2)}</td> */}
                                                     <td className="p-1 text-right text-slate-900 dark:text-white">
                                                         {(pos.open || 0).toFixed(5)}
@@ -300,8 +299,16 @@ export const TradesPanel: React.FC<{
                                 ))}
                             </React.Fragment>
                         ))}
+
+                        {displayTrades.length === 0 && (
+                            <tr>
+                                <td colSpan={12} className="p-8 text-center text-slate-500 italic text-xs">
+                                    No active trades
+                                </td>
+                            </tr>
+                        )}
                     </tbody>
-                    <tfoot className="bg-slate-50 dark:bg-slate-900 text-[11px] font-mono font-bold text-slate-700 dark:text-slate-300 sticky bottom-0 z-10 shadow-[0_-1px_0_theme(colors.slate.300)] dark:shadow-[0_-1px_0_theme(colors.slate.700)]">
+                    <tfoot className="bg-slate-200 dark:bg-slate-900 text-[11px] font-bold text-slate-800 dark:text-slate-300 font-sans tabular-nums sticky bottom-0 z-10 shadow-[0_-1px_0_theme(colors.slate.400)] dark:shadow-[0_-1px_0_theme(colors.slate.700)] mt-auto">
                         {(() => {
                             const totals = displayTrades.reduce((acc, t) => ({
                                 comm: acc.comm + (t.totalCommission || 0),
@@ -312,7 +319,7 @@ export const TradesPanel: React.FC<{
                             return (
                                 <tr>
                                     <td className="p-2"></td>
-                                    <td className="p-2 text-slate-500 uppercase tracking-wider text-[10px]">Total</td>
+                                    <td className="p-2 text-slate-700 dark:text-slate-400 uppercase tracking-wider text-[10px]">Total</td>
                                     <td className="p-2"></td>
                                     <td className="p-2"></td>
                                     <td className="p-2"></td>
@@ -333,6 +340,7 @@ export const TradesPanel: React.FC<{
                                         {totals.unrealized.toFixed(2)}
                                     </td>
 
+                                    <td className="p-2"></td>
                                     <td className="p-2"></td>
                                     <td className="p-2"></td>
                                 </tr>

@@ -18,8 +18,11 @@ export default function LoginPage() {
         setLoading(true);
 
         try {
-            // Assume the backend runs on port 3005
-            const res = await fetch("http://127.0.0.1:3005/api/auth/login", {
+            // Assume the backend runs on port 3005 on the same hostname
+            const baseUrl = typeof window !== 'undefined' ? `${window.location.protocol}//${window.location.hostname}:3005` : 'http://127.0.0.1:3005';
+            const url = `${baseUrl}/api/auth/login`;
+            
+            const res = await fetch(url, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ username, password }),

@@ -14,12 +14,54 @@ const AuthService = require('./AuthService');
 
 const { WebSocketServer } = require('ws');
 const botConfigService = require('./BotConfigService'); // Import Service
+const systemConfigService = require('./SystemConfigService');
 // ... imports
+const fs = require('fs');
+const https = require('https');
 
 class SocketServer {
     constructor() {
         this.app = express();
-        this.server = http.createServer(this.app);
+        
+        const sysConfig = systemConfigService.getConfig();
+        const useSSL = sysConfig?.backend?.useSSL === true;
+
+        if (useSSL) {
+            try {
+                const projectRoot = sysConfig.projectRoot || path.join(__dirname, '../../../../');
+                const certPath = path.join(projectRoot, 'certs', 'server.crt');
+                const keyPath = path.join(projectRoot, 'certs', 'server.key');
+                // Support PFX alternative
+                const pfxPath = path.join(projectRoot, 'certs', 'server.pfx');
+                
+                let sslOptions = {};
+                
+                if (fs.existsSync(pfxPath)) {
+                    console.log(`[SocketServer] Starting with SSL (PFX) from: ${pfxPath}`);
+                    sslOptions = {
+                        pfx: fs.readFileSync(pfxPath),
+                        passphrase: sysConfig.backend.pfxPassword || 'cockpit'
+                    };
+                } else if (fs.existsSync(certPath) && fs.existsSync(keyPath)) {
+                    console.log(`[SocketServer] Starting with SSL (CRT/KEY) from: ${certPath}`);
+                    sslOptions = {
+                        key: fs.readFileSync(keyPath),
+                        cert: fs.readFileSync(certPath)
+                    };
+                } else {
+                    console.warn(`[SocketServer] SSL enabled but no certificates found in ${path.join(projectRoot, 'certs')}. Initializing without SSL.`);
+                    throw new Error("Missing certificates");
+                }
+                
+                this.server = https.createServer(sslOptions, this.app);
+            } catch (err) {
+                console.error(`[SocketServer] SSL Initialization failed: ${err.message}. Falling back to HTTP.`);
+                this.server = http.createServer(this.app);
+            }
+        } else {
+            console.log(`[SocketServer] Starting with standard HTTP (No SSL configuration found).`);
+            this.server = http.createServer(this.app);
+        }
 
         // Raw Websocket Server for MQL5 Bots (who can't speak Socket.IO)
         this.wss = new WebSocketServer({ noServer: true });
@@ -67,10 +109,13 @@ class SocketServer {
 
     initializeDefaultUser() {
         try {
-            if (db.getUsersCount() === 0) {
-                console.log("[Auth] No users found, creating default admin user...");
-                db.createUser('admin', AuthService.hashPassword('admin'));
+            const sysConfig = systemConfigService.getConfig();
+            const adminUser = db.getUserByUsername(sysConfig.systemUsername);
+            if (!adminUser) {
+                console.log(`[Auth] No user found for ${sysConfig.systemUsername}, creating default admin user from config...`);
+                db.createUser(sysConfig.systemUsername, AuthService.hashPassword(sysConfig.systemPassword));
             }
+            // For existing users, the Auth logic will check SystemConfigService first if it's the admin.
         } catch (e) {
             console.error("[Auth] Failed to initialize default user:", e);
         }
@@ -81,20 +126,44 @@ class SocketServer {
         this.app.use(express.json({ limit: '50mb' })); // Support large JSON payloads
         this.app.use(cors());
 
+        // --- SYSTEM CONFIG API ---
+        this.app.get('/api/system/config', (req, res) => {
+            const sysConfig = systemConfigService.getConfig();
+            // Don't send password to frontend
+            res.json({ success: true, config: { projectRoot: sysConfig.projectRoot, systemUsername: sysConfig.systemUsername } });
+        });
+
+        this.app.post('/api/system/config', (req, res) => {
+            const { projectRoot, systemUsername, systemPassword } = req.body;
+            const newConfig = { projectRoot, systemUsername };
+            if (systemPassword) newConfig.systemPassword = systemPassword; // Only update if provided
+            const success = systemConfigService.saveConfig(newConfig);
+            res.json({ success });
+        });
+
         // --- AUTH API ---
         this.app.post('/api/auth/login', (req, res) => {
             const { username, password } = req.body;
             if (!username || !password) return res.status(400).json({ success: false, error: 'Missing credentials' });
 
-            const user = db.getUserByUsername(username);
-            if (!user) return res.status(401).json({ success: false, error: 'Invalid credentials' });
+            const sysConfig = systemConfigService.getConfig();
+            let isAuthenticated = false;
+            let userId = 'admin';
 
-            if (!AuthService.verifyPassword(password, user.password_hash)) {
-                return res.status(401).json({ success: false, error: 'Invalid credentials' });
+            if (username === sysConfig.systemUsername && password === sysConfig.systemPassword) {
+                isAuthenticated = true;
+            } else {
+                const user = db.getUserByUsername(username);
+                if (user && AuthService.verifyPassword(password, user.password_hash)) {
+                    isAuthenticated = true;
+                    userId = user.id;
+                }
             }
 
-            const token = AuthService.generateToken({ id: user.id, username: user.username });
-            res.json({ success: true, token, user: { id: user.id, username: user.username } });
+            if (!isAuthenticated) return res.status(401).json({ success: false, error: 'Invalid credentials' });
+
+            const token = AuthService.generateToken({ id: userId, username: username });
+            res.json({ success: true, token, user: { id: userId, username: username } });
         });
 
         // Apply JWT protection for API routes EXCEPT login and public endpoints
@@ -495,9 +564,26 @@ class SocketServer {
                     const status = systemOrchestrator.botStatus[acc.botId];
                     const isConnected = !!(status?.account?.connected || status?.connected);
 
+                    // Dynamically reconstruct instancePath
+                    const sysConfig = systemConfigService.getConfig();
+                    let instanceFolder = null;
+                    let constructedInstancePath = null;
+                    
+                    if (acc.platform === 'NT8') {
+                        instanceFolder = 'NinjaTrader';
+                    } else if (acc.platform === 'MT5') {
+                        const broker = brokers.find(b => b.id === acc.brokerId);
+                        if (broker) {
+                            instanceFolder = `MT_${broker.shorthand.replace(/\\s+/g, '')}_${acc.login}`;
+                            if (acc.accountType === 'DATAFEED' || acc.isDatafeed) {
+                                instanceFolder += '_DATAFEED';
+                            }
+                            const path = require('path');
+                            constructedInstancePath = path.join(sysConfig.projectRoot, 'metatrader', 'instances', instanceFolder);
+                        }
+                    }
+
                     // LAYER A: Truth from OS Process Loop (WMI Scanner in SystemOrchestrator)
-                    const path = require('path');
-                    const instanceFolder = acc.platform === 'NT8' ? 'NinjaTrader' : (acc.instancePath ? path.basename(acc.instancePath) : null);
                     const activePid = (instanceFolder && systemOrchestrator.activeProcesses)
                         ? systemOrchestrator.activeProcesses.get(instanceFolder)
                         : null;
@@ -512,7 +598,8 @@ class SocketServer {
                         balance: status?.account?.balance !== undefined ? status.account.balance : acc.balance,
                         equity: status?.account?.equity,
                         timezone: status?.timezone || acc.timezone,
-                        platform: acc.platform || status?.platform || 'MT5'
+                        platform: acc.platform || status?.platform || 'MT5',
+                        instancePath: constructedInstancePath // Injected for frontend compatibility
                     };
                 });
 
@@ -908,6 +995,7 @@ class SocketServer {
                 const env = req.query.env || 'test';
                 const trades = db.getActiveTrades(env);
                 const brokers = db.getBrokers();
+                const accounts = db.getAccounts();
 
                 // SKELTAL HYDRATION (Task: Immediate Visibility)
                 // Populate 'positions' from 'executions' so UI renders them immediately
@@ -922,13 +1010,21 @@ class SocketServer {
                             let brokerName = exec.broker_id || 'Unknown';
                             // 1. Try Brokers List (GUID Match)
                             const b = brokers.find(x => x.id === exec.broker_id);
-                            if (b) {
-                                brokerName = b.shorthand;
+                            if (b && b.name) {
+                                brokerName = b.name; // Use Full Name (User Request)
                             } else if (exec.bot_id && exec.bot_id.includes('_')) {
                                 // 2. Fallback: Parse from BotID (Format: Name_Number)
                                 // User Correction: Broker Name is FIRST Part.
                                 brokerName = exec.bot_id.split('_')[0];
                             }
+                            
+                            // Append Account Username inside parentheses (User Request)
+                            const acc = accounts.find(a => a.botId === exec.bot_id);
+                            const accountNameStr = acc ? (acc.login || exec.account_id || acc.id) : (exec.account_id || exec.bot_id);
+                            if (accountNameStr && accountNameStr !== 'Unknown') {
+                                brokerName = `${brokerName} (${accountNameStr})`;
+                            }
+
                             exec.brokerName = brokerName; // INJECT for Frontend
                         });
                     }

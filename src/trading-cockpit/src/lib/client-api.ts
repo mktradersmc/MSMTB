@@ -1,4 +1,11 @@
-const BACKEND_URL = 'http://127.0.0.1:3005/api';
+const getBaseUrl = () => {
+    if (typeof window !== 'undefined') {
+        return `${window.location.protocol}//${window.location.hostname}:3005`;
+    }
+    return 'http://127.0.0.1:3005';
+};
+
+const BACKEND_URL = `${getBaseUrl()}/api`;
 const NEXT_API_URL = '/api';
 
 /**
@@ -57,6 +64,6 @@ export async function fetchSystem(endpoint: string, options?: RequestInit) {
  * Common URLs for usage in fetching generic resources
  */
 export const API_URLS = {
-    DIRECT_BASE: 'http://127.0.0.1:3005',
-    BACKEND_API: BACKEND_URL
+    get DIRECT_BASE() { return getBaseUrl(); },
+    get BACKEND_API() { return `${getBaseUrl()}/api`; }
 };

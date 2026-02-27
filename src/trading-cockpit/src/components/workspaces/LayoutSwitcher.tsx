@@ -30,11 +30,11 @@ export const LayoutSwitcher: React.FC = () => {
     };
 
     const options: { id: LayoutType; icon: React.ReactNode; label: string }[] = [
-        { id: 'single', icon: <Square size={14} />, label: 'Single Config' },
-        { id: 'split-vertical', icon: <Columns size={14} />, label: 'Split Vertical' },
-        { id: 'split-horizontal', icon: <Rows size={14} />, label: 'Split Horizontal' },
-        { id: 'grid-2x2', icon: <Grid2x2 size={14} />, label: 'Grid 2x2' },
-        { id: 'grid-1-2', icon: <LayoutTemplate size={14} />, label: 'Grid 1+2' },
+        { id: 'single', icon: <Square size={18} />, label: 'Single Config' },
+        { id: 'split-vertical', icon: <Columns size={18} />, label: 'Split Vertical' },
+        { id: 'split-horizontal', icon: <Rows size={18} />, label: 'Split Horizontal' },
+        { id: 'grid-2x2', icon: <Grid2x2 size={18} />, label: 'Grid 2x2' },
+        { id: 'grid-1-2', icon: <LayoutTemplate size={18} />, label: 'Grid 1+2' },
     ];
 
     const activeOption = options.find(o => o.id === currentLayout) || options[0];
@@ -47,11 +47,11 @@ export const LayoutSwitcher: React.FC = () => {
                 title="Change Layout"
             >
                 {activeOption.icon}
-                <ChevronDown size={12} className={`transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
+                <ChevronDown size={14} className={`transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
             </button>
 
             {isOpen && (
-                <div className="absolute top-full left-0 mt-1 w-48 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg shadow-xl z-50 overflow-hidden flex flex-col py-1">
+                <div className="absolute top-full left-0 mt-1 w-48 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg shadow-xl z-[100] overflow-hidden flex flex-col py-1">
                     {options.map((opt) => (
                         <button
                             key={opt.id}

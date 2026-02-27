@@ -11,13 +11,34 @@ export async function POST(req: Request) {
         // Future improvement: Pass scope to script if needed.
         const body = await req.json().catch(() => ({}));
 
+        // Fetch projectRoot from our backend configuration API
+        let projectRoot = "C:\\Trading"; // Fallback
+        try {
+            const configRes = await fetch('http://127.0.0.1:3005/api/system/config');
+            if (configRes.ok) {
+                const configData = await configRes.json();
+                if (configData.success && configData.config && configData.config.projectRoot) {
+                    projectRoot = configData.config.projectRoot;
+                }
+            }
+        } catch (e) {
+            console.error("[System] Failed to fetch projectRoot from backend, using fallback.", e);
+        }
+
+        const masterPath = path.join(projectRoot, 'metatrader', 'master', 'MQL5');
+        const instancesRoot = path.join(projectRoot, 'metatrader', 'instances');
+
         console.log(`[System] Triggering Deployment via Script: ${DEPLOY_SCRIPT}`);
+        console.log(`[System] ProjectRoot (Master MQL5): ${masterPath}`);
+        console.log(`[System] InstancesRoot: ${instancesRoot}`);
 
         return new Promise<NextResponse>((resolve) => {
             const ps = spawn('powershell.exe', [
                 '-NoProfile',
                 '-ExecutionPolicy', 'Bypass',
-                '-File', DEPLOY_SCRIPT
+                '-File', DEPLOY_SCRIPT,
+                '-ProjectRoot', masterPath,
+                '-InstancesRoot', instancesRoot
             ]);
 
             let stdout = '';

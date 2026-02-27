@@ -93,7 +93,7 @@ export const WorkspaceShell: React.FC<WorkspaceShellProps> = ({
     return (
         <div ref={containerRef} className="flex-1 flex flex-col h-full bg-slate-50 dark:bg-slate-950 relative">
             {/* Header Row 1: Workspace Tabs + Global Settings + Layout + Sync */}
-            <header className="h-10 border-b border-slate-200 dark:border-slate-800 flex items-center px-4 pl-[3.5rem] justify-between flex-shrink-0 z-20 gap-4">
+            <header className="h-10 border-b border-slate-200 dark:border-slate-800 flex items-center px-4 pl-[3.5rem] justify-between flex-shrink-0 z-[100] gap-4">
                 {/* Workspace Tabs (Left) */}
                 <div className="flex-1 min-w-0">
                     <WorkspaceTabs />
@@ -140,9 +140,7 @@ export const WorkspaceShell: React.FC<WorkspaceShellProps> = ({
                     </button>
 
                     {/* Layout Switcher */}
-                    <div className="h-6 flex items-center">
-                        <LayoutSwitcher />
-                    </div>
+                    <LayoutSwitcher />
 
                     {/* Divider */}
                     <div className="w-px h-4 bg-slate-200 dark:bg-slate-700" />

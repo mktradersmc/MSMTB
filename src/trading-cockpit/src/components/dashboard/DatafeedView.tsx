@@ -105,6 +105,7 @@ export function DatafeedView() {
 
         loadData();
         checkUpdates();
+        fetchStatus();
 
         const statusInterval = setInterval(() => {
             fetchStatus();
@@ -596,9 +597,9 @@ const RestartControl = ({ scope, accounts, onAction }: { scope: 'TRADING' | 'DAT
     };
 
     return (
-        <div className={`flex items-stretch text-white rounded-lg shadow-lg overflow-hidden border border-slate-300 dark:border-slate-700 ${isRestarting ? 'opacity-50 pointer-events-none' : ''}`}>
+        <div className={`flex items-stretch text-slate-700 dark:text-white rounded-lg shadow-sm dark:shadow-lg overflow-hidden border border-slate-300 dark:border-slate-700 ${isRestarting ? 'opacity-50 pointer-events-none' : ''}`}>
             {/* Label - Darker, Non-clickable */}
-            <div className="flex items-center gap-2 px-3 py-2 bg-slate-700 dark:bg-slate-800 font-bold text-sm text-slate-200 border-r border-slate-600 dark:border-slate-900">
+            <div className="flex items-center gap-2 px-3 py-2 bg-slate-100 dark:bg-slate-800 font-bold text-sm text-slate-600 dark:text-slate-200 border-r border-slate-200 dark:border-slate-900">
                 <RotateCw size={14} className={isRestarting ? 'animate-spin text-amber-500' : 'text-slate-400'} />
                 <span className="tracking-wide">Restart</span>
             </div>
@@ -607,7 +608,7 @@ const RestartControl = ({ scope, accounts, onAction }: { scope: 'TRADING' | 'DAT
             <button
                 onClick={() => handleRestart('ACTIVE')}
                 disabled={isRestarting}
-                className="px-3 py-2 bg-slate-600 dark:bg-slate-700 hover:bg-amber-600 dark:hover:bg-amber-600 font-bold text-sm transition-colors border-r border-slate-500 dark:border-slate-800 flex items-center gap-2"
+                className="px-3 py-2 bg-white dark:bg-slate-700 hover:bg-amber-50 hover:text-amber-600 dark:hover:bg-amber-600 dark:hover:text-white font-bold text-sm transition-colors border-r border-slate-200 dark:border-slate-800 flex items-center gap-2"
             >
                 {isRestarting ? '...' : 'Active'}
             </button>
@@ -616,7 +617,7 @@ const RestartControl = ({ scope, accounts, onAction }: { scope: 'TRADING' | 'DAT
             <button
                 onClick={() => handleRestart('ALL')}
                 disabled={isRestarting}
-                className="px-3 py-2 bg-slate-600 dark:bg-slate-700 hover:bg-amber-600 dark:hover:bg-amber-600 font-bold text-sm transition-colors flex items-center gap-1"
+                className="px-3 py-2 bg-white dark:bg-slate-700 hover:bg-amber-50 hover:text-amber-600 dark:hover:bg-amber-600 dark:hover:text-white font-bold text-sm transition-colors flex items-center gap-1"
                 title="Restart ALL"
             >
                 All

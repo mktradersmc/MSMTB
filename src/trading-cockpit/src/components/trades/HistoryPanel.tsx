@@ -184,9 +184,9 @@ export const HistoryPanel: React.FC<{
             </div>
 
             {/* Content */}
-            <div className="flex-1 overflow-auto custom-scrollbar">
-                <table className="w-full border-collapse">
-                    <thead className="bg-white dark:bg-slate-900 sticky top-0 z-20 text-[10px] text-slate-500 font-mono uppercase tracking-wider shadow-sm">
+            <div className="flex-1 overflow-auto custom-scrollbar flex flex-col">
+                <table className="w-full border-collapse flex-1 min-h-0">
+                    <thead className="bg-slate-100 dark:bg-slate-900 sticky top-0 z-20 text-[10px] text-slate-600 dark:text-slate-400 font-sans uppercase tracking-wider shadow-sm border-b border-slate-300 dark:border-slate-800">
                         <tr>
                             <th className="p-1 w-6"></th>
                             <th className="p-1 text-left">Time</th>
@@ -200,23 +200,23 @@ export const HistoryPanel: React.FC<{
                             <th className="p-1 w-8"></th>
                         </tr>
                     </thead>
-                    <tbody className="text-[11px] text-slate-600 dark:text-slate-300 font-mono">
+                    <tbody className="text-[11px] text-slate-800 dark:text-slate-300 font-sans tabular-nums">
                         {groupedTrades.map(group => (
                             <React.Fragment key={group.date}>
                                 {/* Date Header */}
                                 <tr>
-                                    <td colSpan={10} className="bg-slate-100/80 dark:bg-slate-800/80 px-2 py-1 text-[10px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wide border-b border-slate-200 dark:border-slate-800">
+                                    <td colSpan={10} className="bg-slate-200 dark:bg-slate-800/80 px-2 py-1 text-[10px] font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wide border-b border-slate-300 dark:border-slate-800">
                                         {group.date}
                                     </td>
                                 </tr>
 
-                                {group.trades.map(trade => (
+                                {group.trades.map((trade, tIndex) => (
                                     <React.Fragment key={trade.tradeId}>
-                                        <tr className="border-b border-slate-200 dark:border-slate-800/50 hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors">
+                                        <tr className={`${tIndex % 2 === 0 ? 'bg-slate-50 dark:bg-transparent' : 'bg-slate-200/60 dark:bg-slate-800/20'} border-b border-slate-300 dark:border-slate-800/50 hover:bg-slate-200 dark:hover:bg-slate-800/40 transition-colors`}>
                                             <td className="p-1 text-center cursor-pointer" onClick={() => toggleExpand(trade.tradeId)}>
                                                 {expandedIds.has(trade.tradeId) ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
                                             </td>
-                                            <td className="p-1 text-slate-500 dark:text-slate-400">
+                                            <td className="p-1 text-slate-800 dark:text-slate-400">
                                                 {/* Only Time displayed */}
                                                 <span className="text-slate-900 dark:text-white font-bold">{trade.openTime ? new Date(trade.openTime).toLocaleTimeString() : '-'}</span>
                                             </td>
@@ -241,12 +241,12 @@ export const HistoryPanel: React.FC<{
                                                 {(trade.realizedPl || 0).toFixed(2)}
                                             </td>
                                             <td className="p-1 text-center font-bold">
-                                                <span className={`text-[10px] ${trade.status === 'ERROR' || trade.status === 'REJECTED' ? 'text-red-500' : (trade.status === 'CANCELED' ? 'text-slate-500' : 'text-slate-600')}`}>{trade.status}</span>
+                                                <span className={`text-[10px] ${trade.status === 'ERROR' || trade.status === 'REJECTED' ? 'text-red-600 dark:text-red-500' : (trade.status === 'CANCELED' ? 'text-slate-700 dark:text-slate-500' : 'text-slate-800 dark:text-slate-400')}`}>{trade.status}</span>
                                             </td>
                                         </tr>
                                         {/* Child Rows */}
                                         {expandedIds.has(trade.tradeId) && trade.positions.map(child => (
-                                            <tr key={child.id} className={`bg-slate-50 dark:bg-slate-900/80 border-b border-slate-200 dark:border-slate-800/30 text-[10px] text-slate-500 ${child.status === 'OFFLINE' ? 'opacity-40 grayscale' : ''}`}>
+                                            <tr key={child.id} className={`bg-slate-100 dark:bg-slate-900/80 border-b border-slate-300 dark:border-slate-800/30 text-[10px] text-slate-700 dark:text-slate-400 ${child.status === 'OFFLINE' ? 'opacity-40 grayscale' : ''}`}>
                                                 <td className="p-1"></td>
                                                 <td className="p-1 pl-4 flex items-center gap-1">
                                                     <span className="w-1.5 h-1.5 rounded-full bg-slate-600"></span>
@@ -258,7 +258,7 @@ export const HistoryPanel: React.FC<{
                                                 <td className="p-1 text-right">{child.currentPrice?.toFixed(5)}</td>
                                                 <td className="p-1 text-right">{(child.commission || 0).toFixed(2)}</td>
                                                 <td className="p-1 text-right">{(child.swap || 0).toFixed(2)}</td>
-                                                <td className="p-1 text-right font-mono text-slate-400">{(child.realizedPl || 0).toFixed(2)}</td>
+                                                <td className="p-1 text-right text-slate-600 dark:text-slate-400">{(child.realizedPl || 0).toFixed(2)}</td>
                                                 <td className="p-1 text-center text-[9px]">
                                                     {child.status === 'OFFLINE' ? (
                                                         <span className="text-slate-500 border border-slate-300 dark:border-slate-700 px-1 rounded-[2px]">OFFLINE</span>
@@ -274,13 +274,13 @@ export const HistoryPanel: React.FC<{
                         ))}
                         {filteredTrades.length === 0 && !isLoading && (
                             <tr>
-                                <td colSpan={10} className="p-8 text-center text-slate-500 italic">
+                                <td colSpan={10} className="p-8 text-center text-slate-500 italic text-xs">
                                     No trades match the current filters.
                                 </td>
                             </tr>
                         )}
                     </tbody>
-                    <tfoot className="bg-slate-50 dark:bg-slate-900 text-[11px] font-mono font-bold text-slate-700 dark:text-slate-300 sticky bottom-0 z-10 shadow-[0_-1px_0_theme(colors.slate.300)] dark:shadow-[0_-1px_0_theme(colors.slate.700)]">
+                    <tfoot className="bg-slate-200 dark:bg-slate-900 text-[11px] font-bold text-slate-800 dark:text-slate-300 font-sans tabular-nums sticky bottom-0 z-10 shadow-[0_-1px_0_theme(colors.slate.400)] dark:shadow-[0_-1px_0_theme(colors.slate.700)] mt-auto">
                         {(() => {
                             const totals = filteredTrades.reduce((acc, t) => ({
                                 comm: acc.comm + (t.commission || 0),
@@ -291,7 +291,7 @@ export const HistoryPanel: React.FC<{
                             return (
                                 <tr>
                                     <td className="p-2"></td>
-                                    <td className="p-2 text-slate-500 uppercase tracking-wider text-[10px]">Total</td>
+                                    <td className="p-2 text-slate-700 dark:text-slate-400 uppercase tracking-wider text-[10px]">Total</td>
                                     <td className="p-2"></td>
                                     <td className="p-2"></td>
                                     <td className="p-2"></td>

@@ -305,10 +305,8 @@ export const useTradeMonitor = () => {
                         }
                     });
 
-                    // Add Live Orphans (Safety)
-                    matches.forEach(m => {
-                        if (!usedLiveIds.has(m.botId)) mergedPositions.push(m);
-                    });
+                    // Removed Live Orphans (Safety) fallback to enforce filtering:
+                    // Only actual broker_executions are allowed in the table.
 
                     matches.length = 0;
                     matches.push(...mergedPositions);
@@ -515,92 +513,8 @@ export const useTradeMonitor = () => {
                 });
             });
 
-            // Process Orphans
-            const orphanGroups: Record<string, AggregatedTrade> = {};
-
-            livePositions.forEach(pos => {
-                const key = `${pos.botId}-${pos.ticket}`;
-                if (claimedTickets.has(key)) return;
-
-                // FIX: Strict Protocol Compliance. ID comes from 'id' field (mapped from Magic in Adapter).
-                // "Magic Number" is internal to MT5. External consumers use 'id'.
-                // Comment is NOT a source of ID.
-                let oId = (pos as any).id ? (pos as any).id.toString() : null;
-
-                if (!oId || oId === '0') {
-                    // Fallback ONLY to ticket if no ID provided (Unmanaged/Legacy)
-                    oId = `ticket-${pos.ticket}`;
-                }
-
-                // Final Safety Cast (TS Lint Fix)
-                const finalId: string = oId || `ticket-${pos.ticket}`;
-
-                if (!orphanGroups[finalId]) {
-                    orphanGroups[finalId] = {
-                        tradeId: finalId,
-                        symbol: pos.symbol,
-                        strategy: pos.comment?.split('|')[0] || 'Manual',
-                        direction: pos.type === 0 ? 'BUY' : 'SELL', // Helper needed for type check
-                        type: 'MARKET', // Default for orphans
-                        totalVol: 0,
-                        volume: 0,
-                        realizedPl: 0,
-                        unrealizedPl: 0,
-                        totalProfit: 0,
-                        totalCommission: 0,
-                        totalSwap: 0,
-                        status: 'RUNNING',
-                        positions: [],
-                        avgEntry: 0,
-                        avgSl: 0,
-                        avgTp: 0,
-                        currentRr: 0,
-                        runningRr: 0,
-                        avgPrice: 0,
-                        openTime: Date.now(),
-                        errorMessage: undefined
-                    };
-                }
-
-                const g = orphanGroups[finalId];
-                g.positions.push(pos);
-                g.totalVol += Number(pos.vol || 0);
-                g.unrealizedPl += Number(pos.profit || 0);
-                g.totalProfit += Number(pos.profit || 0);
-                g.totalCommission += Number(pos.commission || 0);
-                g.totalSwap += Number(pos.swap || 0);
-
-                // Weighting
-                const vol = Number(pos.vol || 0);
-                g.avgEntry += (Number(pos.open || 0) * vol);
-                g.avgPrice += (Number(pos.current || 0) * vol);
-                g.avgSl += (Number(pos.sl || 0) * vol);
-                g.avgTp += (Number(pos.tp || 0) * vol);
-
-                if (pos.status === 'ERROR' || pos.status === 'REJECTED') {
-                    // If an orphan position is actually a failed execution report
-                }
-            });
-
-            Object.values(orphanGroups).forEach(g => {
-                if (g.totalVol > 0) {
-                    g.avgEntry /= g.totalVol;
-                    g.avgPrice /= g.totalVol;
-                    g.avgSl /= g.totalVol;
-                    g.avgTp /= g.totalVol;
-
-                    // Calc RR for Orphans
-                    const distSl = Math.abs(g.avgEntry - g.avgSl);
-                    if (distSl > 0) {
-                        g.currentRr = Math.abs(g.avgTp - g.avgEntry) / distSl;
-                        const distRun = g.direction === 'BUY'
-                            ? (g.avgPrice - g.avgEntry)
-                            : (g.avgEntry - g.avgPrice);
-                        g.runningRr = distRun / distSl;
-                    }
-                }
-                combined.push(g);
-            });
+            // Removed "Process Orphans" block to enforce filtering:
+            // Only actual broker_executions are allowed in the table.
 
             setAggregatedTradesState(combined);
             aggregatedTradesRef.current = combined;

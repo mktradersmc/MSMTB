@@ -19,6 +19,7 @@ namespace AwesomeCockpit.NT8.Bridge
         public double Open { get; set; }
         public double Sl { get; set; }
         public double Tp { get; set; }
+        public bool SlAtBe { get; set; }
 
         public double RealizedPl { get; set; }
         public double HistoryCommission { get; set; }
@@ -148,7 +149,18 @@ namespace AwesomeCockpit.NT8.Bridge
             }
         }
 
-        private void OnOrderUpdate(object sender, OrderEventArgs e) { }
+        private void OnOrderUpdate(object sender, OrderEventArgs e)
+        {
+            if (e.OrderState == OrderState.Rejected)
+            {
+                NinjaTrader.Code.Output.Process($"[ExecutionManager] ORDER REJECTED: {e.Order.Name}, Action: {e.Order.OrderAction}, Type: {e.Order.OrderType}, OCO: {e.Order.Oco}", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
+            }
+            // Trace all updates during debug
+            if (e.Order.Name.Contains("_SL") || e.Order.Name.Contains("_TP"))
+            {
+                NinjaTrader.Code.Output.Process($"[ExecutionManager] OrderUpdate: {e.Order.Name} -> {e.OrderState}", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
+            }
+        }
 
         private void OnPositionUpdate(object sender, PositionEventArgs e) { }
 
@@ -191,12 +203,17 @@ namespace AwesomeCockpit.NT8.Bridge
                     if (isEntry)
                     {
                         // Open event
-                        tm.Vol = tm.Executions.Where(ex => (tm.Type == 0 && ex.Order.OrderAction == OrderAction.Buy) || (tm.Type == 1 && ex.Order.OrderAction == OrderAction.SellShort)).Sum(ex => ex.Quantity);
+                        var entryExecutions = tm.Executions.Where(ex => (tm.Type == 0 && ex.Order.OrderAction == OrderAction.Buy) || (tm.Type == 1 && ex.Order.OrderAction == OrderAction.SellShort)).ToList();
+                        
+                        int totalEntryVol = entryExecutions.Sum(ex => ex.Quantity);
+                        tm.Vol = totalEntryVol;
 
-                        // Dynamically update the Open Price if this was a Market Order (where Open was 0.0)
-                        if (tm.Open == 0.0)
+                        if (totalEntryVol > 0)
                         {
-                            tm.Open = e.Execution.Price;
+                            // Calculate exact Volume-Weighted Average Price (VWAP) of all entry fills
+                            double totalCost = entryExecutions.Sum(ex => ex.Price * ex.Quantity);
+                            tm.Open = totalCost / totalEntryVol;
+                            NinjaTrader.Code.Output.Process($"[ExecutionManager] Updated VWAP Entry Price for {tm.Id} to {tm.Open} (Vol: {totalEntryVol})", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
                         }
                     }
                     else
@@ -449,6 +466,7 @@ namespace AwesomeCockpit.NT8.Bridge
                         current = currentPrice,
                         sl = tm.Sl,
                         tp = tm.Tp,
+                        slAtBe = tm.SlAtBe, // Sync with DB mapping
                         swap = tm.HistorySwap,
                         profit = unrealized,
                         commission = tm.HistoryCommission,
@@ -902,16 +920,13 @@ namespace AwesomeCockpit.NT8.Bridge
 
                 if (NinjaTrader.Core.Globals.RandomDispatcher != null)
                 {
-                    Action getTarget = () =>
+                    Action modifyAction = () =>
                     {
-                        targetAccount = Account.All.FirstOrDefault(a => a != null && (a.Name == safeName || a.Name == botId));
-                        if (targetAccount == null)
-                            targetAccount = Account.All.FirstOrDefault(a => a != null && a.Name.StartsWith("Sim"));
-                    };
-
-                    if (NinjaTrader.Core.Globals.RandomDispatcher.CheckAccess()) getTarget();
-                    else NinjaTrader.Core.Globals.RandomDispatcher.Invoke(getTarget);
-                }
+                        try
+                        {
+                            targetAccount = Account.All.FirstOrDefault(a => a != null && (a.Name == safeName || a.Name == botId));
+                            if (targetAccount == null)
+                                targetAccount = Account.All.FirstOrDefault(a => a != null && a.Name.StartsWith("Sim"));
 
                 if (targetAccount == null)
                 {
@@ -964,27 +979,57 @@ namespace AwesomeCockpit.NT8.Bridge
                 if (newSl > 0)
                 {
                     var slOrder = associatedOrders.FirstOrDefault(o => o.Name == id + "_SL");
+                    var tpOrder = associatedOrders.FirstOrDefault(o => o.Name == id + "_TP");
                     if (slOrder != null)
                     {
-                        slOrder.StopPrice = newSl;
-                        targetAccount.Change(new[] { slOrder });
+                        // Canceling one OCO leg cancels both in NT8. We must rebuild both.
+                        string newOco = $"OCO_MOD_{id}_{NinjaTrader.Core.Globals.Now.Ticks}";
+                        
+#pragma warning disable 0618
+                        Order newSlOrder = targetAccount.CreateOrder(targetInst, slOrder.OrderAction, OrderType.StopMarket, TimeInForce.Gtc, slOrder.Quantity, 0, newSl, newOco, id + "_SL", null);
+                        if (newSlOrder != null) targetAccount.Submit(new[] { newSlOrder });
+
+                        if (tpOrder != null)
+                        {
+                            Order newTpOrder = targetAccount.CreateOrder(targetInst, tpOrder.OrderAction, OrderType.Limit, TimeInForce.Gtc, tpOrder.Quantity, tpOrder.LimitPrice, 0, newOco, id + "_TP", null);
+                            if (newTpOrder != null) targetAccount.Submit(new[] { newTpOrder });
+                        }
+#pragma warning restore 0618
+                        
+                        // Safety: Only cancel the old pair AFTER the new pair has been dispatched
+                        targetAccount.Cancel(new[] { slOrder }); // This drops the TP as well
+                        
+                        if (_activeTrades.TryGetValue(id, out TradeMetric tm)) tm.Sl = newSl;
+                        
                         modified = true;
-                    }
-                    else
-                    {
-                        // Needs to create a new SL if none existed but a position is open? 
-                        // Complex. For now, assume it existed or we skip.
                     }
                 }
 
                 // Modify TP Order
                 if (newTp > 0)
                 {
+                    var slOrder = associatedOrders.FirstOrDefault(o => o.Name == id + "_SL");
                     var tpOrder = associatedOrders.FirstOrDefault(o => o.Name == id + "_TP");
                     if (tpOrder != null)
                     {
-                        tpOrder.LimitPrice = newTp;
-                        targetAccount.Change(new[] { tpOrder });
+                        string newOco = $"OCO_MOD_{id}_{NinjaTrader.Core.Globals.Now.Ticks}";
+                        
+#pragma warning disable 0618
+                        Order newTpOrder = targetAccount.CreateOrder(targetInst, tpOrder.OrderAction, OrderType.Limit, TimeInForce.Gtc, tpOrder.Quantity, newTp, 0, newOco, id + "_TP", null);
+                        if (newTpOrder != null) targetAccount.Submit(new[] { newTpOrder });
+
+                        if (slOrder != null)
+                        {
+                            Order newSlOrder = targetAccount.CreateOrder(targetInst, slOrder.OrderAction, OrderType.StopMarket, TimeInForce.Gtc, slOrder.Quantity, 0, slOrder.StopPrice, newOco, id + "_SL", null);
+                            if (newSlOrder != null) targetAccount.Submit(new[] { newSlOrder });
+                        }
+#pragma warning restore 0618
+                        
+                        // Safety: Only cancel the old pair AFTER the new pair has been dispatched
+                        targetAccount.Cancel(new[] { tpOrder }); // This drops the SL as well
+                        
+                        if (_activeTrades.TryGetValue(id, out TradeMetric tm)) tm.Tp = newTp;
+                        
                         modified = true;
                     }
                 }
@@ -993,16 +1038,15 @@ namespace AwesomeCockpit.NT8.Bridge
 
                 if (action == "CANCEL")
                 {
-                    var mainOrder = workingOrders.FirstOrDefault(o => o.Name == id);
-                    if (mainOrder != null)
+                    if (associatedOrders.Count > 0)
                     {
-                        targetAccount.Cancel(new[] { mainOrder });
+                        targetAccount.Cancel(associatedOrders);
                         modified = true;
-                        NinjaTrader.Code.Output.Process($"[ExecutionManager] Cancelled Pending Order: {id}", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
+                        NinjaTrader.Code.Output.Process($"[ExecutionManager] Cancelled {associatedOrders.Count} Pending Orders (Entry, SL, TP) for: {id}", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
                     }
                     else
                     {
-                        NinjaTrader.Code.Output.Process($"[ExecutionManager] Cancel Failed: Could not find working order {id}", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
+                        NinjaTrader.Code.Output.Process($"[ExecutionManager] Cancel Failed: Could not find working orders for {id}", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
                     }
                 }
                 else if (action == "SL_BE")
@@ -1023,9 +1067,27 @@ namespace AwesomeCockpit.NT8.Bridge
                             double tickSize = targetInst.MasterInstrument.TickSize;
                             bePrice = Math.Round(bePrice / tickSize) * tickSize;
 
-                            // Modify the StopPrice property and push the change
-                            slOrder.StopPrice = bePrice;
-                            targetAccount.Change(new[] { slOrder });
+                            // Modify the StopPrice property by Rebuilding the OCO Pair
+                            var tpOrder = associatedOrders.FirstOrDefault(o => o.Name == id + "_TP");
+                            string newOco = $"OCO_MOD_{id}_{NinjaTrader.Core.Globals.Now.Ticks}";
+                            
+#pragma warning disable 0618
+                            Order newSlOrder = targetAccount.CreateOrder(targetInst, slOrder.OrderAction, OrderType.StopMarket, TimeInForce.Gtc, slOrder.Quantity, 0, bePrice, newOco, id + "_SL", null);
+                            if (newSlOrder != null) targetAccount.Submit(new[] { newSlOrder });
+
+                            if (tpOrder != null)
+                            {
+                                Order newTpOrder = targetAccount.CreateOrder(targetInst, tpOrder.OrderAction, OrderType.Limit, TimeInForce.Gtc, tpOrder.Quantity, tpOrder.LimitPrice, 0, newOco, id + "_TP", null);
+                                if (newTpOrder != null) targetAccount.Submit(new[] { newTpOrder });
+                            }
+#pragma warning restore 0618
+                            
+                            // Safety: Only cancel the old pair AFTER the new pair has been dispatched
+                            targetAccount.Cancel(new[] { slOrder }); // Drops both
+                            
+                            tm.Sl = bePrice;
+                            tm.SlAtBe = true;
+                            
                             modified = true;
 
                             NinjaTrader.Code.Output.Process($"[ExecutionManager] Moved Stop Loss for {id} to Breakeven exactly at Execution Price: {bePrice}", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
@@ -1123,7 +1185,8 @@ namespace AwesomeCockpit.NT8.Bridge
                     {
                         status = "OK",
                         message = "Command Dispatched",
-                        id = id
+                        id = id,
+                        sl_at_be_success = (action == "SL_BE")
                     };
                     _socket.SendProtocolMessage($"{reqCmd}_RESPONSE", successPayload, botId, "TRADING", "ALL", reqId);
                 }
@@ -1137,6 +1200,21 @@ namespace AwesomeCockpit.NT8.Bridge
                         id = id
                     };
                     _socket.SendProtocolMessage($"{reqCmd}_RESPONSE", rejectPayload, botId, "TRADING", "ALL", reqId);
+                }
+
+                        }
+                        catch (Exception innerEx)
+                        {
+                            NinjaTrader.Code.Output.Process($"[ExecutionManager] Dispatcher Modify Error: {innerEx.Message}\n{innerEx.StackTrace}", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
+                            
+                            string reqCmd = msg["command"]?.ToString() ?? "CMD_MODIFY_POSITION";
+                            var errorPayload = new { status = "ERROR", message = $"Dispatcher Mod Error: {innerEx.Message}", id = id };
+                            _socket.SendProtocolMessage($"{reqCmd}_RESPONSE", errorPayload, botId, "TRADING", "ALL", reqId);
+                        }
+                    };
+
+                    if (NinjaTrader.Core.Globals.RandomDispatcher.CheckAccess()) modifyAction();
+                    else NinjaTrader.Core.Globals.RandomDispatcher.BeginInvoke(modifyAction);
                 }
             }
             catch (Exception ex)

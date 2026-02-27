@@ -104,7 +104,7 @@ class DatabaseService {
             );
             CREATE TABLE IF NOT EXISTS accounts (
                 id TEXT PRIMARY KEY, bot_id TEXT, broker_id TEXT, login TEXT, password TEXT, server TEXT,
-                account_type TEXT, is_test INTEGER, instance_path TEXT,
+                account_type TEXT, is_test INTEGER,
                 is_datafeed INTEGER, platform TEXT, timezone TEXT, balance REAL, account_size REAL, created_at INTEGER
             );
             CREATE TABLE IF NOT EXISTS distribution_configs (
@@ -188,14 +188,14 @@ class DatabaseService {
                 console.log("[DB] Migrating Accounts from JSON...");
                 const accounts = this._loadJson(ACCOUNTS_FILE);
                 const insert = this.marketDb.prepare(`
-                    INSERT INTO accounts (id, bot_id, broker_id, login, password, server, account_type, is_test, instance_path, is_datafeed, platform, timezone, balance, account_size, created_at)
-                    VALUES (@id, @botId, @brokerId, @login, @password, @server, @accountType, @isTest, @instancePath, @isDatafeed, @platform, @timezone, @balance, @accountSize, @createdAt)
+                    INSERT INTO accounts (id, bot_id, broker_id, login, password, server, account_type, is_test, is_datafeed, platform, timezone, balance, account_size, created_at)
+                    VALUES (@id, @botId, @brokerId, @login, @password, @server, @accountType, @isTest, @isDatafeed, @platform, @timezone, @balance, @accountSize, @createdAt)
                 `);
                 const insertMany = this.marketDb.transaction((list) => {
                     for (const a of list) insert.run({
                         id: a.id, botId: a.botId, brokerId: a.brokerId, login: a.login, password: a.password,
                         server: a.server, accountType: a.accountType, isTest: a.isTest ? 1 : 0,
-                        instancePath: a.instancePath, isDatafeed: a.isDatafeed ? 1 : 0, platform: a.platform,
+                        isDatafeed: a.isDatafeed ? 1 : 0, platform: a.platform,
                         timezone: a.timezone, balance: a.balance || 0, accountSize: a.accountSize || null,
                         createdAt: a.createdAt || Date.now()
                     });
@@ -442,7 +442,6 @@ class DatabaseService {
             botId: r.bot_id,
             brokerId: r.broker_id,
             accountType: r.account_type,
-            instancePath: r.instance_path,
             accountSize: r.account_size,
             platform: r.platform,
             timezone: r.timezone,
@@ -473,14 +472,14 @@ class DatabaseService {
             }
 
             const stmt = this.marketDb.prepare(`
-                INSERT OR REPLACE INTO accounts (id, bot_id, broker_id, login, password, server, account_type, is_test, instance_path, is_datafeed, platform, timezone, balance, account_size, created_at)
-                VALUES (@id, @botId, @brokerId, @login, @password, @server, @accountType, @isTest, @instancePath, @isDatafeed, @platform, @timezone, @balance, @accountSize, @createdAt)
+                INSERT OR REPLACE INTO accounts (id, bot_id, broker_id, login, password, server, account_type, is_test, is_datafeed, platform, timezone, balance, account_size, created_at)
+                VALUES (@id, @botId, @brokerId, @login, @password, @server, @accountType, @isTest, @isDatafeed, @platform, @timezone, @balance, @accountSize, @createdAt)
             `);
 
             stmt.run({
                 id: a.id, botId: a.botId || null, brokerId: a.brokerId || null, login: a.login || '', password: a.password || '',
                 server: a.server || null, accountType: a.accountType || null, isTest: a.isTest ? 1 : 0,
-                instancePath: a.instancePath || null, isDatafeed: a.isDatafeed ? 1 : 0,
+                isDatafeed: a.isDatafeed ? 1 : 0,
                 platform: a.platform || 'MT5', timezone: a.timezone || null, balance: finalBalance, accountSize: finalAccountSize,
                 createdAt: a.createdAt || Date.now()
             });

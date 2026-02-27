@@ -1,7 +1,5 @@
-
-
 import React, { useState, useEffect } from 'react';
-import { Activity, Zap, Shield, Database, Clock, RefreshCw, FileText, Monitor, Moon, Sun, Terminal, Download, Save } from 'lucide-react';
+import { Activity, Zap, Shield, Database, Clock, RefreshCw, FileText, Monitor, Moon, Sun, Terminal, Download, Save, ChevronDown, ChevronRight } from 'lucide-react';
 import { useTheme } from '../../context/ThemeProvider';
 import { useChartTheme } from '../../context/ChartThemeContext';
 import { fetchDirect } from '../../lib/client-api';
@@ -25,6 +23,10 @@ export function SystemView() {
     const [features, setFeatures] = useState<Features | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
+
+    const [isMasterFileOpen, setIsMasterFileOpen] = useState(true);
+    const [isIntegrityOpen, setIsIntegrityOpen] = useState(false);
+    const [isRuntimeOpen, setIsRuntimeOpen] = useState(false);
 
     useEffect(() => {
         loadFeatures();
@@ -121,11 +123,12 @@ export function SystemView() {
                                     <select
                                         value={theme}
                                         onChange={(e) => setTheme(e.target.value as any)}
-                                        className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white rounded-md px-3 py-2 text-xs focus:ring-1 focus:ring-indigo-500 outline-none"
+                                        className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white rounded-md pl-3 pr-8 py-2 text-xs focus:ring-1 focus:ring-indigo-500 outline-none appearance-none cursor-pointer"
                                     >
                                         <option value="dark">Dark Mode</option>
                                         <option value="light">Light Mode</option>
                                     </select>
+                                    <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none" size={14} />
                                 </div>
                             </div>
                             <div className="flex-1">
@@ -134,103 +137,122 @@ export function SystemView() {
                                     <select
                                         value={chartMode}
                                         onChange={(e) => setChartMode(e.target.value as 'light' | 'dark')}
-                                        className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white rounded-md px-3 py-2 text-xs focus:ring-1 focus:ring-indigo-500 outline-none"
+                                        className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white rounded-md pl-3 pr-8 py-2 text-xs focus:ring-1 focus:ring-indigo-500 outline-none appearance-none cursor-pointer"
                                     >
                                         <option value="light">Light Mode</option>
                                         <option value="dark">Dark Mode</option>
                                     </select>
+                                    <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none" size={14} />
                                 </div>
                             </div>
                         </div>
                     </section>
 
-                    {/* Startup & Integrity */}
+                    {/* System Settings */}
+                    <SystemSettingsSection />
+
+                    {/* Master File Monitor */}
+                    <SystemFileMonitor 
+                        isOpen={isMasterFileOpen} 
+                        onToggle={() => setIsMasterFileOpen(!isMasterFileOpen)} 
+                    />
+
+                    {/* Startup & Integrity (Collapsible) */}
                     <section className="border border-slate-200 dark:border-slate-800 rounded-lg overflow-hidden bg-white dark:bg-slate-900">
-                        <div className="bg-slate-50 dark:bg-slate-900/50 px-4 py-2 border-b border-slate-200 dark:border-slate-800 text-xs font-bold text-slate-500 uppercase tracking-wider">
-                            Integrity & Startup
+                        <div 
+                            className="bg-slate-50 dark:bg-slate-900/50 px-4 py-2 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800/80 transition-colors"
+                            onClick={() => setIsIntegrityOpen(!isIntegrityOpen)}
+                        >
+                            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                                Integrity & Startup
+                            </span>
+                            {isIntegrityOpen ? <ChevronDown size={14} className="text-slate-500" /> : <ChevronRight size={14} className="text-slate-500" />}
                         </div>
-                        <div className="divide-y divide-slate-100 dark:divide-slate-800/50">
-                            <FeatureRow
-                                id="ENABLE_STARTUP_RESTORATION"
-                                label="Startup Cache Restoration"
-                                desc="Restores known symbols from cache on startup (500ms)."
-                                icon={Database}
-                                colorClass="text-blue-500"
-                            />
-                            <FeatureRow
-                                id="ENABLE_STARTUP_SANITY_CHECK"
-                                label="Startup Sanity Sweep"
-                                desc="Triggers data integrity check 10s after boot."
-                                icon={Shield}
-                                colorClass="text-emerald-500"
-                            />
-                            <FeatureRow
-                                id="ENABLE_REGISTRATION_SANITY_CHECK"
-                                label="Registration Integrity Check"
-                                desc="Runs check when new bots register."
-                                icon={RefreshCw}
-                                colorClass="text-teal-500"
-                            />
-                        </div>
+                        {isIntegrityOpen && (
+                            <div className="divide-y divide-slate-100 dark:divide-slate-800/50">
+                                <FeatureRow
+                                    id="ENABLE_STARTUP_RESTORATION"
+                                    label="Startup Cache Restoration"
+                                    desc="Restores known symbols from cache on startup (500ms)."
+                                    icon={Database}
+                                    colorClass="text-blue-500"
+                                />
+                                <FeatureRow
+                                    id="ENABLE_STARTUP_SANITY_CHECK"
+                                    label="Startup Sanity Sweep"
+                                    desc="Triggers data integrity check 10s after boot."
+                                    icon={Shield}
+                                    colorClass="text-emerald-500"
+                                />
+                                <FeatureRow
+                                    id="ENABLE_REGISTRATION_SANITY_CHECK"
+                                    label="Registration Integrity Check"
+                                    desc="Runs check when new bots register."
+                                    icon={RefreshCw}
+                                    colorClass="text-teal-500"
+                                />
+                            </div>
+                        )}
                     </section>
 
-                    {/* Runtime & Logging */}
+                    {/* Runtime & Logging (Collapsible) */}
                     <section className="border border-slate-200 dark:border-slate-800 rounded-lg overflow-hidden bg-white dark:bg-slate-900">
-                        <div className="bg-slate-50 dark:bg-slate-900/50 px-4 py-2 border-b border-slate-200 dark:border-slate-800 text-xs font-bold text-slate-500 uppercase tracking-wider">
-                            Runtime & Diagnostics
+                        <div 
+                            className="bg-slate-50 dark:bg-slate-900/50 px-4 py-2 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800/80 transition-colors"
+                            onClick={() => setIsRuntimeOpen(!isRuntimeOpen)}
+                        >
+                            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                                Runtime & Diagnostics
+                            </span>
+                            {isRuntimeOpen ? <ChevronDown size={14} className="text-slate-500" /> : <ChevronRight size={14} className="text-slate-500" />}
                         </div>
-                        <div className="divide-y divide-slate-100 dark:divide-slate-800/50">
-                            <FeatureRow
-                                id="ENABLE_CONSISTENCY_SCHEDULER"
-                                label="Consistency Scheduler"
-                                desc="Enables background scheduler for gap checks."
-                                icon={Clock}
-                                colorClass="text-amber-500"
-                            />
-                            <FeatureRow
-                                id="ENABLE_PERIODIC_SANITY_CHECK"
-                                label="Periodic Heartbeat Audit"
-                                desc="Runs check every 5 mins on heartbeat."
-                                icon={Activity}
-                                colorClass="text-purple-500"
-                            />
-                            <FeatureRow
-                                id="ENABLE_DEEP_HISTORY_SYNC"
-                                label="Deep History Sync"
-                                desc="Allows fetching deep history (years)."
-                                icon={Zap}
-                                colorClass="text-orange-500"
-                            />
-                            <FeatureRow
-                                id="ENABLE_TICK_LOGGING"
-                                label="Verbose Tick Logging"
-                                desc="Logs every tick to console (High Noise)."
-                                icon={FileText}
-                                colorClass="text-pink-500"
-                            />
-                            <FeatureRow
-                                id="ENABLE_INDICATOR_LOGGING"
-                                label="Indicator Logging"
-                                desc="Detailed logs for indicator calculations."
-                                icon={Activity}
-                                colorClass="text-cyan-500"
-                            />
-                            <FeatureRow
-                                id="ENABLE_DETAILED_PROTOCOL_LOGGING"
-                                label="Detailed Protocol Logging"
-                                desc="Logs EV_BAR_UPDATE and EV_BAR_CLOSED traces (High Noise)."
-                                icon={Terminal}
-                                colorClass="text-indigo-500"
-                            />
-                        </div>
+                        {isRuntimeOpen && (
+                            <div className="divide-y divide-slate-100 dark:divide-slate-800/50">
+                                <FeatureRow
+                                    id="ENABLE_CONSISTENCY_SCHEDULER"
+                                    label="Consistency Scheduler"
+                                    desc="Enables background scheduler for gap checks."
+                                    icon={Clock}
+                                    colorClass="text-amber-500"
+                                />
+                                <FeatureRow
+                                    id="ENABLE_PERIODIC_SANITY_CHECK"
+                                    label="Periodic Heartbeat Audit"
+                                    desc="Runs check every 5 mins on heartbeat."
+                                    icon={Activity}
+                                    colorClass="text-purple-500"
+                                />
+                                <FeatureRow
+                                    id="ENABLE_DEEP_HISTORY_SYNC"
+                                    label="Deep History Sync"
+                                    desc="Allows fetching deep history (years)."
+                                    icon={Zap}
+                                    colorClass="text-orange-500"
+                                />
+                                <FeatureRow
+                                    id="ENABLE_TICK_LOGGING"
+                                    label="Verbose Tick Logging"
+                                    desc="Logs every tick to console (High Noise)."
+                                    icon={FileText}
+                                    colorClass="text-pink-500"
+                                />
+                                <FeatureRow
+                                    id="ENABLE_INDICATOR_LOGGING"
+                                    label="Indicator Logging"
+                                    desc="Detailed logs for indicator calculations."
+                                    icon={Activity}
+                                    colorClass="text-cyan-500"
+                                />
+                                <FeatureRow
+                                    id="ENABLE_DETAILED_PROTOCOL_LOGGING"
+                                    label="Detailed Protocol Logging"
+                                    desc="Logs EV_BAR_UPDATE and EV_BAR_CLOSED traces (High Noise)."
+                                    icon={Terminal}
+                                    colorClass="text-indigo-500"
+                                />
+                            </div>
+                        )}
                     </section>
-
-
-                    {/* MT5 Configuration */}
-                    <SystemConfigSection />
-
-                    {/* File Monitor & Deployment */}
-                    <SystemFileMonitor />
 
                 </div>
             </div>
@@ -238,36 +260,46 @@ export function SystemView() {
     );
 }
 
-function SystemConfigSection() {
+function SystemSettingsSection() {
     const [path, setPath] = useState('');
+    const [username, setUsername] = useState('');
+    const [password, setPassword] = useState('');
+    const [origUsername, setOrigUsername] = useState('');
+    const [origPassword, setOrigPassword] = useState('');
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
 
     useEffect(() => {
-        // Use native fetch to hit Next.js API, not Backend (3005)
+        // Use native fetch to hit Next.js API
         fetch('/api/system/config')
             .then(res => res.json())
             .then(data => {
                 if (data.success && data.config) {
-                    setPath(data.config.MT5_MQL5_DIR || '');
+                    setPath(data.config.projectRoot || 'Path not found');
+                    setUsername(data.config.systemUsername || '');
+                    setPassword(data.config.systemPassword || '');
+                    setOrigUsername(data.config.systemUsername || '');
+                    setOrigPassword(data.config.systemPassword || '');
                 }
             })
             .finally(() => setLoading(false));
     }, []);
 
+    const isModified = username !== origUsername || password !== origPassword;
+
     const handleSave = async () => {
         setSaving(true);
         try {
-            // Use native fetch to hit Next.js API
             const res = await fetch('/api/system/config', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ MT5_MQL5_DIR: path })
+                body: JSON.stringify({ systemUsername: username, systemPassword: password })
             });
             const data = await res.json();
 
             if (data.success) {
-                alert("Configuration Saved!");
+                setOrigUsername(username);
+                setOrigPassword(password);
             } else {
                 alert("Failed to save: " + data.error);
             }
@@ -281,33 +313,55 @@ function SystemConfigSection() {
     if (loading) return null;
 
     return (
-        <section className="border border-slate-200 dark:border-slate-800 rounded-lg overflow-hidden">
+        <section className="border border-slate-200 dark:border-slate-800 rounded-lg overflow-hidden bg-white dark:bg-slate-900">
             <div className="bg-slate-50 dark:bg-slate-900/50 px-4 py-2 border-b border-slate-200 dark:border-slate-800 text-xs font-bold text-slate-500 uppercase tracking-wider">
-                MT5 Master Configuration
+                System Settings
             </div>
-            <div className="p-4 flex gap-4 items-end">
-                <div className="flex-1">
-                    <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1.5">Master MQL5 Directory</label>
+            <div className="p-4 space-y-4">
+                <div>
+                    <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1.5">Project Root</label>
                     <input
                         type="text"
                         value={path}
-                        onChange={(e) => setPath(e.target.value)}
-                        className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded px-3 py-2 text-xs font-mono text-slate-600 dark:text-slate-300 focus:ring-1 focus:ring-indigo-500 outline-none"
+                        readOnly
+                        className="w-full bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded px-3 py-2 text-xs font-mono text-slate-500 dark:text-slate-400 focus:outline-none cursor-default"
                     />
                 </div>
-                <button
-                    onClick={handleSave}
-                    disabled={saving}
-                    className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-lg shadow-sm transition-all text-xs h-[34px]"
-                >
-                    <Save size={14} /> {saving ? 'Saving...' : 'Save Path'}
-                </button>
+                <div className="flex gap-4">
+                    <div className="flex-1">
+                        <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1.5">Username</label>
+                        <input
+                            type="text"
+                            value={username}
+                            onChange={(e) => setUsername(e.target.value)}
+                            className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded px-3 py-2 text-xs font-mono text-slate-600 dark:text-slate-300 focus:ring-1 focus:ring-indigo-500 outline-none transition-colors"
+                        />
+                    </div>
+                    <div className="flex-1">
+                        <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1.5">Password</label>
+                        <input
+                            type="password"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded px-3 py-2 text-xs font-mono text-slate-600 dark:text-slate-300 focus:ring-1 focus:ring-indigo-500 outline-none transition-colors"
+                        />
+                    </div>
+                </div>
+                <div className="flex justify-end pt-2">
+                    <button
+                        onClick={handleSave}
+                        disabled={!isModified || saving}
+                        className={`flex items-center gap-2 px-4 py-2 font-bold rounded-lg shadow-sm transition-all text-xs h-[34px] ${isModified ? 'bg-indigo-600 hover:bg-indigo-500 text-white cursor-pointer' : 'bg-slate-200 dark:bg-slate-800 text-slate-400 dark:text-slate-600 cursor-not-allowed'}`}
+                    >
+                        <Save size={14} /> {saving ? 'Saving...' : 'Save Config'}
+                    </button>
+                </div>
             </div>
         </section>
     );
 }
 
-function SystemFileMonitor() {
+function SystemFileMonitor({ isOpen, onToggle }: { isOpen: boolean, onToggle: () => void }) {
     const [files, setFiles] = useState<any[]>([]);
     const [lastUpdate, setLastUpdate] = useState<number>(0);
     const [isDeploying, setIsDeploying] = useState(false);
@@ -356,63 +410,67 @@ function SystemFileMonitor() {
 
     return (
         <section className="border border-slate-200 dark:border-slate-800 rounded-lg overflow-hidden">
-            <div className="bg-slate-50 dark:bg-slate-900/50 px-4 py-2 border-b border-slate-200 dark:border-slate-800 text-xs font-bold text-slate-500 uppercase tracking-wider flex justify-between items-center">
-                <span>Master File Monitor</span>
+            <div 
+                className="bg-slate-50 dark:bg-slate-900/50 px-4 py-2 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800/80 transition-colors"
+                onClick={onToggle}
+            >
+                <div className="flex items-center gap-2">
+                    <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Master File Monitor</span>
+                    {isOpen ? <ChevronDown size={14} className="text-slate-500" /> : <ChevronRight size={14} className="text-slate-500" />}
+                </div>
                 <span className="text-[10px] bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-400 px-1.5 py-0.5 rounded">
                     {lastUpdate > 0 ? `Updated: ${new Date(lastUpdate).toLocaleTimeString()}` : 'Waiting...'}
                 </span>
             </div>
 
-            <div className="p-0">
-                <table className="w-full text-left border-collapse">
-                    <thead className="bg-slate-50 dark:bg-slate-900/30 text-[10px] text-slate-500 uppercase border-b border-slate-100 dark:border-slate-800">
-                        <tr>
-                            <th className="px-4 py-2 font-medium">File</th>
-                            <th className="px-4 py-2 font-medium">Path</th>
-                            <th className="px-4 py-2 font-medium text-right">Modified</th>
-                        </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100 dark:divide-slate-800/50 text-xs text-slate-700 dark:text-slate-300">
-                        {files.map(f => (
-                            <tr key={f.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
-                                <td className="px-4 py-2 font-mono font-medium">{f.name}</td>
-                                <td className="px-4 py-2 text-slate-500 font-mono text-[10px]">{f.path}</td>
-                                <td className="px-4 py-2 text-right font-mono">
-                                    {f.exists ? (
-                                        <span className="text-emerald-600 dark:text-emerald-400">
-                                            {new Date(f.mtime).toLocaleString()}
-                                        </span>
-                                    ) : (
-                                        <span className="text-red-500 font-bold">MISSING</span>
-                                    )}
-                                </td>
-                            </tr>
-                        ))}
-                        {files.length === 0 && (
+            {isOpen && (
+                <div className="p-0">
+                    <table className="w-full text-left border-collapse">
+                        <thead className="bg-slate-50 dark:bg-slate-900/30 text-[10px] text-slate-500 uppercase border-b border-slate-100 dark:border-slate-800">
                             <tr>
-                                <td colSpan={3} className="px-4 py-4 text-center text-slate-500 italic">
-                                    Connecting to file monitor...
-                                </td>
+                                <th className="px-4 py-2 font-medium">File</th>
+                                <th className="px-4 py-2 font-medium">Path</th>
+                                <th className="px-4 py-2 font-medium text-right">Modified</th>
                             </tr>
-                        )}
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100 dark:divide-slate-800/50 text-xs text-slate-700 dark:text-slate-300">
+                            {files.map(f => (
+                                <tr key={f.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+                                    <td className="px-4 py-2 font-mono font-medium">{f.name}</td>
+                                    <td className="px-4 py-2 text-slate-500 font-mono text-[10px]">{f.path}</td>
+                                    <td className="px-4 py-2 text-right font-mono">
+                                        {f.exists ? (
+                                            <span className="text-emerald-600 dark:text-emerald-400">
+                                                {new Date(f.mtime).toLocaleString()}
+                                            </span>
+                                        ) : (
+                                            <span className="text-red-500 font-bold">MISSING</span>
+                                        )}
+                                    </td>
+                                </tr>
+                            ))}
+                            {files.length === 0 && (
+                                <tr>
+                                    <td colSpan={3} className="px-4 py-4 text-center text-slate-500 italic">
+                                        Connecting to file monitor...
+                                    </td>
+                                </tr>
+                            )}
+                        </tbody>
+                    </table>
 
-                <div className="p-4 border-t border-slate-200 dark:border-slate-800 flex justify-end">
-                    <button
-                        onClick={handleRedeploy}
-                        disabled={isDeploying}
-                        className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-lg shadow-lg transition-all active:scale-95 disabled:opacity-50 text-sm"
-                    >
-                        {isDeploying ? <RefreshCw className="animate-spin" size={16} /> : <Download size={16} />}
-                        Redeploy All
-                    </button>
+                    <div className="p-4 border-t border-slate-200 dark:border-slate-800 flex justify-end">
+                        <button
+                            onClick={handleRedeploy}
+                            disabled={isDeploying}
+                            className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-lg shadow-lg transition-all active:scale-95 disabled:opacity-50 text-sm"
+                        >
+                            {isDeploying ? <RefreshCw className="animate-spin" size={16} /> : <Download size={16} />}
+                            Redeploy All
+                        </button>
+                    </div>
                 </div>
-            </div>
+            )}
         </section>
     );
 }
-
-
-
-

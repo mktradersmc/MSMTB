@@ -3,7 +3,6 @@ import type { NextConfig } from "next";
 const isLegacy = process.env.NEXT_COMPILER_MODE === 'legacy';
 
 const nextConfig: NextConfig = {
-  swcMinify: !isLegacy,
   async rewrites() {
     return [
       {

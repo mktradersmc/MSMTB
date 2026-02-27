@@ -35,7 +35,7 @@ export async function POST(
                 const broker = brokers.find(b => b.id === account.brokerId);
                 if (broker) {
                     const path = await import('path');
-                    const root = getInstancesRoot();
+                    const root = await getInstancesRoot();
                     const botId = `${broker.shorthand.replace(/\s+/g, '')}_${account.login}`; // Sanitize!
                     fullPath = path.default.join(root, `MT_${botId}`);
                 }

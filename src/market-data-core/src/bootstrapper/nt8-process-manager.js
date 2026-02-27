@@ -22,7 +22,7 @@ const LOGIN_SCRIPT = path.join(__dirname, 'auto-login.ps1');
 let ntProcess = null;
 
 function checkProcess() {
-    exec('tasklist /FI "IMAGENAME eq NinjaTrader.exe"', (err, stdout, stderr) => {
+    exec('tasklist /FI "IMAGENAME eq NinjaTrader.exe"', { windowsHide: true }, (err, stdout, stderr) => {
         if (stdout.includes("NinjaTrader.exe")) {
             // Already running
             // console.log("[Bootstrapper] ✅ NinjaTrader is running.");

@@ -202,7 +202,7 @@ class SystemOrchestrator {
         // Query both MT5 and NinjaTrader processes
         const psCmd = `powershell -NoProfile -Command "Get-CimInstance Win32_Process -Filter \\"Name='terminal64.exe' OR Name='NinjaTrader.exe'\\" | Select-Object Name, ProcessId, CommandLine | ConvertTo-Json -Compress"`;
 
-        exec(psCmd, { timeout: 1500 }, (err, stdout) => {
+        exec(psCmd, { timeout: 1500, windowsHide: true }, (err, stdout) => {
             if (err || !stdout.trim()) {
                 this.activeProcesses.clear();
                 return;
@@ -356,7 +356,7 @@ class SystemOrchestrator {
             // Spawn PowerShell
             const cmd = `powershell -ExecutionPolicy Bypass -File "${scriptPath}" -ProcessName "terminal64" -ExecutablePath "${exePath}" -InstancePath "${instancePath}" -ConfigPath "${configPath}" -PidToKill ${pid}`;
 
-            exec(cmd, (err, stdout, stderr) => {
+            exec(cmd, { windowsHide: true }, (err, stdout, stderr) => {
                 if (err) {
                     console.error(`[System:Restart] Failed to restart ${acc.name}:`, err);
                 } else {

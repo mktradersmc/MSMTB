@@ -23,6 +23,13 @@ Write-Host "`n[1/6] Stoppe und entferne PM2-Dienste..." -ForegroundColor Cyan
 if (Get-Command pm2 -ErrorAction SilentlyContinue) {
     Write-Host "  Führe 'pm2 kill' aus..."
     npm root -g | Out-Null # Ensure node is still somewhat valid
+    
+    # Check for isolated PM2_HOME
+    $CustomPm2Home = Join-Path $TargetDir ".pm2-home"
+    if (Test-Path $CustomPm2Home) {
+        $env:PM2_HOME = $CustomPm2Home
+    }
+
     pm2 stop all 2> $null
     pm2 delete all 2> $null
     pm2 kill 2> $null
@@ -63,7 +70,11 @@ if ($nodeInstalled -match "Node.js") {
 # Beende evtl. noch haengende Node-Prozesse
 Stop-Process -Name "node" -Force -ErrorAction SilentlyContinue
 
-Write-Host "`n[3/6] Entferne Firewall-Regeln..." -ForegroundColor Cyan
+Write-Host "`n[3/6] Entferne Firewall-Regeln & Variablen..." -ForegroundColor Cyan
+[Environment]::SetEnvironmentVariable("PM2_HOME", $null, "Machine")
+[Environment]::SetEnvironmentVariable("PM2_HOME", $null, "User")
+$env:PM2_HOME = $null
+
 $RulesToRemove = @("Awesome-Cockpit-Web", "Awesome-Cockpit-API")
 foreach ($rule in $RulesToRemove) {
     if (Get-NetFirewallRule -DisplayName $rule -ErrorAction SilentlyContinue) {

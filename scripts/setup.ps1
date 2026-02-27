@@ -151,6 +151,11 @@ if (-not (Get-Command pm2 -ErrorAction SilentlyContinue)) {
 $AppLogDir = Join-Path $TargetDir "logs"
 if (-not (Test-Path $AppLogDir)) { New-Item -ItemType Directory -Path $AppLogDir | Out-Null }
 
+Write-Log "  Bereite isolierte PM2-Umgebung vor (Bypass Windows EPERM)..." "Yellow"
+$CustomPm2Home = Join-Path $TargetDir ".pm2-home"
+[Environment]::SetEnvironmentVariable("PM2_HOME", $CustomPm2Home, "Machine")
+$env:PM2_HOME = $CustomPm2Home
+
 Write-Log "  Starte Backend in PM2..." "Cyan"
 Push-Location $BackendDir
 $BackendLog = Join-Path $AppLogDir "awesome-backend.log"

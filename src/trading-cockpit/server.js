@@ -4,10 +4,6 @@ const next = require('next');
 const fs = require('fs');
 const path = require('path');
 
-const dev = process.env.NODE_ENV !== 'production';
-const app = next({ dev });
-const handle = app.getRequestHandler();
-
 // Konfiguration laden
 const projectRoot = path.resolve(__dirname, '../../'); 
 const configPath = path.resolve(projectRoot, 'src/market-data-core/data/system.json');
@@ -22,9 +18,13 @@ try {
 }
 
 // Ports und SSL aus der Konfiguration
-const useSSL = sysConfig?.backend?.useSSL === true; // Assuming we use SSL if backend does, or just checking certs
+const useSSL = sysConfig?.backend?.useSSL === true; 
 const port = sysConfig?.frontend?.port || 443;
 const pfxPassword = sysConfig?.backend?.pfxPassword || 'cockpit';
+
+const dev = process.env.NODE_ENV !== 'production';
+const app = next({ dev, hostname: '0.0.0.0', port });
+const handle = app.getRequestHandler();
 
 app.prepare().then(() => {
     let server;

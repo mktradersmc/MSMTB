@@ -2,6 +2,17 @@
 // 0. Init Forensic Logger (Must be first)
 require('./src/utils/Logger');
 
+process.on('uncaughtException', (err) => {
+    console.error('[CRASH] Uncaught Exception:', err.message);
+    console.error(err.stack);
+    process.exit(1);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+    console.error('[CRASH] Unhandled Rejection at:', promise, 'reason:', reason);
+    process.exit(1);
+});
+
 const config = require('./src/config');
 // REPLACED: SyncManager/PipeServer with SystemOrchestrator
 const systemOrchestrator = require('./src/services/SystemOrchestrator');

@@ -8,3 +8,14 @@ src/market-data-core/trades.db-wal
 bridge_debug.log
 src/market-data-core/logs/console-parallel.log
 src/market-data-core/debug_probe.log
+
+# Node & Next.js
+node_modules/
+.next/
+out/
+build/
+dist/
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local

@@ -93,11 +93,13 @@ Write-Log "`n[5/6] NPM Pakete installieren und Frontend bauen (Das kann dauern).
 Write-Log "  -> Installiere Backend Dependencies..." "Cyan"
 Push-Location $BackendDir
 npm install 2>&1 | Out-File -Append -FilePath $LogFile
+npm rebuild 2>&1 | Out-File -Append -FilePath $LogFile
 Pop-Location
 
 Write-Log "  -> Installiere Frontend Dependencies..." "Cyan"
 Push-Location $FrontendDir
 npm install 2>&1 | Out-File -Append -FilePath $LogFile
+npm rebuild 2>&1 | Out-File -Append -FilePath $LogFile
 
 Write-Log "  -> Kompiliere Next.js Frontend..." "Cyan"
 npm run build 2>&1 | Out-File -Append -FilePath $LogFile
@@ -126,10 +128,10 @@ $BackendLog = Join-Path $AppLogDir "awesome-backend.log"
 pm2 start index.js --name "awesome-backend" --log $BackendLog --time *>> $LogFile
 Pop-Location
 
-Write-Log "  Starte Frontend in PM2 (Next.js start:ssl)..." "Cyan"
+Write-Log "  Starte Frontend in PM2 (node server.js)..." "Cyan"
 Push-Location $FrontendDir
 $FrontendLog = Join-Path $AppLogDir "awesome-frontend.log"
-pm2 start npm --name "awesome-frontend" --log $FrontendLog --time -- run start:ssl *>> $LogFile
+pm2 start server.js --name "awesome-frontend" --log $FrontendLog --time *>> $LogFile
 Pop-Location
 
 pm2 save *>> $LogFile

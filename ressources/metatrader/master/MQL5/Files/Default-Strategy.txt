@@ -1,0 +1,34 @@
+Session: ASIA [NewYork]
+    Name: [Asian Session]
+    Start: [20:00]
+    End: [00:00]
+    Type: [LIQUIDITY]
+EndSession
+
+Session: LONDON_OPEN [NewYork]
+    Name: [London Open]
+    Start: [02:00]
+    End: [05:00]
+    Type: [LIQUIDITY]
+EndSession
+
+Session: NEWYORK_AM [NewYork]
+    Name: [New York AM Session]
+    Start: [09:30]
+    End: [11:00]
+    Type: [LIQUIDITY]
+EndSession
+
+Session: NEWYORK_PM [NewYork]
+    Name: [New York PM Session]
+    Start: [13:30]
+    End: [16:00]
+    Type: [LIQUIDITY]
+EndSession
+
+Session: TRADING1 [NewYork]
+    Name: [Trading Session]
+    Start: [00:00]
+    End: [15:00]
+    Type: [TRADING]
+EndSession

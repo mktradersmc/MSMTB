@@ -1,0 +1,2 @@
+botId=DATAFEED_MASTER
+ws_url=ws://localhost:3000

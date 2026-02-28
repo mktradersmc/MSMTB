@@ -53,9 +53,14 @@ try {
 }
 
 # 5. `system.json` aktualisieren
-$SystemJsonPath = Join-Path $ProjectRoot "src\market-data-core\data\system.json"
+# Probe beide Pfade: Einmal das neue Layout (components) und einmal das Development Layout (src)
+$SystemJsonPath = Join-Path $ProjectRoot "components\market-data-core\data\system.json"
+if (-not (Test-Path $SystemJsonPath)) {
+    $SystemJsonPath = Join-Path $ProjectRoot "src\market-data-core\data\system.json"
+}
+
 if (Test-Path $SystemJsonPath) {
-    Write-Host "[*] Aktualisiere system.json..." -ForegroundColor Cyan
+    Write-Host "[*] Aktualisiere system.json in $SystemJsonPath..." -ForegroundColor Cyan
     $json = Get-Content $SystemJsonPath | ConvertFrom-Json
     
     # Sicherstellen, dass die Objekte existieren

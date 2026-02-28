@@ -5,9 +5,10 @@ param(
 )
 
 # 0. Logging Initialisieren
-$LogFile = Join-Path $TargetDir "install.log"
-if (-not (Test-Path $TargetDir)) { New-Item -ItemType Directory -Path $TargetDir | Out-Null }
-else { Clear-Content -Path $LogFile -ErrorAction SilentlyContinue } # Log reset on new bootstrap
+$LogDir = Join-Path $TargetDir "logs"
+if (-not (Test-Path $LogDir)) { New-Item -ItemType Directory -Path $LogDir -Force | Out-Null }
+$LogFile = Join-Path $LogDir "install.log"
+if (Test-Path $LogFile) { Clear-Content -Path $LogFile -ErrorAction SilentlyContinue } # Log reset on new bootstrap
 
 function Write-Log {
     param([string]$Message, [string]$Color = "White")
@@ -61,7 +62,7 @@ if (-not (Get-Command git -ErrorAction SilentlyContinue)) {
 Write-Log "`n[3/3] Quellcode herunterladen und an setup.ps1 uebergeben..." "Cyan"
 
 $AuthRepoUrl = $RepoUrl -replace "https://", "https://$GithubPAT@"
-$GitTarget = Join-Path $TargetDir "_github"
+$GitTarget = Join-Path $env:TEMP "_github_msmtb"
 
 if (Test-Path $GitTarget) {
     Write-Log "  Lösche altes _github Verzeichnis..." "Gray"
@@ -85,7 +86,7 @@ if (-not (Test-Path $SetupScript)) {
 Write-Log "  Starte dynamisches Applikations-Setup ($SetupScript)..." "Yellow"
 
 # Aufruf von Setup.ps1
-& $SetupScript -TargetDir $TargetDir
+& $SetupScript -TargetDir $TargetDir -SourceDir $GitTarget
 
 # Da setup.ps1 bereits ein Wait hat, lassen wir das hier enden,
 # oder falls wir hierhin zurückkehren, warten wir nur im Fehlerfall nochmal.

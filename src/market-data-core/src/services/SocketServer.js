@@ -147,7 +147,10 @@ class SocketServer {
             const { username, password } = req.body;
             if (!username || !password) return res.status(400).json({ success: false, error: 'Missing credentials' });
 
+            // Force load config from disk to catch manual edits without PM2 restart
+            systemConfigService.loadConfig();
             const sysConfig = systemConfigService.getConfig();
+            
             let isAuthenticated = false;
             let userId = 'admin';
 

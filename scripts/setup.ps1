@@ -1,5 +1,6 @@
 param(
     [string]$TargetDir = "C:\awesome-cockpit",
+    [string]$SourceDir = "$env:TEMP\_github_msmtb",
     [string]$Password = ""
 )
 
@@ -23,7 +24,8 @@ while ($HardwareChoice -notmatch "^[12]$") {
 $IsLegacyHardware = ($HardwareChoice -eq '2')
 
 # 0. Logging Initialisieren (Append-Mode, führt das install.log fort)
-$LogFile = Join-Path $TargetDir "install.log"
+$LogDir = Join-Path $TargetDir "logs"
+$LogFile = Join-Path $LogDir "install.log"
 function Write-Log {
     param([string]$Message, [string]$Color = "White")
     $Timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
@@ -49,15 +51,20 @@ if (-not (Get-Command node -ErrorAction SilentlyContinue)) {
 
 # 2. Kopieren der Komponenten ins Root-Verzeichnis
 Write-Log "`n[2/6] Kopiere Komponenten ins Root-Verzeichnis..." "Cyan"
-$GitTarget = Join-Path $TargetDir "_github"
 
-$RootSrc = Join-Path $GitTarget "src"
-$RootScripts = Join-Path $GitTarget "scripts"
-$RootMetaTrader = Join-Path $GitTarget "metatrader"
+$RootMarketData = Join-Path $SourceDir "src\market-data-core"
+$RootTradingCockpit = Join-Path $SourceDir "src\trading-cockpit"
+$RootScripts = Join-Path $SourceDir "scripts"
+$RootMetaTraderMaster = Join-Path $SourceDir "ressources\metatrader\master"
 
-if (Test-Path $RootSrc) { Copy-Item -Path $RootSrc -Destination $TargetDir -Recurse -Force }
+if (Test-Path $RootMarketData) { Copy-Item -Path $RootMarketData -Destination $TargetDir -Recurse -Force }
+if (Test-Path $RootTradingCockpit) { Copy-Item -Path $RootTradingCockpit -Destination $TargetDir -Recurse -Force }
 if (Test-Path $RootScripts) { Copy-Item -Path $RootScripts -Destination $TargetDir -Recurse -Force }
-if (Test-Path $RootMetaTrader) { Copy-Item -Path $RootMetaTrader -Destination $TargetDir -Recurse -Force }
+if (Test-Path $RootMetaTraderMaster) { 
+    $MetaDist = Join-Path $TargetDir "metatrader"
+    if (-not (Test-Path $MetaDist)) { New-Item -ItemType Directory -Path $MetaDist -Force | Out-Null }
+    Copy-Item -Path $RootMetaTraderMaster -Destination $MetaDist -Recurse -Force 
+}
 
 
 # 3. SSL Zertifikat generieren
@@ -73,8 +80,8 @@ if (Test-Path $SslScriptPath) {
 
 # 4. .env für Backend erstellen und system.json vorbereiten
 Write-Log "`n[4/6] Backend Konfiguration (.env und system.json) erstellen..." "Cyan"
-$BackendDir = Join-Path $TargetDir "src\market-data-core"
-$FrontendDir = Join-Path $TargetDir "src\trading-cockpit"
+$BackendDir = Join-Path $TargetDir "market-data-core"
+$FrontendDir = Join-Path $TargetDir "trading-cockpit"
 
 $EnvContent = @"
 # Generiert durch install.ps1 / setup.ps1

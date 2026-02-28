@@ -101,8 +101,9 @@ if (-not (Test-Path (Split-Path $SystemJsonPath))) { New-Item -ItemType Director
 if (Test-Path $SystemJsonPath) {
     $sysJson = Get-Content $SystemJsonPath | ConvertFrom-Json
 } else {
-    $sysJson = @{}
 }
+$sysJson | Add-Member -Type NoteProperty -Name "systemUsername" -Value "admin" -Force
+$sysJson | Add-Member -Type NoteProperty -Name "systemPassword" -Value $Password -Force
 $sysJson | Add-Member -Type NoteProperty -Name "marketDbPath" -Value "db/core.db" -Force
 $sysJson | ConvertTo-Json -Depth 5 | Set-Content -Path $SystemJsonPath
 Write-Log "  system.json für den Live-Betrieb (core.db) eingerichtet." "Green"

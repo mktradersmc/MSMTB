@@ -107,6 +107,24 @@ $sysJson | Add-Member -Type NoteProperty -Name "marketDbPath" -Value "db/core.db
 $sysJson | ConvertTo-Json -Depth 5 | Set-Content -Path $SystemJsonPath
 Write-Log "  system.json für den Live-Betrieb (core.db) eingerichtet." "Green"
 
+# 4.5 Datenbank Provisionieren
+Write-Log "`n[4.5/6] Initiale Datenbank bereitstellen..." "Cyan"
+$InitDbPath = Join-Path $BackendDir "init\core.db"
+$LiveDbDir = Join-Path $BackendDir "db"
+$LiveDbPath = Join-Path $LiveDbDir "core.db"
+
+if (Test-Path $InitDbPath) {
+    if (-not (Test-Path $LiveDbDir)) { New-Item -ItemType Directory -Path $LiveDbDir -Force | Out-Null }
+    if (-not (Test-Path $LiveDbPath)) {
+        Copy-Item -Path $InitDbPath -Destination $LiveDbPath -Force
+        Write-Log "  Datenbank 'init/core.db' erfolgreich nach 'db/core.db' kopiert." "Green"
+    } else {
+        Write-Log "  Datenbank 'db/core.db' existiert bereits. Überspringe Kopiervorgang." "Gray"
+    }
+} else {
+    Write-Log "  WARNUNG: 'init/core.db' wurde nicht gefunden!" "Yellow"
+}
+
 
 # 5. NPM Dependencies & Build
 Write-Log "`n[5/6] NPM Pakete installieren und Frontend bauen (Das kann dauern)..." "Cyan"

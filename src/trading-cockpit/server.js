@@ -19,8 +19,8 @@ try {
 }
 
 // Ports und SSL aus der Konfiguration
-const useSSL = sysConfig?.backend?.useSSL === true; 
-const port = sysConfig?.frontend?.port || 443;
+let useSSL = sysConfig?.backend?.useSSL !== false; // Default: SSL an
+let port = sysConfig?.frontend?.port || (useSSL ? 443 : 3000);
 const pfxPassword = sysConfig?.backend?.pfxPassword || 'cockpit';
 
 const dev = process.env.NODE_ENV === 'development'; // Standard: Production! Umgeht Rust/SWC Dev-Compiler
@@ -62,6 +62,10 @@ app.prepare().then(() => {
 
         } catch (err) {
             console.error('[Next.js] HTTPS setup failed. Falling back to HTTP.', err.message);
+            useSSL = false;
+            if (!sysConfig?.frontend?.port) {
+                port = 3000;
+            }
             const http = require('http');
             server = http.createServer((req, res) => {
                 const parsedUrl = parse(req.url, true);

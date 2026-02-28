@@ -15,7 +15,7 @@ try {
         const sysConfig = JSON.parse(fs.readFileSync(configPath, 'utf8'));
         useSSL = sysConfig?.backend?.useSSL !== false;
     }
-} catch (e) {
+} catch (e: any) {
     console.warn('[Data Client] Failed to read system.json for SSL flag, defaulting to false', e.message);
 }
 

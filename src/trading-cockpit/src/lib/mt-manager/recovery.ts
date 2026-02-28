@@ -3,11 +3,13 @@ import fs from 'fs/promises';
 import path from 'path';
 import { TradingAccount } from './types';
 import { getBrokers, getAccounts, saveAccount } from './data';
+import { getSystemConfig } from './deployer';
 import { v4 as uuidv4 } from 'uuid';
 
-const INSTANCES_ROOT = 'C:\\Trading\\Instances';
-
 export async function recoverAccountsFromDisk() {
+    const sysConfig = await getSystemConfig();
+    const INSTANCES_ROOT = path.join(sysConfig.projectRoot, 'metatrader', 'instances');
+
     const instances = await fs.readdir(INSTANCES_ROOT, { withFileTypes: true });
     const brokers = await getBrokers();
     const existingAccounts = await getAccounts();

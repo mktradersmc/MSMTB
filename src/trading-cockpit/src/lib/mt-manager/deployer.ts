@@ -15,7 +15,7 @@ export async function getSystemConfig() {
             }
         }
     } catch(e) { console.error('Failed to get system config', e); }
-    return { projectRoot: 'C:\\Trading', systemUsername: 'admin' };
+    return { projectRoot: 'C:\\awesome-cockpit', systemUsername: 'admin' };
 }
 
 export const getInstancesRoot = async () => {

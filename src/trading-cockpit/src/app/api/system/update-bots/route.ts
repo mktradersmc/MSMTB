@@ -12,7 +12,7 @@ export async function POST(req: Request) {
         const body = await req.json().catch(() => ({}));
 
         // Fetch projectRoot from our backend configuration API
-        let projectRoot = "C:\\Trading"; // Fallback
+        let projectRoot = "C:\\awesome-cockpit"; // Fallback
         try {
             const configRes = await fetch('http://127.0.0.1:3005/api/system/config');
             if (configRes.ok) {

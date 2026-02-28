@@ -8,7 +8,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 export async function recoverAccountsFromDisk() {
     const sysConfig = await getSystemConfig();
-    const INSTANCES_ROOT = path.join(sysConfig.projectRoot, 'metatrader', 'instances');
+    const INSTANCES_ROOT = path.join(sysConfig.projectRoot, 'components', 'metatrader', 'instances');
 
     const instances = await fs.readdir(INSTANCES_ROOT, { withFileTypes: true });
     const brokers = await getBrokers();

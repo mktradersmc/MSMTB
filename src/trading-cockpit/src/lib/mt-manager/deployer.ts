@@ -20,13 +20,13 @@ export async function getSystemConfig() {
 
 export const getInstancesRoot = async () => {
     const config = await getSystemConfig();
-    return path.join(config.projectRoot, 'metatrader', 'instances');
+    return path.join(config.projectRoot, 'components', 'metatrader', 'instances');
 };
 
 export async function deployInstance(broker: Broker, account: TradingAccount, botId: string): Promise<string> {
     const sysConfig = await getSystemConfig();
-    const MASTER_PATH = path.join(sysConfig.projectRoot, 'metatrader', 'master');
-    const INSTANCES_ROOT = path.join(sysConfig.projectRoot, 'metatrader', 'instances');
+    const MASTER_PATH = path.join(sysConfig.projectRoot, 'components', 'metatrader', 'master');
+    const INSTANCES_ROOT = path.join(sysConfig.projectRoot, 'components', 'metatrader', 'instances');
     let instanceName = `MT_${broker.shorthand.replace(/\s+/g, '')}_${account.login}`;
     if (account.accountType === 'DATAFEED') {
         instanceName += '_DATAFEED';
@@ -206,7 +206,7 @@ async function writeBotProperties(instancePath: string, botId: string, isMaster?
 
 async function deployTickSpy(instancePath: string) {
     const sysConfig = await getSystemConfig();
-    const MASTER_PATH = path.join(sysConfig.projectRoot, 'metatrader', 'master');
+    const MASTER_PATH = path.join(sysConfig.projectRoot, 'components', 'metatrader', 'master');
     const indicatorsSource = path.join(MASTER_PATH, 'MQL5', 'Indicators');
     const targetDir = path.join(instancePath, 'MQL5', 'Indicators');
 
@@ -247,7 +247,7 @@ async function deployTickSpy(instancePath: string) {
 
 export async function deployHistoryWorker(instancePath: string) {
     const sysConfig = await getSystemConfig();
-    const MASTER_PATH = path.join(sysConfig.projectRoot, 'metatrader', 'master');
+    const MASTER_PATH = path.join(sysConfig.projectRoot, 'components', 'metatrader', 'master');
     const indicatorsSource = path.join(MASTER_PATH, 'MQL5', 'Indicators');
     const targetDir = path.join(instancePath, 'MQL5', 'Indicators');
 
@@ -282,7 +282,7 @@ export async function deployHistoryWorker(instancePath: string) {
 
 export async function deployTradeInfo(instancePath: string) {
     const sysConfig = await getSystemConfig();
-    const MASTER_PATH = path.join(sysConfig.projectRoot, 'metatrader', 'master');
+    const MASTER_PATH = path.join(sysConfig.projectRoot, 'components', 'metatrader', 'master');
     const indicatorsSource = path.join(MASTER_PATH, 'MQL5', 'Indicators');
     const targetDir = path.join(instancePath, 'MQL5', 'Indicators');
 

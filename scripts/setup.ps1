@@ -72,8 +72,11 @@ if (Test-Path $RootMetaTraderMaster) {
     $MasterDist = Join-Path $MetaDist "master"
     $ZipPath = Join-Path $MasterDist "terminal64.zip"
     if (Test-Path $ZipPath) {
-        Write-Log "  Entpacke terminal64.zip in master..." "Cyan"
+        Write-Log "  Entpacke terminal64.zip in master (Progress Bar deaktiviert gegen Windows-Hänger)..." "Cyan"
+        $OldProgress = $ProgressPreference
+        $ProgressPreference = 'SilentlyContinue'
         Expand-Archive -Path $ZipPath -DestinationPath $MasterDist -Force
+        $ProgressPreference = $OldProgress
     }
 }
 

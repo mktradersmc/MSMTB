@@ -20,7 +20,7 @@ try {
 
 // Ports und SSL aus der Konfiguration
 const useSSL = sysConfig?.backend?.useSSL === true; 
-const port = sysConfig?.frontend?.port || (useSSL ? 443 : 3000);
+const port = sysConfig?.frontend?.port || 443;
 const pfxPassword = sysConfig?.backend?.pfxPassword || 'cockpit';
 
 const dev = process.env.NODE_ENV === 'development'; // Standard: Production! Umgeht Rust/SWC Dev-Compiler

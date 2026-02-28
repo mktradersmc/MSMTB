@@ -3,40 +3,62 @@
 
 import { Broker, TradingAccount } from './types';
 import http from 'http';
+import https from 'https';
+import fs from 'fs';
+import path from 'path';
+
+// Dynamically determine SSL config from system.json (Node.js Server Side Execution)
+let useSSL = false;
+try {
+    const configPath = path.resolve(process.cwd(), '../market-data-core/data/system.json');
+    if (fs.existsSync(configPath)) {
+        const sysConfig = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+        useSSL = sysConfig?.backend?.useSSL !== false;
+    }
+} catch (e) {
+    console.warn('[Data Client] Failed to read system.json for SSL flag, defaulting to false', e.message);
+}
 
 // USE IPv4 EXPLICITLY to avoid Windows localhost/IPv6 lag
 const API_HOST = '127.0.0.1';
 const API_PORT = 3005;
-const API_BASE = `http://${API_HOST}:${API_PORT}/api`;
+const API_BASE = useSSL ? `https://${API_HOST}:${API_PORT}/api` : `http://${API_HOST}:${API_PORT}/api`;
 
 // ✅ PERFORMANCE FIX: Connection Pooling with Keep-Alive
 // Reuses TCP connections instead of creating new ones for each request
 // Reduces latency by 50-80% (eliminates TCP handshake overhead)
-const httpAgent = new http.Agent({
+const AgentModule = useSSL ? https : http;
+const agentOptions: any = {
     keepAlive: true,           // Reuse connections
     keepAliveMsecs: 30000,     // Keep connections alive for 30s
     maxSockets: 10,            // Max 10 concurrent connections
     maxFreeSockets: 5,         // Keep 5 idle connections ready
     timeout: 2000              // Socket timeout 2s (reduced from 5s)
-});
+};
+
+// If SSL, ignore self-signed certificate issues for the internal loopback proxy
+if (useSSL) {
+    agentOptions.rejectUnauthorized = false;
+}
+
+const reqAgent = new AgentModule.Agent(agentOptions);
 
 // Helper: Robust HTTP Request (Bypassing Next.js fetch)
-function httpRequest<T>(path: string, method: string = 'GET', body?: any): Promise<T> {
+function httpRequest<T>(reqPath: string, method: string = 'GET', body?: any): Promise<T> {
     return new Promise((resolve, reject) => {
-        const options: http.RequestOptions = {
+        const options: http.RequestOptions | https.RequestOptions = {
             hostname: API_HOST,
             port: API_PORT,
-            path: `/api${path}${path.includes('?') ? '&' : '?'}_t=${Date.now()}`,
+            path: `/api${reqPath}${reqPath.includes('?') ? '&' : '?'}_t=${Date.now()}`,
             method: method,
             headers: {
                 'Content-Type': 'application/json',
-                // ✅ Let agent handle keep-alive (removed 'Connection: close')
             },
-            agent: httpAgent,  // ✅ Use pooled agent
-            timeout: 2000      // ✅ Reduced timeout (was 5000ms)
+            agent: reqAgent,   // ✅ Use dynamic pooled agent
+            timeout: 2000      // ✅ Reduced timeout
         };
 
-        const req = http.request(options, (res) => {
+        const req = AgentModule.request(options, (res) => {
             let data = '';
             res.on('data', (chunk) => data += chunk);
             res.on('end', () => {
@@ -53,7 +75,7 @@ function httpRequest<T>(path: string, method: string = 'GET', body?: any): Promi
         });
 
         req.on('error', (e) => {
-            console.error(`[HTTP] Error ${method} ${path}:`, e.message);
+            console.error(`[HTTP Client] Error ${method} ${reqPath}:`, e.message);
             reject(e);
         });
 

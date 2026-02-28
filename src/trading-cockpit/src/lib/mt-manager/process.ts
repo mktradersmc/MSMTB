@@ -84,6 +84,7 @@ export async function startTerminal(instancePath: string, configName: string = '
     const child = spawn(terminalPath, ['/portable', `/config:${configName}`], {
         cwd: instancePath, // Crucial: sets the working directory to the instance folder
         detached: true,
+        windowsHide: true,
         stdio: 'ignore' // Don't block parent
     });
 

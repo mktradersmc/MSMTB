@@ -15,7 +15,7 @@ module.exports = {
 
 
     // Deployment & Restart Configuration
-    MT5_MQL5_DIR: path.join(systemConfigService.getConfig().projectRoot, 'metatrader', 'master', 'MQL5'),
+    MT5_MQL5_DIR: path.join(systemConfigService.getConfig().projectRoot, 'components', 'metatrader', 'master', 'MQL5'),
     MT5_TERMINAL_EXE: 'C:\\Program Files\\MetaTrader 5\\terminal64.exe',
     // Default timeframes we care about if not specified
     DEFAULT_TIMEFRAMES: [

@@ -3,8 +3,8 @@
 # ACTION: COPY FILES ONLY. NO RESTART.
 
 param (
-    [string]$ProjectRoot = "C:\awesome-cockpit\metatrader\master\MQL5",
-    [string]$InstancesRoot = "C:\awesome-cockpit\metatrader\instances"
+    [string]$ProjectRoot = "C:\awesome-cockpit\components\metatrader\master\MQL5",
+    [string]$InstancesRoot = "C:\awesome-cockpit\components\metatrader\instances"
 )
 
 $ErrorActionPreference = "Continue" # Continue on error to attempt all instances

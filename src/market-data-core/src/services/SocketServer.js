@@ -577,13 +577,25 @@ class SocketServer {
                         instanceFolder = 'NinjaTrader';
                     } else if (acc.platform === 'MT5') {
                         const broker = brokers.find(b => b.id === acc.brokerId);
-                        if (broker) {
-                            instanceFolder = `MT_${broker.shorthand.replace(/\\s+/g, '')}_${acc.login}`;
+                        // Attempt to resolve instanceFolder from active processes if available
+                        const activeProcess = systemOrchestrator.activeProcessesByBotId.get(acc.botId);
+                        if (activeProcess && activeProcess.cmd.toLowerCase().includes('terminal64') && activeProcess.cmd.includes('/config:')) {
+                            const configMatch = activeProcess.cmd.match(/\/config:.*\\([^\\]+)\\config\\/i);
+                            if (configMatch && configMatch[1]) {
+                                instanceFolder = configMatch[1]; // Use the folder name from the command line
+                                // Expected running instance path with components layout
+                                constructedInstancePath = path.join(sysConfig.projectRoot, 'components', 'metatrader', 'instances', instanceFolder);
+                            }
+                        }
+
+                        // Fallback to old logic if not resolved from active process or if process not found
+                        if (!constructedInstancePath && broker) {
+                            instanceFolder = `MT_${broker.shorthand.replace(/\s+/g, '')}_${acc.login}`;
                             if (acc.accountType === 'DATAFEED' || acc.isDatafeed) {
                                 instanceFolder += '_DATAFEED';
                             }
                             const path = require('path');
-                            constructedInstancePath = path.join(sysConfig.projectRoot, 'metatrader', 'instances', instanceFolder);
+                            constructedInstancePath = path.join(sysConfig.projectRoot, 'components', 'metatrader', 'instances', instanceFolder);
                         }
                     }
 

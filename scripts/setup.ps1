@@ -57,11 +57,14 @@ $RootTradingCockpit = Join-Path $SourceDir "src\trading-cockpit"
 $RootScripts = Join-Path $SourceDir "scripts"
 $RootMetaTraderMaster = Join-Path $SourceDir "ressources\metatrader\master"
 
-if (Test-Path $RootMarketData) { Copy-Item -Path $RootMarketData -Destination $TargetDir -Recurse -Force }
-if (Test-Path $RootTradingCockpit) { Copy-Item -Path $RootTradingCockpit -Destination $TargetDir -Recurse -Force }
+$ComponentsDir = Join-Path $TargetDir "components"
+if (-not (Test-Path $ComponentsDir)) { New-Item -ItemType Directory -Path $ComponentsDir -Force | Out-Null }
+
+if (Test-Path $RootMarketData) { Copy-Item -Path $RootMarketData -Destination $ComponentsDir -Recurse -Force }
+if (Test-Path $RootTradingCockpit) { Copy-Item -Path $RootTradingCockpit -Destination $ComponentsDir -Recurse -Force }
 if (Test-Path $RootScripts) { Copy-Item -Path $RootScripts -Destination $TargetDir -Recurse -Force }
 if (Test-Path $RootMetaTraderMaster) { 
-    $MetaDist = Join-Path $TargetDir "metatrader"
+    $MetaDist = Join-Path $ComponentsDir "metatrader"
     if (-not (Test-Path $MetaDist)) { New-Item -ItemType Directory -Path $MetaDist -Force | Out-Null }
     Copy-Item -Path $RootMetaTraderMaster -Destination $MetaDist -Recurse -Force 
 }
@@ -80,8 +83,8 @@ if (Test-Path $SslScriptPath) {
 
 # 4. .env für Backend erstellen und system.json vorbereiten
 Write-Log "`n[4/6] Backend Konfiguration (.env und system.json) erstellen..." "Cyan"
-$BackendDir = Join-Path $TargetDir "market-data-core"
-$FrontendDir = Join-Path $TargetDir "trading-cockpit"
+$BackendDir = Join-Path $ComponentsDir "market-data-core"
+$FrontendDir = Join-Path $ComponentsDir "trading-cockpit"
 
 $EnvContent = @"
 # Generiert durch install.ps1 / setup.ps1

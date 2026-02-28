@@ -1,7 +1,8 @@
 param(
     [string]$TargetDir = "C:\awesome-cockpit",
     [string]$SourceDir = "$env:TEMP\_github_msmtb",
-    [string]$Password = ""
+    [string]$Password = "",
+    [string]$GithubPat = ""
 )
 
 if ([string]::IsNullOrWhiteSpace($Password)) {
@@ -67,6 +68,13 @@ if (Test-Path $RootMetaTraderMaster) {
     $MetaDist = Join-Path $ComponentsDir "metatrader"
     if (-not (Test-Path $MetaDist)) { New-Item -ItemType Directory -Path $MetaDist -Force | Out-Null }
     Copy-Item -Path $RootMetaTraderMaster -Destination $MetaDist -Recurse -Force 
+
+    $MasterDist = Join-Path $MetaDist "master"
+    $ZipPath = Join-Path $MasterDist "terminal64.zip"
+    if (Test-Path $ZipPath) {
+        Write-Log "  Entpacke terminal64.zip in master..." "Cyan"
+        Expand-Archive -Path $ZipPath -DestinationPath $MasterDist -Force
+    }
 }
 
 
@@ -96,6 +104,8 @@ $sysJson | Add-Member -Type NoteProperty -Name "projectRoot" -Value $TargetDir -
 $sysJson | Add-Member -Type NoteProperty -Name "systemUsername" -Value "admin" -Force
 $sysJson | Add-Member -Type NoteProperty -Name "systemPassword" -Value $Password -Force
 $sysJson | Add-Member -Type NoteProperty -Name "marketDbPath" -Value "db/core.db" -Force
+$sysJson | Add-Member -Type NoteProperty -Name "tempGithubPat" -Value $GithubPat -Force
+$sysJson | Add-Member -Type NoteProperty -Name "compileMode" -Value $HardwareChoice -Force
 $sysJson | ConvertTo-Json -Depth 5 | Set-Content -Path $SystemJsonPath
 Write-Log "  system.json für den Live-Betrieb (core.db) eingerichtet." "Green"
 

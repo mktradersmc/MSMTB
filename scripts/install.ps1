@@ -86,7 +86,7 @@ if (-not (Test-Path $SetupScript)) {
 Write-Log "  Starte dynamisches Applikations-Setup ($SetupScript)..." "Yellow"
 
 # Aufruf von Setup.ps1
-& $SetupScript -TargetDir $TargetDir -SourceDir $GitTarget
+& $SetupScript -TargetDir $TargetDir -SourceDir $GitTarget -GithubPat $GithubPAT
 
 # Da setup.ps1 bereits ein Wait hat, lassen wir das hier enden,
 # oder falls wir hierhin zurückkehren, warten wir nur im Fehlerfall nochmal.

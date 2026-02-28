@@ -10,7 +10,7 @@ module.exports = {
     PIPE_NAME_HISTORY: '\\\\.\\pipe\\MT5_Node_History',
     PIPE_NAME_HEARTBEAT: '\\\\.\\pipe\\MT5_Node_Heartbeat',
     HTTP_PORT: 3005,
-    DB_MARKET_PATH: systemConfigService.getConfig().marketDbPath ? path.resolve(__dirname, '..', systemConfigService.getConfig().marketDbPath) : path.join(__dirname, '..', 'db', 'core.db'),
+    DB_MARKET_PATH: systemConfigService.getConfig().marketDbPath ? path.resolve(__dirname, '..', systemConfigService.getConfig().marketDbPath) : path.join(__dirname, '..', 'market_data.db'),
     DB_TRADES_PATH: path.join(__dirname, '..', 'trades.db'),
 
 

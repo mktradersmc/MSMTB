@@ -30,8 +30,8 @@ export const DATA_DIR = path.join(getCockpitRoot(), 'data');
 export const ACCOUNTS_FILE = path.join(DATA_DIR, 'accounts.json');
 
 // Resolution for Sibling Projects (market-data-core)
-// Assumes standard structure: src/trading-cockpit and src/market-data-core
+// Assumes standard structure: trading-cockpit and market-data-core are siblings in /components or /src
 export function getMarketDataCoreRoot(): string {
-    // Navigate up from Cockpit Root -> src -> market-data-core
+    // Navigate up from Cockpit Root -> sibling market-data-core
     return path.resolve(getCockpitRoot(), '..', 'market-data-core');
 }

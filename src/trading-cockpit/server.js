@@ -6,7 +6,8 @@ const path = require('path');
 
 // Konfiguration laden
 const projectRoot = path.resolve(__dirname, '../../'); 
-const configPath = path.resolve(projectRoot, 'src/market-data-core/data/system.json');
+// In the new layout, market-data-core and trading-cockpit are siblings inside /components
+const configPath = path.resolve(__dirname, '../market-data-core/data/system.json');
 
 let sysConfig = {};
 try {

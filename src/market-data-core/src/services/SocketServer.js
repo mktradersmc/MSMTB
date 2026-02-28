@@ -578,8 +578,12 @@ class SocketServer {
                     } else if (acc.platform === 'MT5') {
                         const broker = brokers.find(b => b.id === acc.brokerId);
                         // Attempt to resolve instanceFolder from active processes if available
-                        const activeProcess = systemOrchestrator.activeProcessesByBotId.get(acc.botId);
-                        if (activeProcess && activeProcess.cmd.toLowerCase().includes('terminal64') && activeProcess.cmd.includes('/config:')) {
+                        let activeProcess = null;
+                        if (systemOrchestrator.activeProcessesByBotId && typeof systemOrchestrator.activeProcessesByBotId.get === 'function') {
+                            activeProcess = systemOrchestrator.activeProcessesByBotId.get(acc.botId);
+                        }
+                        
+                        if (activeProcess && activeProcess.cmd && activeProcess.cmd.toLowerCase().includes('terminal64') && activeProcess.cmd.includes('/config:')) {
                             const configMatch = activeProcess.cmd.match(/\/config:.*\\([^\\]+)\\config\\/i);
                             if (configMatch && configMatch[1]) {
                                 instanceFolder = configMatch[1]; // Use the folder name from the command line

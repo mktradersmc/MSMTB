@@ -22,7 +22,25 @@ if (-not (Test-Path $GitTarget)) {
 }
 
 Write-Host "`n[1/4] Aktualisiere Quellcode via Git Pull..." -ForegroundColor Cyan
+
+# Lade Github PAT aus system.json fuer Headless-Authentifizierung
+$SystemConfigPath = Join-Path $TargetDir "components\market-data-core\data\system.json"
+$GithubPat = ""
+if (Test-Path $SystemConfigPath) {
+    try {
+        $sysJson = Get-Content $SystemConfigPath | ConvertFrom-Json
+        if ($sysJson.tempGithubPat) { $GithubPat = $sysJson.tempGithubPat }
+    } catch {}
+}
+
 Set-Location $GitTarget
+
+# Authentication anpassen falls PAT vorhanden
+if (-not [string]::IsNullOrWhiteSpace($GithubPat)) {
+    $RepoUrl = "https://$GithubPat@github.com/mktradersmc/MSMTB.git"
+    git remote set-url origin $RepoUrl
+}
+
 git fetch origin main
 git reset --hard origin/main
 if ($LASTEXITCODE -ne 0) {

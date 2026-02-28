@@ -2,10 +2,11 @@ param(
     [string]$TargetDir = "C:\awesome-cockpit"
 )
 
+# 1. Admin-Rechte prüfen
 $isAdmin = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
 if (-not $isAdmin) {
     Write-Host "Das Skript benoetigt Administratorrechte (fuer PM2 Dienste). Fordere UAC an..." -ForegroundColor Yellow
-    Start-Process powershell.exe -ArgumentList "-NoProfile -ExecutionPolicy Bypass -File `"$PSCommandPath`"" -Verb RunAs
+    Start-Process powershell.exe -ArgumentList "-NoProfile -ExecutionPolicy Bypass -NoExit -File `"$PSCommandPath`"" -Verb RunAs
     exit
 }
 
@@ -14,35 +15,40 @@ if (-not (Test-Path $TargetDir)) {
     Pause; exit 1
 }
 
-$GitTarget = Join-Path $TargetDir "_github"
+$GitTarget = Join-Path $env:TEMP "_github_msmtb"
 if (-not (Test-Path $GitTarget)) {
-    Write-Host "Fehler: Repository Verzeichnis $GitTarget nicht gefunden. Wurde install.ps1 sauber gefahren?" -ForegroundColor Red
+    Write-Host "Fehler: Temporäres Repository Verzeichnis $GitTarget nicht gefunden. Wurde install.ps1 jemals sauber gefahren?" -ForegroundColor Red
     Pause; exit 1
 }
 
 Write-Host "`n[1/4] Aktualisiere Quellcode via Git Pull..." -ForegroundColor Cyan
 Set-Location $GitTarget
-git fetch origin master
-git reset --hard origin/master
+git fetch origin main
+git reset --hard origin/main
 if ($LASTEXITCODE -ne 0) {
-    Write-Host "Fehler beim Git Pull im _github Verzeichnis. Abbruch." -ForegroundColor Red
+    Write-Host "Fehler beim Git Pull im $GitTarget Verzeichnis. Abbruch." -ForegroundColor Red
     Pause; exit 1
 }
 
 Write-Host "`n[2/4] Kopiere Updates in die Ausfuehrungsordner..." -ForegroundColor Cyan
-$RootSrc = Join-Path $GitTarget "src"
+$RootSrcBackend = Join-Path $GitTarget "src\market-data-core"
+$RootSrcFrontend = Join-Path $GitTarget "src\trading-cockpit"
 $RootScripts = Join-Path $GitTarget "scripts"
 $RootMetaTrader = Join-Path $GitTarget "metatrader"
 
-if (Test-Path $RootSrc) { Copy-Item -Path $RootSrc -Destination $TargetDir -Recurse -Force }
+$DestComponents = Join-Path $TargetDir "components"
+if (-not (Test-Path $DestComponents)) { New-Item -ItemType Directory -Path $DestComponents | Out-Null }
+
+if (Test-Path $RootSrcBackend) { Copy-Item -Path $RootSrcBackend -Destination $DestComponents -Recurse -Force }
+if (Test-Path $RootSrcFrontend) { Copy-Item -Path $RootSrcFrontend -Destination $DestComponents -Recurse -Force }
 if (Test-Path $RootScripts) { Copy-Item -Path $RootScripts -Destination $TargetDir -Recurse -Force }
 if (Test-Path $RootMetaTrader) { Copy-Item -Path $RootMetaTrader -Destination $TargetDir -Recurse -Force }
 
 
 Write-Host "`n[3/4] Installiere Module und baue Frontend neu..." -ForegroundColor Cyan
 
-$BackendDir = Join-Path $TargetDir "src\market-data-core"
-$FrontendDir = Join-Path $TargetDir "src\trading-cockpit"
+$BackendDir = Join-Path $DestComponents "market-data-core"
+$FrontendDir = Join-Path $DestComponents "trading-cockpit"
 
 Write-Host "  -> Backend..."
 Push-Location $BackendDir

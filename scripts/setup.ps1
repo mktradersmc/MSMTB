@@ -92,6 +92,7 @@ if (Test-Path $SystemJsonPath) {
 } else {
     $sysJson = @{}
 }
+$sysJson | Add-Member -Type NoteProperty -Name "projectRoot" -Value $TargetDir -Force
 $sysJson | Add-Member -Type NoteProperty -Name "systemUsername" -Value "admin" -Force
 $sysJson | Add-Member -Type NoteProperty -Name "systemPassword" -Value $Password -Force
 $sysJson | Add-Member -Type NoteProperty -Name "marketDbPath" -Value "db/core.db" -Force

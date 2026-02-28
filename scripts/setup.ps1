@@ -70,19 +70,8 @@ if (Test-Path $RootMetaTraderMaster) {
 }
 
 
-# 3. SSL Zertifikat generieren
-Write-Log "`n[3/6] SSL Zertifikat generieren..." "Cyan"
-$SslScriptPath = Join-Path $TargetDir "scripts\generate-ssl.ps1"
-if (Test-Path $SslScriptPath) {
-    & $SslScriptPath -DomainName "localhost", "127.0.0.1" -Password $Password *>> $LogFile
-    Write-Log "  Zertifikatsgenerierung abgeschlossen (Siehe Log)." "Green"
-} else {
-    Write-Log "  WARNUNG: Skript 'generate-ssl.ps1' nicht gefunden ($SslScriptPath)." "Yellow"
-}
-
-
-# 4. .env für Backend erstellen und system.json vorbereiten
-Write-Log "`n[4/6] Backend Konfiguration (.env und system.json) erstellen..." "Cyan"
+# 3. .env für Backend erstellen und system.json vorbereiten
+Write-Log "`n[3/6] Backend Konfiguration (.env und system.json) erstellen..." "Cyan"
 $BackendDir = Join-Path $ComponentsDir "market-data-core"
 $FrontendDir = Join-Path $ComponentsDir "trading-cockpit"
 
@@ -101,12 +90,23 @@ if (-not (Test-Path (Split-Path $SystemJsonPath))) { New-Item -ItemType Director
 if (Test-Path $SystemJsonPath) {
     $sysJson = Get-Content $SystemJsonPath | ConvertFrom-Json
 } else {
+    $sysJson = @{}
 }
 $sysJson | Add-Member -Type NoteProperty -Name "systemUsername" -Value "admin" -Force
 $sysJson | Add-Member -Type NoteProperty -Name "systemPassword" -Value $Password -Force
 $sysJson | Add-Member -Type NoteProperty -Name "marketDbPath" -Value "db/core.db" -Force
 $sysJson | ConvertTo-Json -Depth 5 | Set-Content -Path $SystemJsonPath
 Write-Log "  system.json für den Live-Betrieb (core.db) eingerichtet." "Green"
+
+# 4. SSL Zertifikat generieren
+Write-Log "`n[4/6] SSL Zertifikat generieren..." "Cyan"
+$SslScriptPath = Join-Path $TargetDir "scripts\generate-ssl.ps1"
+if (Test-Path $SslScriptPath) {
+    & $SslScriptPath -DomainName "localhost", "127.0.0.1" -Password $Password *>> $LogFile
+    Write-Log "  Zertifikatsgenerierung abgeschlossen (Siehe Log)." "Green"
+} else {
+    Write-Log "  WARNUNG: Skript 'generate-ssl.ps1' nicht gefunden ($SslScriptPath)." "Yellow"
+}
 
 # 4.5 Datenbank Provisionieren
 Write-Log "`n[4.5/6] Initiale Datenbank bereitstellen..." "Cyan"

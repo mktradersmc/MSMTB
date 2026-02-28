@@ -33,7 +33,7 @@ class SystemConfigService {
 
     getDefaultConfig() {
         return {
-            projectRoot: "C:\\Trading",
+            projectRoot: "C:\\awesome-cockpit",
             systemUsername: "admin",
             systemPassword: "admin",
             backend: {

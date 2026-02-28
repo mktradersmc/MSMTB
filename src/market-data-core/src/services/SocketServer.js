@@ -587,8 +587,8 @@ class SocketServer {
                             const configMatch = activeProcess.cmd.match(/\/config:.*\\([^\\]+)\\config\\/i);
                             if (configMatch && configMatch[1]) {
                                 instanceFolder = configMatch[1]; // Use the folder name from the command line
-                                // Expected running instance path with components layout
-                                constructedInstancePath = path.join(sysConfig.projectRoot, 'components', 'metatrader', 'instances', instanceFolder);
+                                // Expected running instance path with root-level metatrader layout
+                                constructedInstancePath = path.join(sysConfig.projectRoot, 'metatrader', 'instances', instanceFolder);
                             }
                         }
 
@@ -599,7 +599,7 @@ class SocketServer {
                                 instanceFolder += '_DATAFEED';
                             }
                             const path = require('path');
-                            constructedInstancePath = path.join(sysConfig.projectRoot, 'components', 'metatrader', 'instances', instanceFolder);
+                            constructedInstancePath = path.join(sysConfig.projectRoot, 'metatrader', 'instances', instanceFolder);
                         }
                     }
 

@@ -75,10 +75,10 @@ export function DistributionView() {
         // 1. Auto-Generate Defaults if missing
         activeBrokers.forEach(broker => {
             if (!targetMap[broker.id]) {
-                // Filter accounts for this broker AND mode
+                // Filter accounts for this broker AND mode AND exclude DATAFEED
                 const brokerAccounts = accounts.filter(a =>
                     a.brokerId === broker.id &&
-                    (a.accountType === 'TRADING' || !a.isDatafeed) &&
+                    (a.accountType !== 'DATAFEED' && !a.isDatafeed) &&
                     (isTestMode ? a.isTest : !a.isTest)
                 );
 
@@ -178,17 +178,17 @@ export function DistributionView() {
         return brokers.filter(broker =>
             accounts.some(acc =>
                 acc.brokerId === broker.id &&
-                (acc.accountType === 'TRADING' || !acc.isDatafeed) &&
+                (acc.accountType !== 'DATAFEED' && !acc.isDatafeed) &&
                 (isTestMode ? acc.isTest : !acc.isTest)
             )
         );
     }, [brokers, accounts, isTestMode]);
 
     const renderMatrix = (brokerId: string) => {
-        // Filter Accounts for this Broker AND Mode
+        // Filter Accounts for this Broker AND Mode AND exclude DATAFEED
         const brokerAccounts = accounts.filter(a =>
             a.brokerId === brokerId &&
-            (a.accountType === 'TRADING' || !a.isDatafeed) &&
+            (a.accountType !== 'DATAFEED' && !a.isDatafeed) &&
             (isTestMode ? a.isTest : !a.isTest)
         );
 
@@ -396,7 +396,7 @@ export function DistributionView() {
                     const isExpanded = expandedBrokerId === broker.id;
                     const brokerAccCount = accounts.filter(a =>
                         a.brokerId === broker.id &&
-                        (a.accountType === 'TRADING' || !a.isDatafeed) &&
+                        (a.accountType !== 'DATAFEED' && !a.isDatafeed) &&
                         (isTestMode ? a.isTest : !a.isTest)
                     ).length;
 

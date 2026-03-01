@@ -6,11 +6,8 @@ param(
 )
 
 if ([string]::IsNullOrWhiteSpace($Password)) {
-    $Password = Read-Host "Bitte gib ein Passwort fuer das Trading Cockpit Backend ein"
-    if ([string]::IsNullOrWhiteSpace($Password)) {
-        Write-Host "Fehler: Passwort darf nicht leer sein. Abbruch." -ForegroundColor Red
-        Pause; exit 1
-    }
+    Write-Host "Setze initiales Backend-Passwort auf 'cockpit'. Kann später im UI geändert werden." -ForegroundColor Yellow
+    $Password = "cockpit"
 }
 
 Write-Host "`n===============================================" -ForegroundColor Cyan

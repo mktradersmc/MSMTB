@@ -201,9 +201,27 @@ try {
 
     $FrontendEnvPath = Join-Path $FrontendLive ".env.production"
     if (-not (Test-Path $FrontendEnvPath)) {
-        Write-Log "     WARNUNG: Frontend .env fehlt. Rekonstruiere Umgebungsvariablen..." "Yellow"
-        $EnvContent = "NEXT_COMPILER_MODE=modern"
-        Set-Content -Path $FrontendEnvPath -Value $EnvContent -Force
+        Write-Log "     WARNUNG: Frontend .env fehlt. Lese compileMode aus system.json..." "Yellow"
+        
+        $CompileMode = "legacy" # Safe default for CPU compatibility
+        $SystemJsonPath = Join-Path $TargetDir "components\market-data-core\data\system.json"
+        if (Test-Path $SystemJsonPath) {
+            $sysJson = Get-Content $SystemJsonPath | ConvertFrom-Json
+            if ($sysJson.compileMode) { $CompileMode = $sysJson.compileMode }
+        }
+
+        Set-Content -Path $FrontendEnvPath -Value "NEXT_COMPILER_MODE=$CompileMode" -Force
+        
+        if ($CompileMode -eq "legacy") {
+            Write-Log "     -> Generiere fehlende .babelrc für Legacy Compiler..." "Gray"
+            $BabelRcPath = Join-Path $FrontendLive ".babelrc"
+            $BabelRcContent = @'
+{
+  "presets": ["next/babel"]
+}
+'@
+            Set-Content -Path $BabelRcPath -Value $BabelRcContent -Force
+        }
     }
     Write-Log "  -> Rebuild Backend..." "Gray"
     Push-Location $BackendLive

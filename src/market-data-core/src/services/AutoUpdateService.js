@@ -150,37 +150,36 @@ class AutoUpdateService {
         const { spawn } = require('child_process');
 
         try {
-            const outPath = path.join(this.projectRoot, 'logs', 'update-process.log');
-            const errPath = path.join(this.projectRoot, 'logs', 'update-error.log');
+            // Because PM2 is extremely aggressive on Windows at terminating child process trees,
+            // standard `spawn` or `cmd.exe /c start` will sometimes still be killed when update.ps1 calls "pm2 stop all".
+            // To guarantee survival, we write a temporary VBScript that uses WshShell.Run to break out of the tree structure.
 
-            const out = fs.openSync(outPath, 'a');
-            const err = fs.openSync(errPath, 'a');
+            const vbsPath = path.join(this.projectRoot, 'scripts', 'temp_launcher.vbs');
+            const psPath = updateScript.replace(/\\/g, '\\\\'); // Escape backslashes for VBS string
 
-            // On Windows, simply detaching Node.js might not be enough if the parent PM2 process is killed immediately.
-            // Using 'start' via cmd.exe creates a truly independent process window (hidden) that survives PM2 stop.
-            const child = spawn('cmd.exe', [
-                '/c', 'start', '/b', '""', 'powershell.exe',
-                '-NoProfile',
-                '-ExecutionPolicy', 'Bypass',
-                '-File', updateScript,
-                '-RestartInstances', psRestartFlag
+            const vbsCode = `
+Set WshShell = CreateObject("WScript.Shell")
+WshShell.Run "powershell.exe -NoProfile -ExecutionPolicy Bypass -File ""${psPath}"" -RestartInstances ${psRestartFlag}", 0, False
+`;
+
+            fs.writeFileSync(vbsPath, vbsCode);
+
+            // Execute the VBS file
+            const child = spawn('cscript.exe', [
+                '//nologo', vbsPath
             ], {
                 detached: true,
-                stdio: ['ignore', out, err],
+                stdio: 'ignore',
                 cwd: this.projectRoot,
                 windowsHide: true
             });
 
-            child.unref(); // Detach completely
+            child.unref();
 
-            console.log(`[AutoUpdateService] Detached update process successfully spawned (cmd start).`);
+            console.log(`[AutoUpdateService] Detached update process successfully spawned via VBScript Launcher.`);
             console.log(`[AutoUpdateService] update.ps1 will now execute 'pm2 stop all' and take over.`);
 
-            // Do NOT call process.exit(0) here! 
-            // Let the update.ps1 script kill this Node.js process via `pm2 stop all` gracefully!
-            // If we exit here, PM2 will instantly restart the backend while update.ps1 is trying to copy files, causing EBUSY locks.
-
-            return { success: true, message: "Update initiated. update.ps1 is now shutting down PM2." };
+            return { success: true, message: "Update initiated. Background process launched." };
         } catch (error) {
             console.error('[AutoUpdateService] Failed to execute update script:', error);
             return { success: false, message: "Failed to start update process: " + error.message };

@@ -32,29 +32,11 @@ if (-not (Test-Path $TargetDir)) {
     Write-Log "Fehler: Installationsverzeichnis $TargetDir nicht gefunden." "Red"; exit 1
 }
 
-$GitTarget = Join-Path $env:TEMP "_github_msmtb"
-if (-not (Test-Path $GitTarget)) {
-    Write-Log "Fehler: Temporäres Repository Verzeichnis $GitTarget nicht gefunden." "Red"; exit 1
-}
-
-# --- 2. BACKUP & SELF-HEALING VORBEREITUNG ---
-Write-Log "`n[1/6] Erstelle Sicherheitskopien (Self-Healing)..." "Cyan"
+# --- 1.5 CREDENTIALS LADEN ---
 $DestComponents = Join-Path $TargetDir "components"
-$BackupDir = Join-Path $TargetDir ".backup"
-if (Test-Path $BackupDir) { Remove-Item -Path $BackupDir -Recurse -Force }
-New-Item -ItemType Directory -Path $BackupDir -Force | Out-Null
-
 $BackendLive = Join-Path $DestComponents "market-data-core"
-$FrontendLive = Join-Path $DestComponents "trading-cockpit"
-
-if (Test-Path $BackendLive) { Copy-Item -Path $BackendLive -Destination $BackupDir -Recurse -Force }
-if (Test-Path $FrontendLive) { Copy-Item -Path $FrontendLive -Destination $BackupDir -Recurse -Force }
-Write-Log "  -> Core-Komponenten erfolgreich nach .backup gesichert." "Green"
-
-
-# --- 3. GIT PULL ---
-Write-Log "`n[2/6] Lade Updates aus GitHub herunter..." "Cyan"
 $SystemConfigPath = Join-Path $BackendLive "data\system.json"
+
 $GithubPat = ""
 if (Test-Path $SystemConfigPath) {
     try {
@@ -63,6 +45,40 @@ if (Test-Path $SystemConfigPath) {
     } catch {}
 }
 
+$GitTarget = Join-Path $env:TEMP "_github_msmtb"
+if (-not (Test-Path $GitTarget)) {
+    Write-Log "Temporäres Repository Verzeichnis nicht gefunden. Klone initial..." "Yellow"
+    if ([string]::IsNullOrWhiteSpace($GithubPat)) {
+        Write-Log "HINWEIS: Kein Github PAT in system.json gefunden. Versuche anonymen Klon..." "Yellow"
+        git clone "https://github.com/mktradersmc/MSMTB.git" $GitTarget 2>&1 | Out-File -Append -FilePath $LogFile
+    } else {
+        $RepoUrl = "https://$GithubPat@github.com/mktradersmc/MSMTB.git"
+        git clone $RepoUrl $GitTarget 2>&1 | Out-File -Append -FilePath $LogFile
+    }
+
+    if (-not (Test-Path $GitTarget)) {
+        Write-Log "FEHLER: Konnte Repository nicht klonen. Update abgebrochen." "Red"
+        Write-Host "Druecke eine beliebige Taste zum Beenden..." -ForegroundColor DarkGray
+        $null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
+        exit 1
+    }
+}
+
+
+# --- 2. BACKUP & SELF-HEALING VORBEREITUNG ---
+Write-Log "`n[1/6] Erstelle Sicherheitskopien (Self-Healing)..." "Cyan"
+$FrontendLive = Join-Path $DestComponents "trading-cockpit"
+$BackupDir = Join-Path $TargetDir ".backup"
+if (Test-Path $BackupDir) { Remove-Item -Path $BackupDir -Recurse -Force }
+New-Item -ItemType Directory -Path $BackupDir -Force | Out-Null
+
+if (Test-Path $BackendLive) { Copy-Item -Path $BackendLive -Destination $BackupDir -Recurse -Force }
+if (Test-Path $FrontendLive) { Copy-Item -Path $FrontendLive -Destination $BackupDir -Recurse -Force }
+Write-Log "  -> Core-Komponenten erfolgreich nach .backup gesichert." "Green"
+
+
+# --- 3. GIT PULL ---
+Write-Log "`n[2/6] Lade Updates aus GitHub herunter..." "Cyan"
 Set-Location $GitTarget
 if (-not [string]::IsNullOrWhiteSpace($GithubPat)) {
     $RepoUrl = "https://$GithubPat@github.com/mktradersmc/MSMTB.git"
@@ -72,7 +88,10 @@ if (-not [string]::IsNullOrWhiteSpace($GithubPat)) {
 git fetch origin main 2>&1 | Out-File -Append -FilePath $LogFile
 git reset --hard origin/main 2>&1 | Out-File -Append -FilePath $LogFile
 if ($LASTEXITCODE -ne 0) {
-    Write-Log "FEHLER beim Git Pull. Breche Update ab." "Red"; exit 1
+    Write-Log "FEHLER beim Git Pull. Breche Update ab." "Red"
+    Write-Host "Druecke eine beliebige Taste zum Beenden..." -ForegroundColor DarkGray
+    $null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
+    exit 1
 }
 
 # --- 4. DATEI PROPAGATION ---

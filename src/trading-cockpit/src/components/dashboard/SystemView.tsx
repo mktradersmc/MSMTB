@@ -534,7 +534,7 @@ function SystemUpdateSection() {
                 <div className="fixed inset-0 z-[9999] bg-slate-900/80 backdrop-blur flex items-center justify-center p-4">
                     <div className="bg-white dark:bg-slate-900 border border-indigo-200 dark:border-indigo-800/50 p-8 rounded-xl shadow-2xl max-w-lg w-full transform transition-all">
                         <div className="flex flex-col items-center text-center">
-                            <RefreshCw className="animate-spin text-indigo-500 mb-6" size={48} />
+                            <div className="w-12 h-12 border-4 border-indigo-100 dark:border-indigo-900/50 border-t-indigo-500 dark:border-t-indigo-500 rounded-full animate-spin mb-6" />
 
                             <h2 className="text-xl font-bold text-slate-800 dark:text-slate-100 mb-2">
                                 Plattform wird aktualisiert

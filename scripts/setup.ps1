@@ -57,6 +57,7 @@ $RootMarketData = Join-Path $SourceDir "src\market-data-core"
 $RootTradingCockpit = Join-Path $SourceDir "src\trading-cockpit"
 $RootScripts = Join-Path $SourceDir "scripts"
 $RootMetaTraderMaster = Join-Path $SourceDir "ressources\metatrader\master"
+$RootNinjaTraderMaster = Join-Path $SourceDir "ressources\ninjatrader\master"
 
 $ComponentsDir = Join-Path $TargetDir "components"
 if (-not (Test-Path $ComponentsDir)) { New-Item -ItemType Directory -Path $ComponentsDir -Force | Out-Null }
@@ -81,7 +82,26 @@ if (Test-Path $RootMetaTraderMaster) {
     Start-Sleep -Seconds 5
 
     Write-Log "  Kopiere benutzerspezifische Master-Dateien (servers.dat, startup.ini) ueber die Installation..." "Cyan"
-    Copy-Item -Path "$RootMetaTraderMaster\*" -Destination $MasterDist -Recurse -Force 
+    $MetaCopySource = Join-Path $RootMetaTraderMaster "*"
+    Copy-Item -Path $MetaCopySource -Destination $MasterDist -Recurse -Force 
+}
+
+# 2.5 NinjaTrader 8 Setup
+if (Test-Path $RootNinjaTraderMaster) {
+    Write-Log "  Lade offizielles NinjaTrader 8 Setup herunter..." "Cyan"
+    $Nt8Installer = Join-Path $env:TEMP "NinjaTrader.msi"
+    Invoke-WebRequest -Uri "http://download.ninjatrader.com/download?lang=de-de" -OutFile $Nt8Installer
+
+    Write-Log "  Installiere NinjaTrader 8 (Silent)..." "Yellow"
+    $SetupProc = Start-Process -FilePath "msiexec.exe" -ArgumentList "/i `"$Nt8Installer`" /qn" -Wait -PassThru
+
+     Write-Log "  Kopiere NinjaTrader Custom DLLs und Templates nach Eigene Dokumente..." "Cyan"
+    $Nt8DocsDir = Join-Path $env:USERPROFILE "Documents\NinjaTrader 8"
+    if (-not (Test-Path $Nt8DocsDir)) { New-Item -ItemType Directory -Path $Nt8DocsDir -Force | Out-Null }
+    
+    # We copy the curated files over to user's local installation
+    $NinjaCopySource = Join-Path $RootNinjaTraderMaster "*"
+    Copy-Item -Path $NinjaCopySource -Destination $Nt8DocsDir -Recurse -Force
 }
 
 

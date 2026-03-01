@@ -22,6 +22,13 @@ try {
 // USE IPv4 EXPLICITLY to avoid Windows localhost/IPv6 lag
 const API_HOST = '127.0.0.1';
 const API_PORT = 3005;
+
+// FIX: Next.js internal fetches and proxy routing often ignore custom agents.
+// Force process-level acceptance of self-signed certs when SSL is enabled locally.
+if (useSSL) {
+    process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+}
+
 export const API_BASE = useSSL ? `https://${API_HOST}:${API_PORT}/api` : `http://${API_HOST}:${API_PORT}/api`;
 
 // ✅ PERFORMANCE FIX: Connection Pooling with Keep-Alive

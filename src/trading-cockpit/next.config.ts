@@ -18,6 +18,13 @@ try {
   console.error('[Next.js Config] Failed to read system.json for rewrite rule, defaulting to https', e);
 }
 
+// FIX: Next.js internal proxy strictly rejects self-signed certificates.
+// If we are forcing HTTPS for local traffic, we must allow self-signed certs globally for this process.
+if (backendScheme === 'https') {
+  console.log('[Next.js Config] Enforcing NODE_TLS_REJECT_UNAUTHORIZED=0 for internal self-signed SSL proxying.');
+  process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+}
+
 const nextConfig: NextConfig = {
   output: "standalone",
   async rewrites() {

@@ -50,9 +50,9 @@ export const EconomicCalendarView: React.FC = () => {
                 return [Math.floor(start / 1000), Math.floor(end / 1000)];
             }
             if (quickFilter === 'WEEK') {
-                const day = now.getUTCDay() || 7;
-                const start = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() - day + 1, 0, 0, 0, 0);
-                const end = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + (7 - day), 23, 59, 59, 999);
+                const day = now.getUTCDay(); // 0 is Sunday, 1 is Monday, etc.
+                const start = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() - day, 0, 0, 0, 0);
+                const end = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + (6 - day), 23, 59, 59, 999);
                 return [Math.floor(start / 1000), Math.floor(end / 1000)];
             }
         } else {
@@ -62,9 +62,9 @@ export const EconomicCalendarView: React.FC = () => {
                 return [Math.floor(start.getTime() / 1000), Math.floor(end.getTime() / 1000)];
             }
             if (quickFilter === 'WEEK') {
-                const day = now.getDay() || 7;
-                const start = new Date(now.getFullYear(), now.getMonth(), now.getDate() - day + 1, 0, 0, 0, 0);
-                const end = new Date(now.getFullYear(), now.getMonth(), now.getDate() + (7 - day), 23, 59, 59, 999);
+                const day = now.getDay(); // 0 is Sunday
+                const start = new Date(now.getFullYear(), now.getMonth(), now.getDate() - day, 0, 0, 0, 0);
+                const end = new Date(now.getFullYear(), now.getMonth(), now.getDate() + (6 - day), 23, 59, 59, 999);
                 return [Math.floor(start.getTime() / 1000), Math.floor(end.getTime() / 1000)];
             }
         }

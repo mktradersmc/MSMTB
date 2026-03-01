@@ -45,7 +45,8 @@ if (-not (Get-Command node -ErrorAction SilentlyContinue)) {
     Write-Log "  Node.js nicht gefunden. Installiere via winget (LTS)..." "Yellow"
     winget install --id OpenJS.NodeJS.LTS -e --silent --accept-source-agreements --accept-package-agreements | Out-File -Append -FilePath $LogFile
     $env:Path += ";C:\Program Files\nodejs"
-} else {
+}
+else {
     Write-Log "  Node.js ist bereits installiert ($(node -v))." "Green"
 }
 
@@ -102,14 +103,20 @@ if (Test-Path $RootMetaTraderMaster) {
 
 # 2.5 NinjaTrader 8 Setup
 if (Test-Path $RootNinjaTraderMaster) {
-    Write-Log "  Lade offizielles NinjaTrader 8 Setup herunter..." "Cyan"
-    $Nt8Installer = Join-Path $env:TEMP "NinjaTrader.msi"
-    Invoke-WebRequest -Uri "http://download.ninjatrader.com/download?lang=de-de" -OutFile $Nt8Installer
+    $Nt8InstallDir = "C:\Program Files\NinjaTrader 8"
+    if (-not (Test-Path $Nt8InstallDir)) {
+        Write-Log "  Lade offizielles NinjaTrader 8 Setup herunter..." "Cyan"
+        $Nt8Installer = Join-Path $env:TEMP "NinjaTrader.msi"
+        Invoke-WebRequest -Uri "http://download.ninjatrader.com/download?lang=de-de" -OutFile $Nt8Installer
 
-    Write-Log "  Installiere NinjaTrader 8 (Silent)..." "Yellow"
-    $SetupProc = Start-Process -FilePath "msiexec.exe" -ArgumentList "/i `"$Nt8Installer`" /qn" -Wait -PassThru
+        Write-Log "  Installiere NinjaTrader 8 (Silent)..." "Yellow"
+        $SetupProc = Start-Process -FilePath "msiexec.exe" -ArgumentList "/i `"$Nt8Installer`" /qn" -Wait -PassThru
+    }
+    else {
+        Write-Log "  NinjaTrader 8 ist bereits installiert. Ueberspringe Download und Installation." "Green"
+    }
 
-     Write-Log "  Kopiere NinjaTrader Custom DLLs und Templates nach Eigene Dokumente..." "Cyan"
+    Write-Log "  Kopiere NinjaTrader Custom DLLs und Templates nach Eigene Dokumente..." "Cyan"
     $Nt8DocsDir = Join-Path $env:USERPROFILE "Documents\NinjaTrader 8"
     if (-not (Test-Path $Nt8DocsDir)) { New-Item -ItemType Directory -Path $Nt8DocsDir -Force | Out-Null }
     
@@ -140,7 +147,8 @@ $SystemJsonPath = Join-Path $BackendDir "data\system.json"
 if (-not (Test-Path (Split-Path $SystemJsonPath))) { New-Item -ItemType Directory -Path (Split-Path $SystemJsonPath) | Out-Null }
 if (Test-Path $SystemJsonPath) {
     $sysJson = Get-Content $SystemJsonPath | ConvertFrom-Json
-} else {
+}
+else {
     $sysJson = @{}
 }
 $sysJson | Add-Member -Type NoteProperty -Name "projectRoot" -Value $TargetDir -Force
@@ -158,7 +166,8 @@ $SslScriptPath = Join-Path $TargetDir "scripts\generate-ssl.ps1"
 if (Test-Path $SslScriptPath) {
     & $SslScriptPath -DomainName "localhost", "127.0.0.1" -Password $Password *>> $LogFile
     Write-Log "  Zertifikatsgenerierung abgeschlossen (Siehe Log)." "Green"
-} else {
+}
+else {
     Write-Log "  WARNUNG: Skript 'generate-ssl.ps1' nicht gefunden ($SslScriptPath)." "Yellow"
 }
 
@@ -173,10 +182,12 @@ if (Test-Path $InitDbPath) {
     if (-not (Test-Path $LiveDbPath)) {
         Copy-Item -Path $InitDbPath -Destination $LiveDbPath -Force
         Write-Log "  Datenbank 'init/core.db' erfolgreich nach 'db/core.db' kopiert." "Green"
-    } else {
+    }
+    else {
         Write-Log "  Datenbank 'db/core.db' existiert bereits. Überspringe Kopiervorgang." "Gray"
     }
-} else {
+}
+else {
     Write-Log "  WARNUNG: 'init/core.db' wurde nicht gefunden!" "Yellow"
 }
 
@@ -196,7 +207,8 @@ if ($IsLegacyHardware) {
 }
 '@
     Set-Content -Path $BabelRcPath -Value $BabelRcContent -Force
-} else {
+}
+else {
     Write-Log "  -> Konfiguriere Modern/SWC Compiler (Performance-Modus)..." "Green"
     Set-Content -Path $FrontendEnvPath -Value "NEXT_COMPILER_MODE=modern" -Force
     if (Test-Path $BabelRcPath) { Remove-Item -Path $BabelRcPath -Force }
@@ -220,7 +232,7 @@ Pop-Location
 
 # 6. Firewall & PM2
 Write-Log "`n[6/6] Firewall-Regeln & PM2 Windows-Dienst..." "Cyan"
-New-NetFirewallRule -DisplayName "Awesome-Cockpit-Web" -Direction Inbound -LocalPort 80,443 -Protocol TCP -Action Allow -ErrorAction SilentlyContinue | Out-Null
+New-NetFirewallRule -DisplayName "Awesome-Cockpit-Web" -Direction Inbound -LocalPort 80, 443 -Protocol TCP -Action Allow -ErrorAction SilentlyContinue | Out-Null
 New-NetFirewallRule -DisplayName "Awesome-Cockpit-API" -Direction Inbound -LocalPort 3005 -Protocol TCP -Action Allow -ErrorAction SilentlyContinue | Out-Null
 Write-Log "  Firewall-Regeln erfolgreich hinzugefügt." "Green"
 

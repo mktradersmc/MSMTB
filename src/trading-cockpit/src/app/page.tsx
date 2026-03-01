@@ -12,7 +12,7 @@ import { SettingsView } from "../components/dashboard/SettingsView";
 import { AccountsView } from "../components/dashboard/AccountsView";
 import { DatafeedView } from "../components/dashboard/DatafeedView";
 import { DistributionView } from "../components/dashboard/DistributionView";
-import { Activity, LayoutDashboard, Users, Settings, FlaskConical, BarChart3, Radio, ChevronLeft, ChevronRight, Maximize2, LineChart, Database, FileJson, Share2, History, Cpu } from "lucide-react";
+import { Activity, LayoutDashboard, Users, Settings, FlaskConical, BarChart3, Radio, ChevronLeft, ChevronRight, Maximize2, LineChart, Database, FileJson, Share2, History, Cpu, DownloadCloud } from "lucide-react";
 import AssetMappingPage from "./settings/mappings/page";
 import Link from "next/link";
 import { MainSidebar, ViewType } from "../components/navigation/MainSidebar";
@@ -137,6 +137,7 @@ export default function Dashboard() {
   // --- SIDEBAR BADGE LOGIC ---
   const [hasPendingMappings, setHasPendingMappings] = useState(false);
   const [hasCalendarAlert, setHasCalendarAlert] = useState(false);
+  const [hasUpdateAlert, setHasUpdateAlert] = useState(false);
 
   const checkMappings = async () => {
     try {
@@ -184,16 +185,34 @@ export default function Dashboard() {
     }
   };
 
+  const checkUpdateAlert = async () => {
+    try {
+      const res = await fetchDirect('/api/system/update/status');
+      if (res.ok) {
+        const data = await res.json();
+        if (data.status && data.status.updateAvailable) {
+          setHasUpdateAlert(true);
+        } else {
+          setHasUpdateAlert(false);
+        }
+      }
+    } catch (e) {
+      console.error("Failed to check update status globally", e);
+    }
+  };
+
   useEffect(() => {
     // Initial check
     checkMappings();
     checkCalendarAlert();
+    checkUpdateAlert();
 
-    // Poll every 5 seconds to update badge when user fixes mappings
+    // Poll every 5 seconds or 10s depending on urgency
     const interval = setInterval(() => {
       checkMappings();
       checkCalendarAlert();
-    }, 5000);
+      checkUpdateAlert();
+    }, 10000);
     return () => clearInterval(interval);
   }, []);
 
@@ -206,7 +225,7 @@ export default function Dashboard() {
         <MainSidebar
           activeView={activeView}
           onNavigate={setActiveView}
-          badges={{ mappings: hasPendingMappings, calendar: hasCalendarAlert }}
+          badges={{ mappings: hasPendingMappings, calendar: hasCalendarAlert, update: hasUpdateAlert }}
         />
 
         {/* --- MAIN CONTENT AREA --- */}
@@ -214,6 +233,23 @@ export default function Dashboard() {
           {/* Background Elements */}
           <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-indigo-500/5 rounded-full blur-3xl pointer-events-none" />
           <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-cyan-500/5 rounded-full blur-3xl pointer-events-none" />
+
+          {/* GLOBAL UPDATE BANNER */}
+          {hasUpdateAlert && activeView !== 'SYSTEM' && (
+            <div
+              className="bg-indigo-600 text-white px-4 py-2 flex items-center justify-between shadow-md shrink-0 z-10 animate-in slide-in-from-top-4 cursor-pointer hover:bg-indigo-700 transition-colors"
+              onClick={() => setActiveView('SYSTEM')}
+            >
+              <div className="flex items-center gap-3">
+                <DownloadCloud size={16} className="animate-pulse" />
+                <span className="text-sm font-semibold tracking-wide">System Update Available</span>
+                <span className="text-xs text-indigo-200">New components are ready for deployment.</span>
+              </div>
+              <button className="text-xs bg-white/20 hover:bg-white/30 px-3 py-1 rounded transition-colors font-medium">
+                Review & Install
+              </button>
+            </div>
+          )}
 
           {/* --- VIEW: DASHBOARD (Welcome) --- */}
           {activeView === 'DASHBOARD' && (

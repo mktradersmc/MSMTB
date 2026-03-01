@@ -26,6 +26,7 @@ interface MainSidebarProps {
     badges?: {
         mappings?: boolean;
         calendar?: boolean;
+        update?: boolean;
     };
 }
 
@@ -144,7 +145,7 @@ export const MainSidebar: React.FC<MainSidebarProps> = ({ activeView, onNavigate
 
 
                     <SectionHeader label="System" />
-                    <SidebarItem id="SYSTEM" icon={Cpu} label="System" />
+                    <SidebarItem id="SYSTEM" icon={Cpu} label="System" badge={badges?.update} />
 
                     <SectionHeader label="Environment" />
                     <SidebarItem id="ACCOUNTS" icon={Users} label="Accounts" />

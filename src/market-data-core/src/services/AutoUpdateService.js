@@ -43,11 +43,12 @@ class AutoUpdateService {
 
     async checkForUpdates() {
         try {
+            const gitRepoPath = path.join(this.projectRoot, '_github');
             // First run git fetch to get the latest remote state
-            await this.execCommand('git fetch origin main', this.projectRoot);
+            await this.execCommand('git fetch origin main', gitRepoPath);
 
             // Get log of commits that are on origin/main but not on local main
-            const logOutput = await this.execCommand('git log HEAD..origin/main --pretty=format:"%h|%s" --name-only', this.projectRoot);
+            const logOutput = await this.execCommand('git log HEAD..origin/main --pretty=format:"%h|%s" --name-only', gitRepoPath);
             
             this.parseGitLog(logOutput);
             this.updateStatus.lastChecked = new Date().toISOString();

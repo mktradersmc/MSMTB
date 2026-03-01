@@ -1,6 +1,14 @@
 const { exec } = require('child_process');
 const path = require('path');
-const systemConfigService = require('./SystemConfigService');
+const fs = require('fs');
+
+function getSystemConfig() {
+    try {
+        const p = path.resolve(__dirname, '../../market-data-core/data/system.json');
+        if (fs.existsSync(p)) return JSON.parse(fs.readFileSync(p, 'utf8'));
+    } catch (e) { }
+    return {};
+}
 
 class AutoUpdateService {
     constructor() {
@@ -11,13 +19,12 @@ class AutoUpdateService {
             components: {
                 frontend: false,
                 backend: false,
-                metatrader: false,
-                ninjatrader: false
+                metatrader: false
             }
         };
 
         this.pollingInterval = null;
-        this.projectRoot = systemConfigService.getConfig().projectRoot || "C:\\awesome-cockpit";
+        this.projectRoot = getSystemConfig().projectRoot || "C:\\awesome-cockpit";
     }
 
     start() {
@@ -90,8 +97,7 @@ class AutoUpdateService {
             components: {
                 frontend: false,
                 backend: false,
-                metatrader: false,
-                ninjatrader: false
+                metatrader: false
             }
         };
 
@@ -120,7 +126,6 @@ class AutoUpdateService {
                 if (filePath.startsWith('src/trading-cockpit')) result.components.frontend = true;
                 if (filePath.startsWith('src/market-data-core')) result.components.backend = true;
                 if (filePath.startsWith('ressources/metatrader')) result.components.metatrader = true;
-                if (filePath.startsWith('ressources/ninjatrader')) result.components.ninjatrader = true;
             }
         }
 
@@ -140,7 +145,7 @@ class AutoUpdateService {
 
     executeUpdate(restartInstances = false) {
         console.log(`[AutoUpdateService] Triggering update.ps1 (Restart Instances: ${restartInstances})...`);
-        const updateScript = path.join(this.projectRoot, 'update.ps1');
+        const updateScript = path.join(this.projectRoot, 'scripts', 'update.ps1');
 
         // Pass a flag to the powershell script if instances should be restarted
         // Convert boolean to PowerShell string argument "True" / "False"
@@ -199,5 +204,4 @@ WshShell.Run "powershell.exe -NoProfile -ExecutionPolicy Bypass -File ""${psPath
     }
 }
 
-const fs = require('fs'); // Only for log file creation during execute
 module.exports = new AutoUpdateService();

@@ -53,6 +53,7 @@ Write-Log "`n[2/6] Kopiere Komponenten ins Root-Verzeichnis..." "Cyan"
 
 $RootMarketData = Join-Path $SourceDir "src\market-data-core"
 $RootTradingCockpit = Join-Path $SourceDir "src\trading-cockpit"
+$RootManagerConsole = Join-Path $SourceDir "src\management-console"
 $RootScripts = Join-Path $SourceDir "scripts"
 
 $ComponentsDir = Join-Path $TargetDir "components"
@@ -77,6 +78,7 @@ $RootNinjaTraderMaster = Join-Path $SetupCache "ressources\ninjatrader\master"
 
 if (Test-Path $RootMarketData) { Copy-Item -Path $RootMarketData -Destination $ComponentsDir -Recurse -Force }
 if (Test-Path $RootTradingCockpit) { Copy-Item -Path $RootTradingCockpit -Destination $ComponentsDir -Recurse -Force }
+if (Test-Path $RootManagerConsole) { Copy-Item -Path $RootManagerConsole -Destination $ComponentsDir -Recurse -Force }
 if (Test-Path $RootScripts) { Copy-Item -Path $RootScripts -Destination $TargetDir -Recurse -Force }
 if (Test-Path $RootMetaTraderMaster) { 
     $MetaDist = Join-Path $ComponentsDir "metatrader"
@@ -129,6 +131,7 @@ if (Test-Path $RootNinjaTraderMaster) {
 Write-Log "`n[3/6] Backend Konfiguration (.env und system.json) erstellen..." "Cyan"
 $BackendDir = Join-Path $ComponentsDir "market-data-core"
 $FrontendDir = Join-Path $ComponentsDir "trading-cockpit"
+$ManagerDir = Join-Path $ComponentsDir "management-console"
 
 $EnvContent = @"
 # Generiert durch install.ps1 / setup.ps1
@@ -217,6 +220,11 @@ npm install 2>&1 | Out-File -Append -FilePath $LogFile
 npm rebuild 2>&1 | Out-File -Append -FilePath $LogFile
 Pop-Location
 
+Write-Log "  -> Installiere Management Console Dependencies..." "Cyan"
+Push-Location $ManagerDir
+npm install 2>&1 | Out-File -Append -FilePath $LogFile
+Pop-Location
+
 Write-Log "  -> Installiere Frontend Dependencies..." "Cyan"
 Push-Location $FrontendDir
 npm install 2>&1 | Out-File -Append -FilePath $LogFile
@@ -262,6 +270,12 @@ Write-Log "  Starte Frontend in PM2 (node server.js)..." "Cyan"
 Push-Location $FrontendDir
 $FrontendLog = Join-Path $AppLogDir "awesome-frontend.log"
 pm2 start server.js --name "awesome-frontend" --log $FrontendLog --time *>> $LogFile
+Pop-Location
+
+Write-Log "  Starte Management Console in PM2..." "Cyan"
+Push-Location $ManagerDir
+$ManagerLog = Join-Path $AppLogDir "awesome-management.log"
+pm2 start server.js --name "awesome-management" --log $ManagerLog --time *>> $LogFile
 Pop-Location
 
 pm2 save *>> $LogFile

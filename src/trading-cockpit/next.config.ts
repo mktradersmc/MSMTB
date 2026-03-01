@@ -45,6 +45,18 @@ const nextConfig: NextConfig = {
         source: '/api/distribution/execute',
         destination: `${backendScheme}://127.0.0.1:3005/api/distribution/execute`,
       },
+      {
+        source: '/api/system/update/:path*',
+        destination: `${backendScheme}://127.0.0.1:3006/api/system/update/:path*`,
+      },
+      {
+        source: '/management-console',
+        destination: `${backendScheme}://127.0.0.1:3006/`,
+      },
+      {
+        source: '/management-console/:path*',
+        destination: `${backendScheme}://127.0.0.1:3006/:path*`,
+      },
     ];
   },
 };

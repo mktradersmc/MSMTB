@@ -1,0 +1,5 @@
+{
+    "systemPassword":  "123",
+    "systemUsername":  "admin",
+    "marketDbPath":  "db/core.db"
+}

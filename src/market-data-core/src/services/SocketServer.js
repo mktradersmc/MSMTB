@@ -19,12 +19,11 @@ const systemConfigService = require('./SystemConfigService');
 const fs = require('fs');
 const path = require('path');
 const https = require('https');
-const autoUpdateService = require('./AutoUpdateService');
 
 class SocketServer {
     constructor() {
         this.app = express();
-        
+
         const sysConfig = systemConfigService.getConfig();
         const useSSL = sysConfig?.backend?.useSSL === true;
 
@@ -35,9 +34,9 @@ class SocketServer {
                 const keyPath = path.join(projectRoot, 'certs', 'server.key');
                 // Support PFX alternative
                 const pfxPath = path.join(projectRoot, 'certs', 'server.pfx');
-                
+
                 let sslOptions = {};
-                
+
                 if (fs.existsSync(pfxPath)) {
                     console.log(`[SocketServer] Starting with SSL (PFX) from: ${pfxPath}`);
                     sslOptions = {
@@ -54,7 +53,7 @@ class SocketServer {
                     console.warn(`[SocketServer] SSL enabled but no certificates found in ${path.join(projectRoot, 'certs')}. Initializing without SSL.`);
                     throw new Error("Missing certificates");
                 }
-                
+
                 this.server = https.createServer(sslOptions, this.app);
             } catch (err) {
                 console.error(`[SocketServer] SSL Initialization failed: ${err.message}. Falling back to HTTP.`);
@@ -143,27 +142,6 @@ class SocketServer {
             res.json({ success });
         });
 
-        // --- SYSTEM UPDATE API ---
-        this.app.get('/api/system/update/status', (req, res) => {
-            const status = autoUpdateService.getBasicStatus();
-            res.json({ success: true, status });
-        });
-
-        this.app.get('/api/system/update/details', async (req, res) => {
-            const details = await autoUpdateService.fetchUpdateDetails();
-            res.json({ success: true, details });
-        });
-
-        this.app.post('/api/system/update/execute', (req, res) => {
-            const restartInstances = req.body?.restartInstances === true;
-            const result = autoUpdateService.executeUpdate(restartInstances);
-            if (result.success) {
-                res.json({ success: true, message: result.message });
-            } else {
-                res.status(500).json({ success: false, error: result.message });
-            }
-        });
-
         // --- AUTH API ---
         this.app.post('/api/auth/login', (req, res) => {
             const { username, password } = req.body;
@@ -172,7 +150,7 @@ class SocketServer {
             // Force load config from disk to catch manual edits without PM2 restart
             systemConfigService.loadConfig();
             const sysConfig = systemConfigService.getConfig();
-            
+
             let isAuthenticated = false;
             let userId = 'admin';
 
@@ -594,7 +572,7 @@ class SocketServer {
                     const sysConfig = systemConfigService.getConfig();
                     let instanceFolder = null;
                     let constructedInstancePath = null;
-                    
+
                     if (acc.platform === 'NT8') {
                         instanceFolder = 'NinjaTrader';
                     } else if (acc.platform === 'MT5') {
@@ -604,7 +582,7 @@ class SocketServer {
                         if (systemOrchestrator.activeProcessesByBotId && typeof systemOrchestrator.activeProcessesByBotId.get === 'function') {
                             activeProcess = systemOrchestrator.activeProcessesByBotId.get(acc.botId);
                         }
-                        
+
                         if (activeProcess && activeProcess.cmd && activeProcess.cmd.toLowerCase().includes('terminal64') && activeProcess.cmd.includes('/config:')) {
                             const configMatch = activeProcess.cmd.match(/\/config:.*\\([^\\]+)\\config\\/i);
                             if (configMatch && configMatch[1]) {
@@ -1059,7 +1037,7 @@ class SocketServer {
                                 // User Correction: Broker Name is FIRST Part.
                                 brokerName = exec.bot_id.split('_')[0];
                             }
-                            
+
                             // Append Account Username inside parentheses (User Request)
                             const acc = accounts.find(a => a.botId === exec.bot_id);
                             const accountNameStr = acc ? (acc.login || exec.account_id || acc.id) : (exec.account_id || exec.bot_id);

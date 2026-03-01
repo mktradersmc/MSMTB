@@ -8,7 +8,7 @@ $isAdmin = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIden
 if (-not $isAdmin) {
     Write-Host "Das Skript benoetigt Administratorrechte (fuer Windows Dienste und Backups). Fordere UAC an..." -ForegroundColor Yellow
     # CRITICAL FIX: Convert parameter to simple string wrapper to prevent System.Boolean parser crashes. Removed -NoExit to prevent hanging.
-    Start-Process powershell.exe -ArgumentList "-NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File `"$PSCommandPath`" -RestartInstances `"$RestartInstances`"" -Verb RunAs
+    Start-Process powershell.exe -ArgumentList "-NoProfile -ExecutionPolicy Bypass -File `"$PSCommandPath`" -RestartInstances `"$RestartInstances`"" -Verb RunAs
     exit
 }
 
@@ -83,12 +83,14 @@ if (-not (Test-Path $GitTarget)) {
 Write-Log "`n[1/6] Erstelle Sicherheitskopien (Self-Healing)..." "Cyan"
 Set-Progress 2 "Erstelle Sicherheitskopien für automatisierten Rollback..."
 $FrontendLive = Join-Path $DestComponents "trading-cockpit"
+$MCLive = Join-Path $DestComponents "management-console"
 $BackupDir = Join-Path $TargetDir ".backup"
 if (Test-Path $BackupDir) { Remove-Item -Path $BackupDir -Recurse -Force }
 New-Item -ItemType Directory -Path $BackupDir -Force | Out-Null
 
 if (Test-Path $BackendLive) { Copy-Item -Path $BackendLive -Destination $BackupDir -Recurse -Force }
 if (Test-Path $FrontendLive) { Copy-Item -Path $FrontendLive -Destination $BackupDir -Recurse -Force }
+if (Test-Path $MCLive) { Copy-Item -Path $MCLive -Destination $BackupDir -Recurse -Force }
 Write-Log "  -> Core-Komponenten erfolgreich nach .backup gesichert." "Green"
 
 
@@ -125,6 +127,7 @@ Set-Progress 5 "Kopiere aktualisierte Backend- und Frontend-Dateien..."
 
 $RootSrcBackend = Join-Path $GitTarget "src\market-data-core"
 $RootSrcFrontend = Join-Path $GitTarget "src\trading-cockpit"
+$RootSrcMC = Join-Path $GitTarget "src\management-console"
 $RootScripts = Join-Path $GitTarget "scripts"
 $RootMetaTraderMaster = Join-Path $GitTarget "ressources\metatrader\master"
 $RootNinjaTraderMaster = Join-Path $GitTarget "ressources\ninjatrader\master"
@@ -132,6 +135,7 @@ $RootNinjaTraderMaster = Join-Path $GitTarget "ressources\ninjatrader\master"
 # Nutze Robocopy für intelligentes Kopieren ohne User-Daten zu zerstören
 $BackendDest = Join-Path $DestComponents "market-data-core"
 $FrontendDest = Join-Path $DestComponents "trading-cockpit"
+$MCDest = Join-Path $DestComponents "management-console"
 
 if (Test-Path $RootSrcBackend) {
     Write-Log "  -> Integriere Backend Updates (sichere data/, logs/, certs/ und .env)..." "Yellow"
@@ -143,6 +147,12 @@ if (Test-Path $RootSrcFrontend) {
     Write-Log "  -> Integriere Frontend Updates (sichere logs/ und .env)..." "Yellow"
     robocopy $RootSrcFrontend $FrontendDest /E /Z /R:3 /W:1 /XD "logs" "node_modules" /XF ".env" > $null
     if ($LASTEXITCODE -ge 8) { Write-Log "     WARNUNG: Robocopy Fehler bei Frontend Propagation (Exit-Code: $LASTEXITCODE)." "Yellow" }
+}
+
+if (Test-Path $RootSrcMC) {
+    Write-Log "  -> Integriere Management Console Updates (sichere logs/)..." "Yellow"
+    robocopy $RootSrcMC $MCDest /E /Z /R:3 /W:1 /XD "node_modules" "logs" /XF ".env" > $null
+    if ($LASTEXITCODE -ge 8) { Write-Log "     WARNUNG: Robocopy Fehler bei Management Console Propagation (Exit-Code: $LASTEXITCODE)." "Yellow" }
 }
 if (Test-Path $RootScripts) { Copy-Item -Path $RootScripts -Destination $TargetDir -Recurse -Force }
 
@@ -265,6 +275,25 @@ try {
     }
     Pop-Location
 
+    Write-Log "  -> Rebuild Management Console..." "Gray"
+    if (Test-Path $MCLive) {
+        Push-Location $MCLive
+        if (Test-Path "package.json") { npm install --silent 2>&1 | Out-File -Append -FilePath $LogFile }
+        
+        $MCFrontend = Join-Path $MCLive "frontend"
+        if (Test-Path $MCFrontend) {
+            Push-Location $MCFrontend
+            if (Test-Path "package.json") { 
+                npm install --silent 2>&1 | Out-File -Append -FilePath $LogFile 
+                $mcBuildStatus = npm run build 2>&1
+                $mcBuildStatus | Out-File -Append -FilePath $LogFile
+                if ($LASTEXITCODE -ne 0) { throw "Management Console NPM Build fehlgeschlagen. Rollback erforderlich!" }
+            }
+            Pop-Location
+        }
+        Pop-Location
+    }
+
     Set-Progress 8 "Starte neue System-Version live..."
     Write-Log "  -> Starte PM2 Prozesse neu..." "Green"
     
@@ -287,12 +316,16 @@ catch {
     # Restore from .backup without destroying data
     $BackupBackend = Join-Path $BackupDir "market-data-core"
     $BackupFrontend = Join-Path $BackupDir "trading-cockpit"
+    $BackupMC = Join-Path $BackupDir "management-console"
 
     if (Test-Path $BackupBackend) {
         robocopy $BackupBackend $BackendLive /E /Z /R:3 /W:1 /XD "data" "logs" "node_modules" "certs" /XF ".env" "*.db*" "*.db-shm" "*.db-wal" > $null
     }
     if (Test-Path $BackupFrontend) {
         robocopy $BackupFrontend $FrontendLive /E /Z /R:3 /W:1 /XD "logs" "node_modules" /XF ".env" > $null
+    }
+    if (Test-Path $BackupMC) {
+        robocopy $BackupMC $MCLive /E /Z /R:3 /W:1 /XD "logs" "node_modules" /XF ".env" > $null
     }
 
     Write-Log "  -> Ursprüngliche Version aus Backup wiederhergestellt." "Cyan"

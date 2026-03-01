@@ -25,6 +25,14 @@ function Write-Log {
     Write-Host $Message -ForegroundColor $Color
 }
 
+function Set-Progress {
+    param([int]$Step, [string]$Message)
+    $obj = @{ step = $Step; text = $Message }
+    $obj | ConvertTo-Json -Compress | Set-Content -Path (Join-Path $LogDir "update-progress.json")
+}
+
+Set-Progress 1 "Initialisiere Update-Prozess..."
+
 Write-Log "=========================================" "Cyan"
 Write-Log "   STARTE AUTO-UPDATE PROZESS            " "Cyan"
 Write-Log "=========================================" "Cyan"
@@ -43,7 +51,8 @@ if (Test-Path $SystemConfigPath) {
     try {
         $sysJson = Get-Content $SystemConfigPath | ConvertFrom-Json
         if ($sysJson.tempGithubPat) { $GithubPat = $sysJson.tempGithubPat }
-    } catch {}
+    }
+    catch {}
 }
 
 $GitTarget = Join-Path $TargetDir ".github_main"
@@ -53,7 +62,8 @@ if (-not (Test-Path $GitTarget)) {
     $AuthRepoUrl = "https://github.com/mktradersmc/MSMTB.git"
     if (-not [string]::IsNullOrWhiteSpace($GithubPat)) {
         $AuthRepoUrl = "https://$GithubPat@github.com/mktradersmc/MSMTB.git"
-    } else {
+    }
+    else {
         Write-Log "HINWEIS: Kein Github PAT in system.json gefunden. Versuche anonymen Klon..." "Yellow"
     }
 
@@ -70,6 +80,7 @@ if (-not (Test-Path $GitTarget)) {
 
 # --- 2. BACKUP & SELF-HEALING VORBEREITUNG ---
 Write-Log "`n[1/6] Erstelle Sicherheitskopien (Self-Healing)..." "Cyan"
+Set-Progress 2 "Erstelle Sicherheitskopien für automatisierten Rollback..."
 $FrontendLive = Join-Path $DestComponents "trading-cockpit"
 $BackupDir = Join-Path $TargetDir ".backup"
 if (Test-Path $BackupDir) { Remove-Item -Path $BackupDir -Recurse -Force }
@@ -82,6 +93,7 @@ Write-Log "  -> Core-Komponenten erfolgreich nach .backup gesichert." "Green"
 
 # --- 3. GIT PULL ---
 Write-Log "`n[2/6] Lade Updates aus GitHub herunter..." "Cyan"
+Set-Progress 3 "Lade aktuelle Updates von GitHub herunter..."
 Set-Location $GitTarget
 if (-not [string]::IsNullOrWhiteSpace($GithubPat)) {
     $RepoUrl = "https://$GithubPat@github.com/mktradersmc/MSMTB.git"
@@ -99,8 +111,16 @@ if ($LASTEXITCODE -ne 0) {
 
 # --- 4. DATEI PROPAGATION ---
 Write-Log "`n[3/6] Kopiere neue Dateiversionen..." "Cyan"
+Set-Progress 4 "Dienste werden gestoppt, um Dateien zu übertragen..."
 Write-Log "  -> Beende PM2 Dienste zur Freigabe exklusiver Dateisperren (Datenbanken)..." "Gray"
 pm2 stop all 2>&1 | Out-File -Append -FilePath $LogFile
+
+# STARTE UPDATE REPORTER (Übernimmt temporär Port 3005 für das UI Frontend)
+Write-Log "  -> Starte temporären Update-Reporter auf Port 3005..." "Gray"
+$ReporterScript = Join-Path $TargetDir "scripts\update-reporter.js"
+Start-Process node -ArgumentList "`"$ReporterScript`"" -WindowStyle Hidden
+
+Set-Progress 5 "Kopiere aktualisierte Backend- und Frontend-Dateien..."
 
 $RootSrcBackend = Join-Path $GitTarget "src\market-data-core"
 $RootSrcFrontend = Join-Path $GitTarget "src\trading-cockpit"
@@ -128,6 +148,7 @@ if (Test-Path $RootScripts) { Copy-Item -Path $RootScripts -Destination $TargetD
 
 # --- 5. METATRADER UPDATE LOGIC ---
 Write-Log "`n[4/6] Verarbeite MetaTrader Updates..." "Cyan"
+Set-Progress 6 "Verarbeite MetaTrader und NinjaTrader Templates..."
 if (Test-Path $RootMetaTraderMaster) {
     # Update Master Template
     $MetaDist = Join-Path $DestComponents "metatrader"
@@ -188,6 +209,7 @@ if (Test-Path $RootNinjaTraderMaster) {
 
 # --- 7. NPM BUILD & ROLLBACK LOGIC ---
 Write-Log "`n[6/6] Kompiliere Web-Applikation und starte Dienste neu..." "Cyan"
+Set-Progress 7 "Kompiliere das Cockpit-Frontend (Dies dauert in der Regel 1 bis 3 Minuten)..."
 try {
     Write-Log "  -> Prüfe Systemkonfiguration (SSL & .env)..." "Cyan"
     $PfxFile = Join-Path $TargetDir "certs\server.pfx"
@@ -242,11 +264,20 @@ try {
     }
     Pop-Location
 
+    Set-Progress 8 "Starte neue System-Version live..."
     Write-Log "  -> Starte PM2 Prozesse neu..." "Green"
+    
+    # Beende temporären Reporter vor dem Port-Bezug durch Backend
+    $reporters = Get-WmiObject Win32_Process -Filter "name='node.exe'" | Where-Object { $_.CommandLine -match "update-reporter.js" }
+    foreach ($r in $reporters) { Stop-Process -Id $r.ProcessId -Force -ErrorAction SilentlyContinue }
+
     pm2 start all 2>&1 | Out-File -Append -FilePath $LogFile
+    
+    Set-Progress 9 "Fertig"
 
     Write-Log "`n[OK] UPDATE ERFOLGREICH ABGESCHLOSSEN!" "Green"
-} catch {
+}
+catch {
     # SELF-HEALING ROLLBACK TRIPPED
     Write-Log "`n[X] KRITISCHER FEHLER BEIM BUILD: $($_.Exception.Message)" "Red"
     Write-Log "  -> LÖSE SELF-HEALING ROLLBACK AUS..." "Yellow"
@@ -265,6 +296,12 @@ try {
 
     Write-Log "  -> Ursprüngliche Version aus Backup wiederhergestellt." "Cyan"
     Write-Log "  -> Starte PM2 Prozesse mit funktionsfähiger Version..." "Cyan"
+    
+    Set-Progress -1 "FEHLER: Build abgebrochen. System-Rollback durchgeführt."
+
+    $reporters = Get-WmiObject Win32_Process -Filter "name='node.exe'" | Where-Object { $_.CommandLine -match "update-reporter.js" }
+    foreach ($r in $reporters) { Stop-Process -Id $r.ProcessId -Force -ErrorAction SilentlyContinue }
+
     pm2 start all 2>&1 | Out-File -Append -FilePath $LogFile
 
     Write-Log "`n[!] Update wurde abgebrochen, aber das System läuft sicher weiter." "Yellow"

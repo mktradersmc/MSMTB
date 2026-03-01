@@ -310,11 +310,46 @@ function SystemUpdateSection() {
     const [executing, setExecuting] = useState(false);
     const [restartInstances, setRestartInstances] = useState(true);
 
+    const [isUpdating, setIsUpdating] = useState(false);
+    const [updateProgress, setUpdateProgress] = useState<{ step: number, text: string } | null>(null);
+
     useEffect(() => {
         fetchBasicStatus();
         const interval = setInterval(fetchBasicStatus, 10000); // refresh every 10s (matches lightweight polling)
         return () => clearInterval(interval);
     }, []);
+
+    // Polling for Update Progress when isUpdating is true
+    useEffect(() => {
+        if (!isUpdating) return;
+
+        const pollProgress = async () => {
+            try {
+                // fetchDirect hits 3005 directly, bypassing the Next.js proxy which is down during update
+                const res = await fetchDirect('/api/system/update/progress');
+                if (res.ok) {
+                    const data = await res.json();
+                    setUpdateProgress(data);
+
+                    // Step 9 is successful finish
+                    if (data.step === 9) {
+                        setUpdateProgress({ step: 10, text: "Update erfolgreich! Lade Cockpit neu..." });
+                        setTimeout(() => window.location.reload(), 2000);
+                    }
+                    // Step -1 is self-healing rollback fail
+                    if (data.step === -1) {
+                        alert("KRITISCHER FEHLER: Das Update ist fehlgeschlagen. Das System hat einen Safety-Rollback durchgeführt und die alte Version wiederhergestellt.");
+                        setIsUpdating(false);
+                    }
+                }
+            } catch (e) {
+                // Ignore connection refused errors during brief PM2 restart windows
+            }
+        };
+
+        const interval = setInterval(pollProgress, 1000);
+        return () => clearInterval(interval);
+    }, [isUpdating]);
 
     const fetchBasicStatus = async () => {
         try {
@@ -358,14 +393,17 @@ function SystemUpdateSection() {
             const data = await res.json();
 
             if (data.success) {
-                alert("Update-Prozess (update.ps1) wurde erfolgreich im Hintergrund gestartet!\nBitte lade die Seite in ca. 30 Sekunden neu.");
+                // Der Backend-Endpoint hat update.ps1 im Hintergrund (detached) gestartet.
+                setIsUpdating(true); // Aktiviert das Live-Overlay
             } else {
                 alert("Fehler beim Starten des Updates: " + data.error);
+                setExecuting(false);
             }
         } catch (e: any) {
-            alert("Netzwerkfehler beim Starten des Updates: " + e.message);
-        } finally {
-            setExecuting(false);
+            // Because the backend kills itself almost instantly to allow PM2 restart,
+            // we might get a network error here even on success.
+            // We assume success and switch to polling just in case, but after a tiny delay.
+            setTimeout(() => setIsUpdating(true), 1500);
         }
     };
 
@@ -453,9 +491,8 @@ function SystemUpdateSection() {
 
                         <div className="bg-slate-50 dark:bg-slate-950 rounded border border-slate-200 dark:border-slate-800 p-2 max-h-40 overflow-y-auto">
                             {details.commits?.map((commit: any, idx: number) => (
-                                <div key={idx} className="text-xs py-1 border-b border-slate-100 dark:border-slate-800 last:border-0 flex gap-2">
-                                    <span className="text-slate-400 font-mono shrink-0">{commit.hash.substring(0, 7)}</span>
-                                    <span className="text-slate-700 dark:text-slate-300">{commit.message}</span>
+                                <div key={idx} className="text-xs py-1.5 border-b border-slate-100 dark:border-slate-800 last:border-0 flex items-start gap-2">
+                                    <span className="text-slate-700 dark:text-slate-300 font-medium whitespace-pre-wrap">{commit.message}</span>
                                 </div>
                             ))}
                             {(!details.commits || details.commits.length === 0) && (
@@ -485,12 +522,41 @@ function SystemUpdateSection() {
                                 className="flex items-center gap-2 px-6 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-lg shadow-md transition-all active:scale-95 disabled:opacity-50 text-sm"
                             >
                                 {executing ? <RefreshCw className="animate-spin" size={16} /> : <Download size={16} />}
-                                {executing ? 'Update läuft...' : 'Update Jetzt Ausführen'}
+                                {executing ? 'Update Initialisierung...' : 'Update Jetzt Ausführen'}
                             </button>
                         </div>
                     </>
                 )}
             </div>
+
+            {/* LIVE UPDATE OVERLAY */}
+            {isUpdating && (
+                <div className="fixed inset-0 z-[9999] bg-slate-900/80 backdrop-blur flex items-center justify-center p-4">
+                    <div className="bg-white dark:bg-slate-900 border border-indigo-200 dark:border-indigo-800/50 p-8 rounded-xl shadow-2xl max-w-lg w-full transform transition-all">
+                        <div className="flex flex-col items-center text-center">
+                            <RefreshCw className="animate-spin text-indigo-500 mb-6" size={48} />
+
+                            <h2 className="text-xl font-bold text-slate-800 dark:text-slate-100 mb-2">
+                                Plattform wird aktualisiert
+                            </h2>
+                            <p className="text-sm text-slate-500 dark:text-slate-400 mb-8 w-full max-w-sm">
+                                Bitte schließen Sie den Browser nicht. Die Serverdienste werden im Hintergrund angehalten, neu gebaut und wieder gestartet.
+                            </p>
+
+                            <div className="w-full bg-slate-100 dark:bg-slate-950 rounded border border-slate-200 dark:border-slate-800 p-4 relative overflow-hidden">
+                                <div className="absolute top-0 left-0 h-1 bg-indigo-500 transition-all duration-500 ease-out"
+                                    style={{ width: `${updateProgress ? Math.min(100, Math.max(0, (updateProgress.step / 9) * 100)) : 0}%` }}></div>
+                                <div className="flex flex-col gap-1 items-start text-left">
+                                    <span className="text-[10px] uppercase font-bold tracking-widest text-indigo-500">Aktueller Schritt ({(updateProgress?.step || 0)} / 9)</span>
+                                    <span className="text-sm font-medium text-slate-700 dark:text-slate-300 font-mono">
+                                        {updateProgress?.text || "Initialisiere Update-Reporter..."}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
         </section>
     );
 }

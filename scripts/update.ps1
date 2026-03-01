@@ -189,6 +189,22 @@ if (Test-Path $RootNinjaTraderMaster) {
 # --- 7. NPM BUILD & ROLLBACK LOGIC ---
 Write-Log "`n[6/6] Kompiliere Web-Applikation und starte Dienste neu..." "Cyan"
 try {
+    Write-Log "  -> Prüfe Systemkonfiguration (SSL & .env)..." "Cyan"
+    $PfxFile = Join-Path $TargetDir "certs\server.pfx"
+    if (-not (Test-Path $PfxFile)) {
+        Write-Log "     WARNUNG: SSL-Zertifikat fehlt. Generiere neues Zertifikat..." "Yellow"
+        $SslScriptPath = Join-Path $TargetDir "scripts\generate-ssl.ps1"
+        if (Test-Path $SslScriptPath) {
+            & $SslScriptPath -DomainName "localhost", "127.0.0.1" -Password "cockpit" *>> $LogFile
+        }
+    }
+
+    $FrontendEnvPath = Join-Path $FrontendLive ".env.production"
+    if (-not (Test-Path $FrontendEnvPath)) {
+        Write-Log "     WARNUNG: Frontend .env fehlt. Rekonstruiere Umgebungsvariablen..." "Yellow"
+        $EnvContent = "NEXT_COMPILER_MODE=modern"
+        Set-Content -Path $FrontendEnvPath -Value $EnvContent -Force
+    }
     Write-Log "  -> Rebuild Backend..." "Gray"
     Push-Location $BackendLive
     npm install --silent 2>&1 | Out-File -Append -FilePath $LogFile

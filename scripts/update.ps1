@@ -195,7 +195,7 @@ try {
     Write-Log "  -> Starte PM2 Prozesse neu..." "Green"
     pm2 reload all 2>&1 | Out-File -Append -FilePath $LogFile
 
-    Write-Log "`n[✓] UPDATE ERFOLGREICH ABGESCHLOSSEN!" "Green"
+    Write-Log "`n[OK] UPDATE ERFOLGREICH ABGESCHLOSSEN!" "Green"
 } catch {
     # SELF-HEALING ROLLBACK TRIPPED
     Write-Log "`n[X] KRITISCHER FEHLER BEIM BUILD: $($_.Exception.Message)" "Red"

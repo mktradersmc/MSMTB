@@ -164,7 +164,7 @@ class AutoUpdateService {
 
     execCommand(command, cwd) {
         return new Promise((resolve, reject) => {
-            exec(command, { cwd }, (error, stdout, stderr) => {
+            exec(command, { cwd, windowsHide: true }, (error, stdout, stderr) => {
                 if (error) {
                     reject(error);
                     return;

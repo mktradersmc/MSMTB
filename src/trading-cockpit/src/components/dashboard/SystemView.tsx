@@ -479,28 +479,47 @@ function SystemFileMonitor({ isOpen, onToggle }: { isOpen: boolean, onToggle: ()
 }
 
 function SystemUpdateSection() {
-    const [status, setStatus] = useState<any>(null);
-    const [loading, setLoading] = useState(true);
+    const [basicStatus, setBasicStatus] = useState<any>(null);
+    const [details, setDetails] = useState<any>(null);
+    
+    const [updateCheckLoading, setUpdateCheckLoading] = useState(true);
+    const [detailsLoading, setDetailsLoading] = useState(false);
+    
     const [executing, setExecuting] = useState(false);
     const [restartInstances, setRestartInstances] = useState(true);
 
     useEffect(() => {
-        fetchStatus();
-        const interval = setInterval(fetchStatus, 30000); // refresh every 30s
+        fetchBasicStatus();
+        const interval = setInterval(fetchBasicStatus, 10000); // refresh every 10s (matches lightweight polling)
         return () => clearInterval(interval);
     }, []);
 
-    const fetchStatus = async () => {
+    const fetchBasicStatus = async () => {
         try {
             const res = await fetch('/api/system/update/status');
             if (res.ok) {
                 const data = await res.json();
-                setStatus(data);
+                setBasicStatus(data.status);
             }
         } catch (e) {
             console.error("Failed to fetch update status", e);
         } finally {
-            setLoading(false);
+            setUpdateCheckLoading(false);
+        }
+    };
+
+    const fetchDetails = async () => {
+        setDetailsLoading(true);
+        try {
+            const res = await fetch('/api/system/update/details');
+            if (res.ok) {
+                const data = await res.json();
+                setDetails(data.details);
+            }
+        } catch (e) {
+            console.error("Failed to fetch update details", e);
+        } finally {
+            setDetailsLoading(false);
         }
     };
 
@@ -528,9 +547,9 @@ function SystemUpdateSection() {
         }
     };
 
-    if (loading) return null;
+    if (updateCheckLoading) return null;
 
-    if (!status?.updateAvailable) {
+    if (!basicStatus?.updateAvailable) {
         return (
             <section className="border border-slate-200 dark:border-slate-800 rounded-lg overflow-hidden bg-white dark:bg-slate-900 opacity-70">
                 <div className="bg-slate-50 dark:bg-slate-900/50 px-4 py-2 border-b border-slate-200 dark:border-slate-800 text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center justify-between">
@@ -543,61 +562,112 @@ function SystemUpdateSection() {
         );
     }
 
+    const renderAffectedComponents = () => {
+        if (!details || !details.components) return null;
+        const comps = [];
+        if (details.components.frontend) comps.push("Frontend");
+        if (details.components.backend) comps.push("Backend");
+        if (details.components.metatrader) comps.push("MetaTrader");
+        if (details.components.ninjatrader) comps.push("NinjaTrader");
+        
+        if (comps.length === 0) return null;
+
+        return (
+            <div className="flex flex-wrap gap-2">
+                {comps.map((comp: string) => (
+                    <span key={comp} className="text-[10px] uppercase font-bold px-2 py-1 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700">
+                        {comp}
+                    </span>
+                ))}
+            </div>
+        );
+    };
+
     return (
         <section className="border border-indigo-200 dark:border-indigo-900/50 rounded-lg overflow-hidden bg-white dark:bg-slate-900 shadow-sm">
-            <div className="bg-indigo-50 dark:bg-indigo-900/20 px-4 py-2 border-b border-indigo-100 dark:border-indigo-900/50 text-xs font-bold text-indigo-700 dark:text-indigo-400 uppercase tracking-wider flex items-center gap-2">
-                <DownloadCloud size={14} className="animate-pulse" />
-                Update Verfügbar
+            <div className="bg-indigo-50 dark:bg-indigo-900/20 px-4 py-2 border-b border-indigo-100 dark:border-indigo-900/50 text-xs font-bold text-indigo-700 dark:text-indigo-400 uppercase tracking-wider flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                    <DownloadCloud size={14} className="animate-pulse" />
+                    Update Verfügbar
+                </div>
+                {detailsLoading && (
+                    <div className="flex items-center gap-2 text-[10px] text-indigo-500 bg-indigo-500/10 px-2 py-0.5 rounded">
+                        <RefreshCw size={12} className="animate-spin" /> Fetching Details...
+                    </div>
+                )}
             </div>
             
             <div className="p-4 space-y-4">
-                <div className="flex flex-col gap-2">
-                    <h3 className="text-sm font-semibold text-slate-800 dark:text-slate-200">
-                        {status.commits?.length || 0} neue Änderungen gefunden
-                    </h3>
-                    <div className="flex flex-wrap gap-2">
-                        {status.components?.map((comp: string) => (
-                            <span key={comp} className="text-[10px] uppercase font-bold px-2 py-1 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700">
-                                {comp}
-                            </span>
-                        ))}
+                {!details && !detailsLoading && (
+                    <div className="text-center py-6 bg-slate-50 dark:bg-slate-900/50 rounded border border-slate-200 dark:border-slate-800">
+                        <h3 className="text-sm font-semibold text-slate-800 dark:text-slate-200 mb-2">Ein neues Update steht auf GitHub bereit</h3>
+                        <p className="text-xs text-slate-500 dark:text-slate-400 mb-4 max-w-sm mx-auto">
+                            Das System hat über einen Ping-Request festgestellt, dass neue Commits vorliegen. Klicken Sie hier, um die Änderungen herunterzuladen und im Detail anzuzeigen.
+                        </p>
+                        <button
+                            onClick={fetchDetails}
+                            className="px-4 py-2 bg-slate-200 hover:bg-slate-300 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 text-xs font-bold rounded shadow-sm transition-colors"
+                        >
+                            Update-Details abrufen
+                        </button>
                     </div>
-                </div>
+                )}
 
-                <div className="bg-slate-50 dark:bg-slate-950 rounded border border-slate-200 dark:border-slate-800 p-2 max-h-40 overflow-y-auto">
-                    {status.commits?.map((commit: any, idx: number) => (
-                        <div key={idx} className="text-xs py-1 border-b border-slate-100 dark:border-slate-800 last:border-0 flex gap-2">
-                            <span className="text-slate-400 font-mono shrink-0">{commit.hash.substring(0, 7)}</span>
-                            <span className="text-slate-700 dark:text-slate-300">{commit.msg}</span>
+                {detailsLoading && (
+                    <div className="text-center py-8 bg-slate-50 dark:bg-slate-900/50 rounded border border-slate-200 dark:border-slate-800 flex flex-col items-center justify-center">
+                        <RefreshCw className="animate-spin text-indigo-500 mb-3" size={24} />
+                        <p className="text-xs text-slate-500 font-medium tracking-wide">Lade Repository-Daten herunter...</p>
+                    </div>
+                )}
+
+                {details && !detailsLoading && (
+                    <>
+                        <div className="flex flex-col gap-2">
+                            <h3 className="text-sm font-semibold text-slate-800 dark:text-slate-200">
+                                {details.commits?.length || 0} neue Änderungen gefunden
+                            </h3>
+                            {renderAffectedComponents()}
                         </div>
-                    ))}
-                </div>
 
-                <div className="bg-amber-50 dark:bg-amber-900/10 border border-amber-200 dark:border-amber-900/30 rounded p-3">
-                    <label className="flex items-start gap-2 cursor-pointer">
-                        <input 
-                            type="checkbox" 
-                            checked={restartInstances}
-                            onChange={(e) => setRestartInstances(e.target.checked)}
-                            className="mt-1"
-                        />
-                        <div className="text-xs text-amber-800 dark:text-amber-500">
-                            <strong>Instanzen neustarten (Für MetaTrader/NinjaTrader)</strong>
-                            <p className="opacity-80 mt-0.5">Erzwingt das Beenden von Plattform-Prozessen vor dem Update, damit neue Templates und Indikatoren vom Terminal sofort neu geladen werden.</p>
+                        <div className="bg-slate-50 dark:bg-slate-950 rounded border border-slate-200 dark:border-slate-800 p-2 max-h-40 overflow-y-auto">
+                            {details.commits?.map((commit: any, idx: number) => (
+                                <div key={idx} className="text-xs py-1 border-b border-slate-100 dark:border-slate-800 last:border-0 flex gap-2">
+                                    <span className="text-slate-400 font-mono shrink-0">{commit.hash.substring(0, 7)}</span>
+                                    <span className="text-slate-700 dark:text-slate-300">{commit.message}</span>
+                                </div>
+                            ))}
+                            {(!details.commits || details.commits.length === 0) && (
+                                <div className="text-xs text-slate-500 italic p-2">Keine Commit-Details verfügbar.</div>
+                            )}
                         </div>
-                    </label>
-                </div>
 
-                <div className="flex justify-end pt-2">
-                    <button
-                        onClick={handleExecuteUpdate}
-                        disabled={executing}
-                        className="flex items-center gap-2 px-6 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-lg shadow-md transition-all active:scale-95 disabled:opacity-50 text-sm"
-                    >
-                        {executing ? <RefreshCw className="animate-spin" size={16} /> : <Download size={16} />}
-                        {executing ? 'Update läuft...' : 'Update Jetzt Ausführen'}
-                    </button>
-                </div>
+                        <div className="bg-amber-50 dark:bg-amber-900/10 border border-amber-200 dark:border-amber-900/30 rounded p-3">
+                            <label className="flex items-start gap-2 cursor-pointer">
+                                <input 
+                                    type="checkbox" 
+                                    checked={restartInstances}
+                                    onChange={(e) => setRestartInstances(e.target.checked)}
+                                    className="mt-1"
+                                />
+                                <div className="text-xs text-amber-800 dark:text-amber-500">
+                                    <strong>Instanzen neustarten (Für MetaTrader/NinjaTrader)</strong>
+                                    <p className="opacity-80 mt-0.5">Erzwingt das Beenden von Plattform-Prozessen vor dem Update, damit neue Templates und Indikatoren vom Terminal sofort neu geladen werden.</p>
+                                </div>
+                            </label>
+                        </div>
+
+                        <div className="flex justify-end pt-2">
+                            <button
+                                onClick={handleExecuteUpdate}
+                                disabled={executing}
+                                className="flex items-center gap-2 px-6 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-lg shadow-md transition-all active:scale-95 disabled:opacity-50 text-sm"
+                            >
+                                {executing ? <RefreshCw className="animate-spin" size={16} /> : <Download size={16} />}
+                                {executing ? 'Update läuft...' : 'Update Jetzt Ausführen'}
+                            </button>
+                        </div>
+                    </>
+                )}
             </div>
         </section>
     );

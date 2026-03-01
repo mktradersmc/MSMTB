@@ -6,7 +6,6 @@ import { DownloadCloud, ArrowRight } from 'lucide-react';
 
 export function UpdateBanner() {
     const [updateAvailable, setUpdateAvailable] = useState(false);
-    const [components, setComponents] = useState<string[]>([]);
     const router = useRouter();
 
     useEffect(() => {
@@ -15,9 +14,8 @@ export function UpdateBanner() {
                 const res = await fetch('/api/system/update/status');
                 if (res.ok) {
                     const data = await res.json();
-                    if (data.updateAvailable) {
+                    if (data.status && data.status.updateAvailable) {
                         setUpdateAvailable(true);
-                        setComponents(data.components || []);
                     } else {
                         setUpdateAvailable(false);
                     }
@@ -28,16 +26,12 @@ export function UpdateBanner() {
         };
 
         checkUpdate();
-        // Poll every 30 seconds
-        const interval = setInterval(checkUpdate, 30000);
+        // Poll every 10 seconds to match the backend lightweight ping
+        const interval = setInterval(checkUpdate, 10000);
         return () => clearInterval(interval);
     }, []);
 
     if (!updateAvailable) return null;
-
-    const componentText = components.length > 0
-        ? ` (Betrifft: ${components.join(', ')})`
-        : '';
 
     return (
         <div 
@@ -48,7 +42,7 @@ export function UpdateBanner() {
                 <DownloadCloud className="w-4 h-4 animate-bounce" />
                 <span className="font-semibold">System Update verfügbar!</span>
                 <span className="hidden sm:inline opacity-80">
-                    Eine neue Version liegt bereit{componentText}.
+                    Klicken Sie auf 'Zum Update', um die Details herunterzuladen.
                 </span>
             </div>
             

@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Lock, User, AlertCircle, Activity, ChevronRight, ShieldCheck } from "lucide-react";
 import Image from "next/image";
+import { getBaseUrl } from "../../lib/client-api";
 
 export default function LoginPage() {
     const [username, setUsername] = useState("");
@@ -19,9 +20,9 @@ export default function LoginPage() {
 
         try {
             // Assume the backend runs on port 3005 on the same hostname
-            const baseUrl = typeof window !== 'undefined' ? `${window.location.protocol}//${window.location.hostname}:3005` : 'http://127.0.0.1:3005';
+            const baseUrl = getBaseUrl();
             const url = `${baseUrl}/api/auth/login`;
-            
+
             const res = await fetch(url, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },

@@ -8,7 +8,7 @@ interface LiveChartPageProps {
 }
 
 import { Activity } from 'lucide-react';
-import { fetchDirect } from "../../lib/client-api";
+import { fetchDirect, getBaseUrl } from "../../lib/client-api";
 
 export default function LiveChartPage({ onNavigate }: LiveChartPageProps) {
     const [accounts, setAccounts] = useState<any[]>([]);
@@ -57,7 +57,7 @@ export default function LiveChartPage({ onNavigate }: LiveChartPageProps) {
 
         const checkStatus = async () => {
             try {
-                const res = await fetch(`http://127.0.0.1:3005/status/heartbeat`);
+                const res = await fetch(`${getBaseUrl()}/status/heartbeat`);
                 const data = await res.json();
                 if (data.success) {
                     if (datafeedBotId) {

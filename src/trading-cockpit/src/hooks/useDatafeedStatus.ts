@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { socketService } from '../services/socket';
+import { getBaseUrl } from '../lib/client-api';
 
 interface DatafeedStatus {
     isOnline: boolean;
@@ -27,7 +28,7 @@ export function useDatafeedStatus(symbol: string) {
         const checkStatus = async () => {
             try {
                 // Use relative path assuming proxied or direct access
-                const res = await fetch(`http://127.0.0.1:3005/api/status/datafeed?symbol=${symbol}`);
+                const res = await fetch(`${getBaseUrl()}/api/status/datafeed?symbol=${symbol}`);
                 if (res.ok) {
                     const data = await res.json();
                     if (isMounted) {

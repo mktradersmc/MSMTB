@@ -1,8 +1,10 @@
-const getBaseUrl = () => {
+export const getBaseUrl = () => {
     if (typeof window !== 'undefined') {
         return `${window.location.protocol}//${window.location.hostname}:3005`;
     }
-    return 'http://127.0.0.1:3005';
+    // Server Side (SSR or App Router handlers)
+    // Assume HTTPS internally if self-signed is used, which avoids mixing protocols. 
+    return process.env.NEXT_PUBLIC_BACKEND_URL || 'https://127.0.0.1:3005';
 };
 
 const BACKEND_URL = `${getBaseUrl()}/api`;

@@ -1,6 +1,7 @@
 import { communicationHub } from "./CommunicationHub";
 import { sendCommand, fetchMessages } from "./api";
 import { dataSubscriptionOrchestrator } from "./DataSubscriptionOrchestrator";
+import { getBaseUrl } from '../lib/client-api';
 
 // Basic interface for TradingView Datafeed (subset)
 export interface IDatafeed {
@@ -32,7 +33,7 @@ export class MT5Datafeed implements IDatafeed {
 
     private async loadSymbols() {
         try {
-            const res = await fetch('http://localhost:3005/api/mappings');
+            const res = await fetch(`${getBaseUrl()}/api/mappings`);
             if (res.ok) {
                 const mappings = await res.json();
                 // We only care about the "Frontend Name" (Original Symbol or Fallback)
@@ -135,7 +136,7 @@ export class MT5Datafeed implements IDatafeed {
             // Start light (1k) to get Chart visible instantly. Pagination fills the rest.
             const reqLimit = firstDataRequest ? 1000 : 20000;
 
-            let url = `http://127.0.0.1:3005/api/history?symbol=${symbol}&timeframe=${tf}&limit=${reqLimit}`;
+            let url = `${getBaseUrl()}/api/history?symbol=${symbol}&timeframe=${tf}&limit=${reqLimit}`;
             if (!firstDataRequest && to) {
                 // Pagination: Load OLDER than 'to'
                 url += `&to=${Math.floor(to * 1000)}`;

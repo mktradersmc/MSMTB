@@ -124,7 +124,7 @@ async function updateCommonConfig(instancePath: string) {
         }
 
         // Set URLs (comma separated)
-        const urls = 'http://127.0.0.1,http://localhost,http://127.0.0.1:80,http://localhost:80';
+        const urls = 'http://127.0.0.1,http://localhost,http://127.0.0.1:80,http://localhost:80,http://127.0.0.1:3005,https://127.0.0.1:3005';
         if (content.match(/WebRequestUrl=.*/)) {
             content = content.replace(/WebRequestUrl=.*/, `WebRequestUrl=${urls}`);
         } else {

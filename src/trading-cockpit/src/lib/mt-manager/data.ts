@@ -22,7 +22,7 @@ try {
 // USE IPv4 EXPLICITLY to avoid Windows localhost/IPv6 lag
 const API_HOST = '127.0.0.1';
 const API_PORT = 3005;
-const API_BASE = useSSL ? `https://${API_HOST}:${API_PORT}/api` : `http://${API_HOST}:${API_PORT}/api`;
+export const API_BASE = useSSL ? `https://${API_HOST}:${API_PORT}/api` : `http://${API_HOST}:${API_PORT}/api`;
 
 // ✅ PERFORMANCE FIX: Connection Pooling with Keep-Alive
 // Reuses TCP connections instead of creating new ones for each request

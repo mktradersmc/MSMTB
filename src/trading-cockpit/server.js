@@ -4,8 +4,10 @@ const next = require('next');
 const fs = require('fs');
 const path = require('path');
 
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0'; // Allow Next.js proxy to connect to self-signed backend
+
 // Konfiguration laden
-const projectRoot = path.resolve(__dirname, '../../'); 
+const projectRoot = path.resolve(__dirname, '../../');
 // In the new layout, market-data-core and trading-cockpit are siblings inside /components
 const configPath = path.resolve(__dirname, '../market-data-core/data/system.json');
 

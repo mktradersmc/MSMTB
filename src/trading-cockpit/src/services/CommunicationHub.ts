@@ -1,7 +1,8 @@
 import { Socket } from "socket.io-client";
 import { socketService } from "./socket";
+import { getBaseUrl } from '../lib/client-api';
 
-const HUB_URL = "http://127.0.0.1:3005";
+const HUB_URL = getBaseUrl();
 
 class CommunicationHub {
     private socket: Socket;

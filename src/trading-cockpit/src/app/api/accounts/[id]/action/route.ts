@@ -1,6 +1,6 @@
 
 import { NextResponse } from 'next/server';
-import { getAccounts, saveAccount, deleteAccount, updateAccountStatus, getBrokers } from '@/lib/mt-manager/data';
+import { getAccounts, saveAccount, deleteAccount, updateAccountStatus, getBrokers, API_BASE } from '@/lib/mt-manager/data';
 import { getInstancesRoot } from '@/lib/mt-manager/deployer';
 import { startTerminal, killTerminal, shutdownTerminal, checkProcessRunning, killTerminalByPath, getAllRunningTerminals } from '@/lib/mt-manager/process';
 import path from 'path';
@@ -62,7 +62,7 @@ export async function POST(req: Request, props: { params: Promise<{ id: string }
                 if (botId) {
                     try {
                         console.log(`[ActionAPI] Sending Graceful CMD_SHUTDOWN to ${botId}...`);
-                        const response = await fetch(`http://127.0.0.1:3005/api/bot-command/${botId}`, {
+                        const response = await fetch(`${API_BASE}/bot-command/${botId}`, {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({ type: 'CMD_SHUTDOWN' })
@@ -106,7 +106,7 @@ export async function POST(req: Request, props: { params: Promise<{ id: string }
 
                 try {
                     console.log(`[ActionAPI] Forwarding NT8 Start request to backend...`);
-                    const response = await fetch('http://127.0.0.1:3005/api/admin/ninjatrader/start', {
+                    const response = await fetch(`${API_BASE}/admin/ninjatrader/start`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ username, password })
@@ -171,7 +171,7 @@ export async function POST(req: Request, props: { params: Promise<{ id: string }
                 if (botId) {
                     try {
                         console.log(`[ActionAPI] Sending Graceful CMD_SHUTDOWN to ${botId}...`);
-                        const response = await fetch(`http://127.0.0.1:3005/api/bot-command/${botId}`, {
+                        const response = await fetch(`${API_BASE}/bot-command/${botId}`, {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({ type: 'CMD_SHUTDOWN' })

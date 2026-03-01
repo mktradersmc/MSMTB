@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { MT5Datafeed } from '../services/MT5Datafeed';
 import { generatePhantomBars, getTimeframeSeconds } from '../utils/chartUtils';
 import { fetchMessages } from '../services/api';
+import { getBaseUrl } from '../lib/client-api';
 
 export interface ChartDataHookOptions {
     symbol: string;
@@ -70,7 +71,7 @@ export function useChartData({ symbol, timeframe, botId, isActivePane, onTick }:
 
             // 1. Initial Fetch (Latest from local DB)
             console.log(`[useChartData] 🚀 Fetching History for ${symbol} ${timeframe}`);
-            let url = `http://127.0.0.1:3005/api/history?symbol=${symbol}&timeframe=${timeframe}&limit=${targetTotal}&_=${Date.now()}`;
+            let url = `${getBaseUrl()}/api/history?symbol=${symbol}&timeframe=${timeframe}&limit=${targetTotal}&_=${Date.now()}`;
 
             const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
             const headers: Record<string, string> = token ? { 'Authorization': `Bearer ${token}` } : {};
@@ -228,7 +229,7 @@ export function useChartData({ symbol, timeframe, botId, isActivePane, onTick }:
             try {
                 const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
                 const headers: Record<string, string> = token ? { 'Authorization': `Bearer ${token}` } : {};
-                const res = await fetch(`http://127.0.0.1:3005/api/sync-status?symbol=${symbol}`, { headers });
+                const res = await fetch(`${getBaseUrl()}/api/sync-status?symbol=${symbol}`, { headers });
                 const json = await res.json();
                 if (json.success && json.status) {
                     // Check if specific TF is ready

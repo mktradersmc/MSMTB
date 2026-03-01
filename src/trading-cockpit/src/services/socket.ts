@@ -1,14 +1,13 @@
-
 import { io, Socket } from 'socket.io-client';
 
-const getSocketUrl = () => {
+const getBackendUrl = () => {
     if (typeof window !== 'undefined') {
         return `${window.location.protocol}//${window.location.hostname}:3005`;
     }
-    return 'http://127.0.0.1:3005';
+    return 'https://127.0.0.1:3005';
 };
 
-const URL = getSocketUrl();
+const URL = getBackendUrl();
 
 class SocketService {
     public socket: Socket;

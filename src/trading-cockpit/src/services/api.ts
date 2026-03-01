@@ -1,8 +1,6 @@
 import { Message } from '../types';
 import { fetchDirect } from '../lib/client-api';
 
-const COMMUNICATION_HUB_URL = 'http://127.0.0.1:3005/api';
-
 export const fetchMessages = async (sinceTimestamp: number = 0): Promise<Message[]> => {
     try {
         const res = await fetchDirect(`/getMessages?lastTimestamp=${sinceTimestamp}`);

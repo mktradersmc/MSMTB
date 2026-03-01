@@ -4,17 +4,18 @@ import path from 'path';
 import { Broker, TradingAccount } from './types';
 
 import { updateHubConfig, restartHub } from './hub-control';
+import { API_BASE } from './data';
 
 export async function getSystemConfig() {
     try {
-        const response = await fetch('http://127.0.0.1:3005/api/system/config');
+        const response = await fetch(`${API_BASE}/system/config`);
         if (response.ok) {
             const data = await response.json();
             if (data && data.config) {
                 return data.config;
             }
         }
-    } catch(e) { console.error('Failed to get system config', e); }
+    } catch (e) { console.error('Failed to get system config', e); }
     return { projectRoot: 'C:\\awesome-cockpit', systemUsername: 'admin' };
 }
 

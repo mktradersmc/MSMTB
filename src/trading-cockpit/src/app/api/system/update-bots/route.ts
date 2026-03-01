@@ -2,6 +2,7 @@
 import { NextResponse } from 'next/server';
 import { spawn } from 'child_process';
 import path from 'path';
+import { API_BASE } from '@/lib/mt-manager/data';
 
 const DEPLOY_SCRIPT = 'C:\\Users\\Michael\\IdeaProjects\\MSMTB\\src\\market-data-core\\scripts\\deploy_all.ps1';
 
@@ -14,7 +15,7 @@ export async function POST(req: Request) {
         // Fetch projectRoot from our backend configuration API
         let projectRoot = "C:\\awesome-cockpit"; // Fallback
         try {
-            const configRes = await fetch('http://127.0.0.1:3005/api/system/config');
+            const configRes = await fetch(`${API_BASE}/system/config`);
             if (configRes.ok) {
                 const configData = await configRes.json();
                 if (configData.success && configData.config && configData.config.projectRoot) {

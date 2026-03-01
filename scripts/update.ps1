@@ -99,6 +99,9 @@ if ($LASTEXITCODE -ne 0) {
 
 # --- 4. DATEI PROPAGATION ---
 Write-Log "`n[3/6] Kopiere neue Dateiversionen..." "Cyan"
+Write-Log "  -> Beende PM2 Dienste zur Freigabe exklusiver Dateisperren (Datenbanken)..." "Gray"
+pm2 stop all 2>&1 | Out-File -Append -FilePath $LogFile
+
 $RootSrcBackend = Join-Path $GitTarget "src\market-data-core"
 $RootSrcFrontend = Join-Path $GitTarget "src\trading-cockpit"
 $RootScripts = Join-Path $GitTarget "scripts"
@@ -193,7 +196,7 @@ try {
     Pop-Location
 
     Write-Log "  -> Starte PM2 Prozesse neu..." "Green"
-    pm2 reload all 2>&1 | Out-File -Append -FilePath $LogFile
+    pm2 start all 2>&1 | Out-File -Append -FilePath $LogFile
 
     Write-Log "`n[OK] UPDATE ERFOLGREICH ABGESCHLOSSEN!" "Green"
 } catch {
@@ -214,7 +217,7 @@ try {
 
     Write-Log "  -> Ursprüngliche Version aus Backup wiederhergestellt." "Cyan"
     Write-Log "  -> Starte PM2 Prozesse mit funktionsfähiger Version..." "Cyan"
-    pm2 reload all 2>&1 | Out-File -Append -FilePath $LogFile
+    pm2 start all 2>&1 | Out-File -Append -FilePath $LogFile
 
     Write-Log "`n[!] Update wurde abgebrochen, aber das System läuft sicher weiter." "Yellow"
 }

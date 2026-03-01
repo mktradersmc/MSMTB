@@ -23,7 +23,7 @@ class AutoUpdateService {
     start() {
         if (this.pollingInterval) return;
         console.log('[AutoUpdateService] Starting background polling for updates...');
-        
+
         // Initial check
         this.checkForUpdates();
 
@@ -44,39 +44,40 @@ class AutoUpdateService {
     async checkForUpdates() {
         try {
             const gitRepoPath = path.join(this.projectRoot, '.github_main');
-            
+
             // 1. Lightweight Check: Ping GitHub for the latest hash without downloading objects
             const remoteHashOutput = await this.execCommand('git ls-remote origin refs/heads/main', gitRepoPath);
             const remoteHash = remoteHashOutput.split('\t')[0].trim();
-            
-            const localHashOutput = await this.execCommand('git rev-parse main', gitRepoPath);
+
+            const localHashOutput = await this.execCommand('git rev-parse HEAD', gitRepoPath);
             const localHash = localHashOutput.trim();
 
             this.updateStatus.updateAvailable = (remoteHash !== localHash);
             this.updateStatus.lastChecked = new Date().toISOString();
-            
+
             if (this.updateStatus.updateAvailable) {
-                console.log(`[AutoUpdateService] Update detected! Local: ${localHash.substring(0,7)}, Remote: ${remoteHash.substring(0,7)}`);
+                console.log(`[AutoUpdateService] Update detected! Local: ${localHash.substring(0, 7)}, Remote: ${remoteHash.substring(0, 7)}`);
             }
-            
+
         } catch (error) {
-            console.error('[AutoUpdateService] Error checking for updates (ls-remote):', error.message);
+            this.updateStatus.updateAvailable = false;
+            console.error('[AutoUpdateService] Error checking for updates (ls-remote or path missing). Ignoring.', error.message);
         }
     }
 
     async fetchUpdateDetails() {
         try {
             const gitRepoPath = path.join(this.projectRoot, '.github_main');
-            
+
             console.log('[AutoUpdateService] On-Demand fetch triggered by UI. Fetching objects from GitHub...');
             // 2. Heavy Check: Fetch objects since structural changes exist
             await this.execCommand('git fetch origin main', gitRepoPath);
 
             // Get log of commits that are on origin/main but not on local main
             const logOutput = await this.execCommand('git log HEAD..origin/main --pretty=format:"%h|%s" --name-only', gitRepoPath);
-            
+
             return this.parseGitLog(logOutput);
-            
+
         } catch (error) {
             console.error('[AutoUpdateService] Error fetching update details:', error.message);
             return { commits: [], components: {} };
@@ -115,7 +116,7 @@ class AutoUpdateService {
             } else {
                 // It's a file path
                 const filePath = line.trim().replace(/\\/g, '/');
-                
+
                 if (filePath.startsWith('src/trading-cockpit')) result.components.frontend = true;
                 if (filePath.startsWith('src/market-data-core')) result.components.backend = true;
                 if (filePath.startsWith('ressources/metatrader')) result.components.metatrader = true;
@@ -140,21 +141,21 @@ class AutoUpdateService {
     executeUpdate(restartInstances = false) {
         console.log(`[AutoUpdateService] Triggering update.ps1 (Restart Instances: ${restartInstances})...`);
         const updateScript = path.join(this.projectRoot, 'update.ps1');
-        
+
         // Pass a flag to the powershell script if instances should be restarted
         // Convert boolean to PowerShell string argument "True" / "False"
         const psRestartFlag = restartInstances ? 'True' : 'False';
 
         // Detached execution of powershell script
         const { spawn } = require('child_process');
-        
+
         try {
             const out = fs.openSync(path.join(this.projectRoot, 'logs', 'update-process.log'), 'a');
             const err = fs.openSync(path.join(this.projectRoot, 'logs', 'update-error.log'), 'a');
-            
+
             const child = spawn('powershell.exe', [
-                '-NoProfile', 
-                '-ExecutionPolicy', 'Bypass', 
+                '-NoProfile',
+                '-ExecutionPolicy', 'Bypass',
                 '-File', updateScript,
                 '-RestartInstances', psRestartFlag
             ], {
@@ -167,7 +168,7 @@ class AutoUpdateService {
             child.unref(); // Detach completely
 
             console.log('[AutoUpdateService] Detached update process successfully spawned. This backend will now exit gracefully.');
-            
+
             // Allow time for the script to start before we kill ourselves
             setTimeout(() => {
                 process.exit(0);

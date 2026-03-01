@@ -318,7 +318,7 @@ function SystemUpdateSection() {
 
     const fetchBasicStatus = async () => {
         try {
-            const res = await fetch('/api/system/update/status');
+            const res = await fetchDirect('/api/system/update/status');
             if (res.ok) {
                 const data = await res.json();
                 setBasicStatus(data.status);
@@ -333,7 +333,7 @@ function SystemUpdateSection() {
     const fetchDetails = async () => {
         setDetailsLoading(true);
         try {
-            const res = await fetch('/api/system/update/details');
+            const res = await fetchDirect('/api/system/update/details');
             if (res.ok) {
                 const data = await res.json();
                 setDetails(data.details);
@@ -350,7 +350,7 @@ function SystemUpdateSection() {
 
         setExecuting(true);
         try {
-            const res = await fetch('/api/system/update/execute', {
+            const res = await fetchDirect('/api/system/update/execute', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ restartInstances })

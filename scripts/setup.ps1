@@ -56,11 +56,26 @@ Write-Log "`n[2/6] Kopiere Komponenten ins Root-Verzeichnis..." "Cyan"
 $RootMarketData = Join-Path $SourceDir "src\market-data-core"
 $RootTradingCockpit = Join-Path $SourceDir "src\trading-cockpit"
 $RootScripts = Join-Path $SourceDir "scripts"
-$RootMetaTraderMaster = Join-Path $SourceDir "ressources\metatrader\master"
-$RootNinjaTraderMaster = Join-Path $SourceDir "ressources\ninjatrader\master"
 
 $ComponentsDir = Join-Path $TargetDir "components"
 if (-not (Test-Path $ComponentsDir)) { New-Item -ItemType Directory -Path $ComponentsDir -Force | Out-Null }
+
+# =========================================================================
+# CRITICAL FIX: Safe Cache for Ressources
+# Windows Installers (mt5setup.exe) will aggressively delete the TEMP directory.
+# Since the GitHub clone is located in TEMP, we MUST move our resources to a
+# safe location before launching any third-party .exe installers.
+# =========================================================================
+$SetupCache = Join-Path $TargetDir ".setup_cache"
+if (-not (Test-Path $SetupCache)) { New-Item -ItemType Directory -Path $SetupCache -Force | Out-Null }
+
+$VolatileRessources = Join-Path $SourceDir "ressources"
+if (Test-Path $VolatileRessources) {
+    Copy-Item -Path $VolatileRessources -Destination $SetupCache -Recurse -Force
+}
+
+$RootMetaTraderMaster = Join-Path $SetupCache "ressources\metatrader\master"
+$RootNinjaTraderMaster = Join-Path $SetupCache "ressources\ninjatrader\master"
 
 if (Test-Path $RootMarketData) { Copy-Item -Path $RootMarketData -Destination $ComponentsDir -Recurse -Force }
 if (Test-Path $RootTradingCockpit) { Copy-Item -Path $RootTradingCockpit -Destination $ComponentsDir -Recurse -Force }

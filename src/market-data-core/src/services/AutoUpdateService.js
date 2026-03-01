@@ -44,36 +44,62 @@ class AutoUpdateService {
     async checkForUpdates() {
         try {
             const gitRepoPath = path.join(this.projectRoot, '_github');
-            // First run git fetch to get the latest remote state
+            
+            // 1. Lightweight Check: Ping GitHub for the latest hash without downloading objects
+            const remoteHashOutput = await this.execCommand('git ls-remote origin refs/heads/main', gitRepoPath);
+            const remoteHash = remoteHashOutput.split('\t')[0].trim();
+            
+            const localHashOutput = await this.execCommand('git rev-parse main', gitRepoPath);
+            const localHash = localHashOutput.trim();
+
+            this.updateStatus.updateAvailable = (remoteHash !== localHash);
+            this.updateStatus.lastChecked = new Date().toISOString();
+            
+            if (this.updateStatus.updateAvailable) {
+                console.log(`[AutoUpdateService] Update detected! Local: ${localHash.substring(0,7)}, Remote: ${remoteHash.substring(0,7)}`);
+            }
+            
+        } catch (error) {
+            console.error('[AutoUpdateService] Error checking for updates (ls-remote):', error.message);
+        }
+    }
+
+    async fetchUpdateDetails() {
+        try {
+            const gitRepoPath = path.join(this.projectRoot, '_github');
+            
+            console.log('[AutoUpdateService] On-Demand fetch triggered by UI. Fetching objects from GitHub...');
+            // 2. Heavy Check: Fetch objects since structural changes exist
             await this.execCommand('git fetch origin main', gitRepoPath);
 
             // Get log of commits that are on origin/main but not on local main
             const logOutput = await this.execCommand('git log HEAD..origin/main --pretty=format:"%h|%s" --name-only', gitRepoPath);
             
-            this.parseGitLog(logOutput);
-            this.updateStatus.lastChecked = new Date().toISOString();
+            return this.parseGitLog(logOutput);
             
         } catch (error) {
-            console.error('[AutoUpdateService] Error checking for updates:', error.message);
+            console.error('[AutoUpdateService] Error fetching update details:', error.message);
+            return { commits: [], components: {} };
         }
     }
 
     parseGitLog(logOutput) {
+        const result = {
+            commits: [],
+            components: {
+                frontend: false,
+                backend: false,
+                metatrader: false,
+                ninjatrader: false
+            }
+        };
+
         if (!logOutput || logOutput.trim() === '') {
-            this.resetStatus();
-            return;
+            return result;
         }
 
         const lines = logOutput.trim().split('\n');
-        const commits = [];
         let currentCommit = null;
-
-        const components = {
-            frontend: false,
-            backend: false,
-            metatrader: false,
-            ninjatrader: false
-        };
 
         for (const line of lines) {
             if (!line.trim()) continue;
@@ -85,39 +111,30 @@ class AutoUpdateService {
                     hash: parts[0],
                     message: parts.slice(1).join('|').trim()
                 };
-                commits.push(currentCommit);
+                result.commits.push(currentCommit);
             } else {
                 // It's a file path
-                const filePath = line.trim();
+                const filePath = line.trim().replace(/\\/g, '/');
                 
-                if (filePath.startsWith('src/trading-cockpit')) components.frontend = true;
-                if (filePath.startsWith('src/market-data-core')) components.backend = true;
-                if (filePath.startsWith('ressources/metatrader')) components.metatrader = true;
-                if (filePath.startsWith('ressources/ninjatrader')) components.ninjatrader = true;
+                if (filePath.startsWith('src/trading-cockpit')) result.components.frontend = true;
+                if (filePath.startsWith('src/market-data-core')) result.components.backend = true;
+                if (filePath.startsWith('ressources/metatrader')) result.components.metatrader = true;
+                if (filePath.startsWith('ressources/ninjatrader')) result.components.ninjatrader = true;
             }
         }
 
-        this.updateStatus = {
-            updateAvailable: commits.length > 0,
-            commits: commits,
-            components: components,
-            lastChecked: new Date().toISOString()
-        };
+        return result;
     }
 
     resetStatus() {
         this.updateStatus.updateAvailable = false;
-        this.updateStatus.commits = [];
-        this.updateStatus.components = {
-            frontend: false,
-            backend: false,
-            metatrader: false,
-            ninjatrader: false
-        };
     }
 
-    getStatus() {
-        return this.updateStatus;
+    getBasicStatus() {
+        return {
+            updateAvailable: this.updateStatus.updateAvailable,
+            lastChecked: this.updateStatus.lastChecked
+        };
     }
 
     executeUpdate(restartInstances = false) {

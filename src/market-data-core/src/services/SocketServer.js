@@ -145,8 +145,13 @@ class SocketServer {
 
         // --- SYSTEM UPDATE API ---
         this.app.get('/api/system/update/status', (req, res) => {
-            const status = autoUpdateService.getStatus();
+            const status = autoUpdateService.getBasicStatus();
             res.json({ success: true, status });
+        });
+
+        this.app.get('/api/system/update/details', async (req, res) => {
+            const details = await autoUpdateService.fetchUpdateDetails();
+            res.json({ success: true, details });
         });
 
         this.app.post('/api/system/update/execute', (req, res) => {

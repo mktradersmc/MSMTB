@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Shield, RefreshCw, Monitor, Moon, Sun, Download, DownloadCloud, Save, ChevronDown, ChevronRight } from 'lucide-react';
+import { Activity, Shield, RefreshCw, Monitor, Moon, Sun, Download, DownloadCloud, Save, ChevronDown, ChevronRight } from 'lucide-react';
 import { useTheme } from '../../context/ThemeProvider';
 import { useChartTheme } from '../../context/ChartThemeContext';
 import { fetchDirect } from '../../lib/client-api';
@@ -8,77 +8,7 @@ import { socketService } from '../../services/socket';
 export function SystemView() {
     const { theme, setTheme } = useTheme();
     const { mode: chartMode, setMode: setChartMode } = useChartTheme();
-    const [features, setFeatures] = useState<Features | null>(null);
-    const [isLoading, setIsLoading] = useState(true);
-    const [isSaving, setIsSaving] = useState(false);
-
     const [isMasterFileOpen, setIsMasterFileOpen] = useState(true);
-    const [isIntegrityOpen, setIsIntegrityOpen] = useState(false);
-    const [isRuntimeOpen, setIsRuntimeOpen] = useState(false);
-
-    useEffect(() => {
-        loadFeatures();
-    }, []);
-
-    const loadFeatures = async () => {
-        try {
-            const res = await fetchDirect('/features');
-            const data = await res.json();
-            if (data.success) {
-                setFeatures(data.features);
-            }
-        } catch (e) {
-            console.error("Failed to load features", e);
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
-    const toggleFeature = async (key: keyof Features) => {
-        if (!features) return;
-
-        const newValue = !features[key];
-        const newFeatures = { ...features, [key]: newValue };
-        setFeatures(newFeatures); // Optimistic update
-
-        try {
-            setIsSaving(true);
-            await fetchDirect('/features', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ [key]: newValue })
-            });
-        } catch (e) {
-            console.error("Failed to save feature", e);
-            // Revert on error
-            setFeatures(features);
-        } finally {
-            setIsSaving(false);
-        }
-    };
-
-    const FeatureRow = ({ id, label, desc, icon: Icon, colorClass }: { id: keyof Features, label: string, desc: string, icon: any, colorClass: string }) => (
-        <div className="flex items-center justify-between py-3 px-4 hover:bg-slate-50 dark:hover:bg-slate-800/50 rounded-lg transition-colors group">
-            <div className="flex items-center gap-4 flex-1">
-                <div className={`w-8 h-8 rounded-md ${colorClass} bg-opacity-10 flex items-center justify-center shrink-0 border border-white/5`}>
-                    <Icon className={colorClass} size={16} />
-                </div>
-                <div>
-                    <h3 className="font-medium text-slate-900 dark:text-slate-200 text-sm">{label}</h3>
-                    <p className="text-slate-500 text-xs hidden group-hover:block transition-all">{desc}</p>
-                </div>
-            </div>
-
-            <button
-                onClick={() => toggleFeature(id)}
-                className={`w-10 h-5 rounded-full transition-colors relative focus:outline-none ${features?.[id] ? 'bg-indigo-600' : 'bg-slate-200 dark:bg-slate-700'}`}
-            >
-                <div className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow-sm transition-transform ${features?.[id] ? 'left-5.5' : 'left-0.5'}`} />
-            </button>
-        </div>
-    );
-
-    if (isLoading) return <div className="h-full flex items-center justify-center text-slate-500 text-sm">Loading Configuration...</div>;
 
     return (
         <div className="h-full flex flex-col bg-slate-50 dark:bg-slate-950">
@@ -143,9 +73,9 @@ export function SystemView() {
                     <SystemUpdateSection />
 
                     {/* Master File Monitor */}
-                    <SystemFileMonitor 
-                        isOpen={isMasterFileOpen} 
-                        onToggle={() => setIsMasterFileOpen(!isMasterFileOpen)} 
+                    <SystemFileMonitor
+                        isOpen={isMasterFileOpen}
+                        onToggle={() => setIsMasterFileOpen(!isMasterFileOpen)}
                     />
 
 
@@ -305,7 +235,7 @@ function SystemFileMonitor({ isOpen, onToggle }: { isOpen: boolean, onToggle: ()
 
     return (
         <section className="border border-slate-200 dark:border-slate-800 rounded-lg overflow-hidden">
-            <div 
+            <div
                 className="bg-slate-50 dark:bg-slate-900/50 px-4 py-2 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800/80 transition-colors"
                 onClick={onToggle}
             >
@@ -373,10 +303,10 @@ function SystemFileMonitor({ isOpen, onToggle }: { isOpen: boolean, onToggle: ()
 function SystemUpdateSection() {
     const [basicStatus, setBasicStatus] = useState<any>(null);
     const [details, setDetails] = useState<any>(null);
-    
+
     const [updateCheckLoading, setUpdateCheckLoading] = useState(true);
     const [detailsLoading, setDetailsLoading] = useState(false);
-    
+
     const [executing, setExecuting] = useState(false);
     const [restartInstances, setRestartInstances] = useState(true);
 
@@ -417,7 +347,7 @@ function SystemUpdateSection() {
 
     const handleExecuteUpdate = async () => {
         if (!confirm("⚠️ WARNUNG: Das System wird nun aktualisiert. Das Frontend und Backend werden währenddessen für einige Sekunden nicht erreichbar sein. Fortfahren?")) return;
-        
+
         setExecuting(true);
         try {
             const res = await fetch('/api/system/update/execute', {
@@ -426,7 +356,7 @@ function SystemUpdateSection() {
                 body: JSON.stringify({ restartInstances })
             });
             const data = await res.json();
-            
+
             if (data.success) {
                 alert("Update-Prozess (update.ps1) wurde erfolgreich im Hintergrund gestartet!\nBitte lade die Seite in ca. 30 Sekunden neu.");
             } else {
@@ -461,7 +391,7 @@ function SystemUpdateSection() {
         if (details.components.backend) comps.push("Backend");
         if (details.components.metatrader) comps.push("MetaTrader");
         if (details.components.ninjatrader) comps.push("NinjaTrader");
-        
+
         if (comps.length === 0) return null;
 
         return (
@@ -488,7 +418,7 @@ function SystemUpdateSection() {
                     </div>
                 )}
             </div>
-            
+
             <div className="p-4 space-y-4">
                 {!details && !detailsLoading && (
                     <div className="text-center py-6 bg-slate-50 dark:bg-slate-900/50 rounded border border-slate-200 dark:border-slate-800">
@@ -535,8 +465,8 @@ function SystemUpdateSection() {
 
                         <div className="bg-amber-50 dark:bg-amber-900/10 border border-amber-200 dark:border-amber-900/30 rounded p-3">
                             <label className="flex items-start gap-2 cursor-pointer">
-                                <input 
-                                    type="checkbox" 
+                                <input
+                                    type="checkbox"
                                     checked={restartInstances}
                                     onChange={(e) => setRestartInstances(e.target.checked)}
                                     className="mt-1"

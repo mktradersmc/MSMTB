@@ -224,6 +224,10 @@ npm rebuild 2>&1 | Out-File -Append -FilePath $LogFile
 
 Write-Log "  -> Kompiliere Next.js Frontend..." "Cyan"
 npm run build 2>&1 | Out-File -Append -FilePath $LogFile
+if ($LASTEXITCODE -ne 0) {
+    Write-Log "  Kritischer Fehler beim Frontend Build (.next konnte nicht generiert werden). Abbruch." "Red"
+    Pause; exit 1
+}
 Pop-Location
 
 

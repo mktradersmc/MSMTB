@@ -62,10 +62,10 @@ if (-not (Get-Command git -ErrorAction SilentlyContinue)) {
 Write-Log "`n[3/3] Quellcode herunterladen und an setup.ps1 uebergeben..." "Cyan"
 
 $AuthRepoUrl = $RepoUrl -replace "https://", "https://$GithubPAT@"
-$GitTarget = Join-Path $env:TEMP "_github_msmtb"
+$GitTarget = Join-Path $TargetDir ".github_main"
 
 if (Test-Path $GitTarget) {
-    Write-Log "  Lösche altes _github Verzeichnis..." "Gray"
+    Write-Log "  Lösche altes .github_main Verzeichnis..." "Gray"
     Remove-Item -Path $GitTarget -Recurse -Force -ErrorAction SilentlyContinue
 }
 

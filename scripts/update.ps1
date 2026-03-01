@@ -46,7 +46,7 @@ if (Test-Path $SystemConfigPath) {
     } catch {}
 }
 
-$GitTarget = Join-Path $env:TEMP "_github_msmtb"
+$GitTarget = Join-Path $TargetDir ".github_main"
 if (-not (Test-Path $GitTarget)) {
     Write-Log "Temporäres Repository Verzeichnis nicht gefunden. Klone initial..." "Yellow"
     

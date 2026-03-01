@@ -1,6 +1,6 @@
 param(
     [string]$TargetDir = "C:\awesome-cockpit",
-    [string]$SourceDir = "$env:TEMP\_github_msmtb",
+    [string]$SourceDir = "$TargetDir\.github_main",
     [string]$Password = "",
     [string]$GithubPat = ""
 )

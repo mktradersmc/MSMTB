@@ -82,8 +82,7 @@ if (Test-Path $RootMetaTraderMaster) {
     Start-Sleep -Seconds 5
 
     Write-Log "  Kopiere benutzerspezifische Master-Dateien (servers.dat, startup.ini) ueber die Installation..." "Cyan"
-    $MetaCopySource = Join-Path $RootMetaTraderMaster "*"
-    Copy-Item -Path $MetaCopySource -Destination $MasterDist -Recurse -Force 
+    Get-ChildItem -Path $RootMetaTraderMaster -Force | Copy-Item -Destination $MasterDist -Recurse -Force 
 }
 
 # 2.5 NinjaTrader 8 Setup
@@ -100,8 +99,7 @@ if (Test-Path $RootNinjaTraderMaster) {
     if (-not (Test-Path $Nt8DocsDir)) { New-Item -ItemType Directory -Path $Nt8DocsDir -Force | Out-Null }
     
     # We copy the curated files over to user's local installation
-    $NinjaCopySource = Join-Path $RootNinjaTraderMaster "*"
-    Copy-Item -Path $NinjaCopySource -Destination $Nt8DocsDir -Recurse -Force
+    Get-ChildItem -Path $RootNinjaTraderMaster -Force | Copy-Item -Destination $Nt8DocsDir -Recurse -Force
 }
 
 

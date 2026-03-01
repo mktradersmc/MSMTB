@@ -5,7 +5,7 @@ const systemConfigService = require('./SystemConfigService');
 class AutoUpdateService {
     constructor() {
         this.updateStatus = {
-            hasUpdate: false,
+            updateAvailable: false,
             lastChecked: null,
             commits: [],
             components: {
@@ -97,7 +97,7 @@ class AutoUpdateService {
         }
 
         this.updateStatus = {
-            hasUpdate: commits.length > 0,
+            updateAvailable: commits.length > 0,
             commits: commits,
             components: components,
             lastChecked: new Date().toISOString()
@@ -105,7 +105,7 @@ class AutoUpdateService {
     }
 
     resetStatus() {
-        this.updateStatus.hasUpdate = false;
+        this.updateStatus.updateAvailable = false;
         this.updateStatus.commits = [];
         this.updateStatus.components = {
             frontend: false,

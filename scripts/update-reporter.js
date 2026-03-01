@@ -4,7 +4,7 @@ const fs = require('fs');
 const path = require('path');
 
 // 1. Lade Konfiguration für SSL Zertifikate
-const configPath = path.resolve(__dirname, '../components/market-data-core/data/system.json');
+const configPath = path.resolve(__dirname, '../market-data-core/data/system.json');
 
 let sysConfig = {};
 try {
@@ -93,9 +93,25 @@ if (useSSL) {
     server = http.createServer(requestHandler);
 }
 
-server.listen(port, () => {
-    console.log(`[Update Reporter] Gefaked Backend Listening on Port ${port} for Progress UI`);
-});
+function startServer(retryCount = 0) {
+    server.listen(port, () => {
+        console.log(`[Update Reporter] Gefaked Backend Listening on Port ${port} for Progress UI`);
+    }).on('error', (e) => {
+        if (e.code === 'EADDRINUSE') {
+            if (retryCount < 15) {
+                console.log(`Port ${port} belegt, warte auf Shutdown des echten Backends (Versuch ${retryCount + 1} / 15)...`);
+                setTimeout(() => {
+                    server.close();
+                    startServer(retryCount + 1);
+                }, 1000);
+            } else {
+                console.error("Max retries reached. Port 3005 bleibt belegt.");
+                process.exit(1);
+            }
+        }
+    });
+}
+startServer();
 
 // Failsafe: Dieser temporäre Prozess darf maximal 15 Minuten leben
 setTimeout(() => {

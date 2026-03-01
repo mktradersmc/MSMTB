@@ -19,6 +19,7 @@ const systemConfigService = require('./SystemConfigService');
 const fs = require('fs');
 const path = require('path');
 const https = require('https');
+const autoUpdateService = require('./AutoUpdateService');
 
 class SocketServer {
     constructor() {
@@ -140,6 +141,22 @@ class SocketServer {
             if (systemPassword) newConfig.systemPassword = systemPassword; // Only update if provided
             const success = systemConfigService.saveConfig(newConfig);
             res.json({ success });
+        });
+
+        // --- SYSTEM UPDATE API ---
+        this.app.get('/api/system/update/status', (req, res) => {
+            const status = autoUpdateService.getStatus();
+            res.json({ success: true, status });
+        });
+
+        this.app.post('/api/system/update/execute', (req, res) => {
+            const restartInstances = req.body?.restartInstances === true;
+            const result = autoUpdateService.executeUpdate(restartInstances);
+            if (result.success) {
+                res.json({ success: true, message: result.message });
+            } else {
+                res.status(500).json({ success: false, error: result.message });
+            }
         });
 
         // --- AUTH API ---

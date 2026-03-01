@@ -67,17 +67,21 @@ if (Test-Path $RootScripts) { Copy-Item -Path $RootScripts -Destination $TargetD
 if (Test-Path $RootMetaTraderMaster) { 
     $MetaDist = Join-Path $ComponentsDir "metatrader"
     if (-not (Test-Path $MetaDist)) { New-Item -ItemType Directory -Path $MetaDist -Force | Out-Null }
-    Copy-Item -Path $RootMetaTraderMaster -Destination $MetaDist -Recurse -Force 
-
+    
     $MasterDist = Join-Path $MetaDist "master"
-    $ZipPath = Join-Path $MasterDist "terminal64.zip"
-    if (Test-Path $ZipPath) {
-        Write-Log "  Entpacke terminal64.zip in master (Progress Bar deaktiviert gegen Windows-Hänger)..." "Cyan"
-        $OldProgress = $ProgressPreference
-        $ProgressPreference = 'SilentlyContinue'
-        Expand-Archive -Path $ZipPath -DestinationPath $MasterDist -Force
-        $ProgressPreference = $OldProgress
-    }
+
+    Write-Log "  Lade offizielles MetaTrader 5 Setup herunter..." "Cyan"
+    $Mt5Installer = Join-Path $env:TEMP "mt5setup.exe"
+    Invoke-WebRequest -Uri "https://download.terminal.free/cdn/web/metaquotes.ltd/mt5/mt5setup.exe?utm_source=www.metatrader5.com&utm_campaign=download" -OutFile $Mt5Installer
+
+    Write-Log "  Installiere MetaTrader 5 in Master-Verzeichnis ($MasterDist)..." "Yellow"
+    $SetupProc = Start-Process -FilePath $Mt5Installer -ArgumentList "/auto /path:`"$MasterDist`"" -Wait -PassThru
+    
+    # Wait additional seconds because MT5 setup sometimes spawns child processes and returns too early
+    Start-Sleep -Seconds 5
+
+    Write-Log "  Kopiere benutzerspezifische Master-Dateien (servers.dat, startup.ini) ueber die Installation..." "Cyan"
+    Copy-Item -Path "$RootMetaTraderMaster\*" -Destination $MasterDist -Recurse -Force 
 }
 
 

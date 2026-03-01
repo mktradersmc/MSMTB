@@ -124,8 +124,8 @@ class AutoUpdateService {
         const updateScript = path.join(this.projectRoot, 'update.ps1');
         
         // Pass a flag to the powershell script if instances should be restarted
-        // Convert boolean to PowerShell format $true / $false
-        const psRestartFlag = restartInstances ? '$true' : '$false';
+        // Convert boolean to PowerShell string argument "True" / "False"
+        const psRestartFlag = restartInstances ? 'True' : 'False';
 
         // Detached execution of powershell script
         const { spawn } = require('child_process');

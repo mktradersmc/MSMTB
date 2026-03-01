@@ -1,13 +1,14 @@
 param(
     [string]$TargetDir = "C:\awesome-cockpit",
-    [bool]$RestartInstances = $false
+    [string]$RestartInstances = "False"
 )
 
 # 1. Admin-Rechte prüfen
 $isAdmin = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
 if (-not $isAdmin) {
     Write-Host "Das Skript benoetigt Administratorrechte (fuer Windows Dienste und Backups). Fordere UAC an..." -ForegroundColor Yellow
-    Start-Process powershell.exe -ArgumentList "-NoProfile -ExecutionPolicy Bypass -NoExit -File `"$PSCommandPath`" -RestartInstances `$RestartInstances" -Verb RunAs
+    # CRITICAL FIX: Convert parameter to simple string wrapper to prevent System.Boolean parser crashes
+    Start-Process powershell.exe -ArgumentList "-NoProfile -ExecutionPolicy Bypass -NoExit -File `"$PSCommandPath`" -RestartInstances `"$RestartInstances`"" -Verb RunAs
     exit
 }
 
@@ -48,13 +49,15 @@ if (Test-Path $SystemConfigPath) {
 $GitTarget = Join-Path $env:TEMP "_github_msmtb"
 if (-not (Test-Path $GitTarget)) {
     Write-Log "Temporäres Repository Verzeichnis nicht gefunden. Klone initial..." "Yellow"
-    if ([string]::IsNullOrWhiteSpace($GithubPat)) {
-        Write-Log "HINWEIS: Kein Github PAT in system.json gefunden. Versuche anonymen Klon..." "Yellow"
-        git clone "https://github.com/mktradersmc/MSMTB.git" $GitTarget 2>&1 | Out-File -Append -FilePath $LogFile
+    
+    $AuthRepoUrl = "https://github.com/mktradersmc/MSMTB.git"
+    if (-not [string]::IsNullOrWhiteSpace($GithubPat)) {
+        $AuthRepoUrl = "https://$GithubPat@github.com/mktradersmc/MSMTB.git"
     } else {
-        $RepoUrl = "https://$GithubPat@github.com/mktradersmc/MSMTB.git"
-        git clone $RepoUrl $GitTarget 2>&1 | Out-File -Append -FilePath $LogFile
+        Write-Log "HINWEIS: Kein Github PAT in system.json gefunden. Versuche anonymen Klon..." "Yellow"
     }
+
+    git clone -b main $AuthRepoUrl $GitTarget 2>&1 | Out-File -Append -FilePath $LogFile
 
     if (-not (Test-Path $GitTarget)) {
         Write-Log "FEHLER: Konnte Repository nicht klonen. Update abgebrochen." "Red"
@@ -124,7 +127,7 @@ if (Test-Path $RootMetaTraderMaster) {
         foreach ($Instance in $Instances) {
             Write-Log "  -> Injiziere Updates in MetaTrader Instanz: $($Instance.Name)" "Yellow"
             
-            if ($RestartInstances) {
+            if ($RestartInstances -eq "True") {
                 Write-Log "     -> Beende terminal64.exe (PID/Pfad bezogen) für den Neustart..." "Gray"
                 # Stop specific process mapped to this instance path
                 $terminals = Get-WmiObject Win32_Process -Filter "name='terminal64.exe'"
@@ -154,7 +157,7 @@ if (Test-Path $RootNinjaTraderMaster) {
     if (Test-Path $Nt8DocsDir) {
         Write-Log "  -> Aktualisiere NinjaTrader Dokumenten-Verzeichnis..." "Yellow"
         
-        if ($RestartInstances) {
+        if ($RestartInstances -eq "True") {
             Write-Log "     -> Beende NinjaTrader.exe..." "Gray"
             Stop-Process -Name "NinjaTrader" -Force -ErrorAction SilentlyContinue
         }

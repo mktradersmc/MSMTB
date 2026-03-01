@@ -36,14 +36,24 @@ const requestHandler = (req, res) => {
         try {
             if (fs.existsSync(logPath)) {
                 // Return progress JSON written by update.ps1
-                const data = fs.readFileSync(logPath, 'utf8');
-                res.writeHead(200, { 'Content-Type': 'application/json' });
+                // We use fs.readFileSync and strip BOM just in case PowerShell wrote one
+                let data = fs.readFileSync(logPath, 'utf8');
+                if (data.charCodeAt(0) === 0xFEFF) {
+                    data = data.slice(1);
+                }
+                // Convert UTF-16LE (often output by PS5 Set-Content) if null bytes exist
+                if (data.includes('\u0000')) {
+                    data = fs.readFileSync(logPath, 'utf16le');
+                }
+
+                res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
                 res.end(data);
             } else {
-                res.writeHead(200, { 'Content-Type': 'application/json' });
-                res.end(JSON.stringify({ step: 0, text: "Initialisiere Update-Prozess..." }));
+                res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+                res.end(JSON.stringify({ step: 1, text: "Initialisiere Update-Prozess..." }));
             }
         } catch (e) {
+            console.error(e);
             res.writeHead(500);
             res.end();
         }

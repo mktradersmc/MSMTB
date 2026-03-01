@@ -28,7 +28,8 @@ function Write-Log {
 function Set-Progress {
     param([int]$Step, [string]$Message)
     $obj = @{ step = $Step; text = $Message }
-    $obj | ConvertTo-Json -Compress | Set-Content -Path (Join-Path $LogDir "update-progress.json")
+    $json = $obj | ConvertTo-Json -Compress
+    [System.IO.File]::WriteAllText((Join-Path $LogDir "update-progress.json"), $json, [System.Text.Encoding]::UTF8)
 }
 
 Set-Progress 1 "Initialisiere Update-Prozess..."

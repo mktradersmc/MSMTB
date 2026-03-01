@@ -236,8 +236,9 @@ try {
     Write-Log "`n[!] Update wurde abgebrochen, aber das System läuft sicher weiter." "Yellow"
 }
 
-# Cleanup Backup
-if (Test-Path $BackupDir) { Remove-Item -Path $BackupDir -Recurse -Force }
+# Die Backup-Ordner werden ab sofort NICHT mehr gelöscht, um dem Benutzer
+# jederzeit einen manuellen Rollback (via rollback.ps1) zu ermöglichen.
+Write-Log "  -> Ein lauffähiges Backup der vorherigen Version wurde sicher in $BackupDir aufbewahrt." "Gray"
 
 Write-Host "Druecke eine beliebige Taste zum Beenden..." -ForegroundColor DarkGray
 $null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")

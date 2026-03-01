@@ -1,21 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Activity, Zap, Shield, Database, Clock, RefreshCw, FileText, Monitor, Moon, Sun, Terminal, Download, DownloadCloud, Save, ChevronDown, ChevronRight } from 'lucide-react';
+import { Shield, RefreshCw, Monitor, Moon, Sun, Download, DownloadCloud, Save, ChevronDown, ChevronRight } from 'lucide-react';
 import { useTheme } from '../../context/ThemeProvider';
 import { useChartTheme } from '../../context/ChartThemeContext';
 import { fetchDirect } from '../../lib/client-api';
 import { socketService } from '../../services/socket';
-
-interface Features {
-    ENABLE_STARTUP_RESTORATION: boolean;
-    ENABLE_STARTUP_SANITY_CHECK: boolean;
-    ENABLE_PERIODIC_SANITY_CHECK: boolean;
-    ENABLE_REGISTRATION_SANITY_CHECK: boolean;
-    ENABLE_CONSISTENCY_SCHEDULER: boolean;
-    ENABLE_DEEP_HISTORY_SYNC: boolean;
-    ENABLE_TICK_LOGGING: boolean;
-    ENABLE_INDICATOR_LOGGING: boolean;
-    ENABLE_DETAILED_PROTOCOL_LOGGING: boolean;
-}
 
 export function SystemView() {
     const { theme, setTheme } = useTheme();
@@ -160,102 +148,6 @@ export function SystemView() {
                         onToggle={() => setIsMasterFileOpen(!isMasterFileOpen)} 
                     />
 
-                    {/* Startup & Integrity (Collapsible) */}
-                    <section className="border border-slate-200 dark:border-slate-800 rounded-lg overflow-hidden bg-white dark:bg-slate-900">
-                        <div 
-                            className="bg-slate-50 dark:bg-slate-900/50 px-4 py-2 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800/80 transition-colors"
-                            onClick={() => setIsIntegrityOpen(!isIntegrityOpen)}
-                        >
-                            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
-                                Integrity & Startup
-                            </span>
-                            {isIntegrityOpen ? <ChevronDown size={14} className="text-slate-500" /> : <ChevronRight size={14} className="text-slate-500" />}
-                        </div>
-                        {isIntegrityOpen && (
-                            <div className="divide-y divide-slate-100 dark:divide-slate-800/50">
-                                <FeatureRow
-                                    id="ENABLE_STARTUP_RESTORATION"
-                                    label="Startup Cache Restoration"
-                                    desc="Restores known symbols from cache on startup (500ms)."
-                                    icon={Database}
-                                    colorClass="text-blue-500"
-                                />
-                                <FeatureRow
-                                    id="ENABLE_STARTUP_SANITY_CHECK"
-                                    label="Startup Sanity Sweep"
-                                    desc="Triggers data integrity check 10s after boot."
-                                    icon={Shield}
-                                    colorClass="text-emerald-500"
-                                />
-                                <FeatureRow
-                                    id="ENABLE_REGISTRATION_SANITY_CHECK"
-                                    label="Registration Integrity Check"
-                                    desc="Runs check when new bots register."
-                                    icon={RefreshCw}
-                                    colorClass="text-teal-500"
-                                />
-                            </div>
-                        )}
-                    </section>
-
-                    {/* Runtime & Logging (Collapsible) */}
-                    <section className="border border-slate-200 dark:border-slate-800 rounded-lg overflow-hidden bg-white dark:bg-slate-900">
-                        <div 
-                            className="bg-slate-50 dark:bg-slate-900/50 px-4 py-2 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800/80 transition-colors"
-                            onClick={() => setIsRuntimeOpen(!isRuntimeOpen)}
-                        >
-                            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
-                                Runtime & Diagnostics
-                            </span>
-                            {isRuntimeOpen ? <ChevronDown size={14} className="text-slate-500" /> : <ChevronRight size={14} className="text-slate-500" />}
-                        </div>
-                        {isRuntimeOpen && (
-                            <div className="divide-y divide-slate-100 dark:divide-slate-800/50">
-                                <FeatureRow
-                                    id="ENABLE_CONSISTENCY_SCHEDULER"
-                                    label="Consistency Scheduler"
-                                    desc="Enables background scheduler for gap checks."
-                                    icon={Clock}
-                                    colorClass="text-amber-500"
-                                />
-                                <FeatureRow
-                                    id="ENABLE_PERIODIC_SANITY_CHECK"
-                                    label="Periodic Heartbeat Audit"
-                                    desc="Runs check every 5 mins on heartbeat."
-                                    icon={Activity}
-                                    colorClass="text-purple-500"
-                                />
-                                <FeatureRow
-                                    id="ENABLE_DEEP_HISTORY_SYNC"
-                                    label="Deep History Sync"
-                                    desc="Allows fetching deep history (years)."
-                                    icon={Zap}
-                                    colorClass="text-orange-500"
-                                />
-                                <FeatureRow
-                                    id="ENABLE_TICK_LOGGING"
-                                    label="Verbose Tick Logging"
-                                    desc="Logs every tick to console (High Noise)."
-                                    icon={FileText}
-                                    colorClass="text-pink-500"
-                                />
-                                <FeatureRow
-                                    id="ENABLE_INDICATOR_LOGGING"
-                                    label="Indicator Logging"
-                                    desc="Detailed logs for indicator calculations."
-                                    icon={Activity}
-                                    colorClass="text-cyan-500"
-                                />
-                                <FeatureRow
-                                    id="ENABLE_DETAILED_PROTOCOL_LOGGING"
-                                    label="Detailed Protocol Logging"
-                                    desc="Logs EV_BAR_UPDATE and EV_BAR_CLOSED traces (High Noise)."
-                                    icon={Terminal}
-                                    colorClass="text-indigo-500"
-                                />
-                            </div>
-                        )}
-                    </section>
 
                 </div>
             </div>

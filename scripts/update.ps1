@@ -108,8 +108,21 @@ $RootScripts = Join-Path $GitTarget "scripts"
 $RootMetaTraderMaster = Join-Path $GitTarget "ressources\metatrader\master"
 $RootNinjaTraderMaster = Join-Path $GitTarget "ressources\ninjatrader\master"
 
-if (Test-Path $RootSrcBackend) { Copy-Item -Path $RootSrcBackend -Destination $DestComponents -Recurse -Force }
-if (Test-Path $RootSrcFrontend) { Copy-Item -Path $RootSrcFrontend -Destination $DestComponents -Recurse -Force }
+# Nutze Robocopy für intelligentes Kopieren ohne User-Daten zu zerstören
+$BackendDest = Join-Path $DestComponents "market-data-core"
+$FrontendDest = Join-Path $DestComponents "trading-cockpit"
+
+if (Test-Path $RootSrcBackend) {
+    Write-Log "  -> Integriere Backend Updates (sichere data/, logs/, certs/ und .env)..." "Yellow"
+    robocopy $RootSrcBackend $BackendDest /E /Z /R:3 /W:1 /XD "data" "logs" "node_modules" "certs" /XF ".env" "*.db*" "*.db-shm" "*.db-wal" > $null
+    if ($LASTEXITCODE -ge 8) { Write-Log "     WARNUNG: Robocopy Fehler bei Backend Propagation (Exit-Code: $LASTEXITCODE)." "Yellow" }
+}
+
+if (Test-Path $RootSrcFrontend) {
+    Write-Log "  -> Integriere Frontend Updates (sichere logs/ und .env)..." "Yellow"
+    robocopy $RootSrcFrontend $FrontendDest /E /Z /R:3 /W:1 /XD "logs" "node_modules" /XF ".env" > $null
+    if ($LASTEXITCODE -ge 8) { Write-Log "     WARNUNG: Robocopy Fehler bei Frontend Propagation (Exit-Code: $LASTEXITCODE)." "Yellow" }
+}
 if (Test-Path $RootScripts) { Copy-Item -Path $RootScripts -Destination $TargetDir -Recurse -Force }
 
 
@@ -205,15 +218,16 @@ try {
     Write-Log "  -> LÖSE SELF-HEALING ROLLBACK AUS..." "Yellow"
     Pop-Location # Ensure we are out
 
-    # Restore from .backup
-    Remove-Item -Path $BackendLive -Recurse -Force
-    Remove-Item -Path $FrontendLive -Recurse -Force
-
+    # Restore from .backup without destroying data
     $BackupBackend = Join-Path $BackupDir "market-data-core"
     $BackupFrontend = Join-Path $BackupDir "trading-cockpit"
 
-    Copy-Item -Path $BackupBackend -Destination $DestComponents -Recurse -Force
-    Copy-Item -Path $BackupFrontend -Destination $DestComponents -Recurse -Force
+    if (Test-Path $BackupBackend) {
+        robocopy $BackupBackend $BackendLive /E /Z /R:3 /W:1 /XD "data" "logs" "node_modules" "certs" /XF ".env" "*.db*" "*.db-shm" "*.db-wal" > $null
+    }
+    if (Test-Path $BackupFrontend) {
+        robocopy $BackupFrontend $FrontendLive /E /Z /R:3 /W:1 /XD "logs" "node_modules" /XF ".env" > $null
+    }
 
     Write-Log "  -> Ursprüngliche Version aus Backup wiederhergestellt." "Cyan"
     Write-Log "  -> Starte PM2 Prozesse mit funktionsfähiger Version..." "Cyan"

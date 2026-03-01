@@ -1,0 +1,40 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<NinjaTrader>
+  <NTWindows>
+    <NinjaScriptOutput-aaa96501064d448f89f1ce940935698f>
+      <Class Assembly="NinjaTrader.Gui">NinjaTrader.Gui.NinjaScript.NinjaScriptOutput</Class>
+      <WindowState>Normal</WindowState>
+      <Location>111;180</Location>
+      <Size>720;544</Size>
+      <ZOrder>0</ZOrder>
+      <Topmost>False</Topmost>
+      <NinjaScriptOutput-aaa96501064d448f89f1ce940935698f>
+        <NinjaScriptOutputProperties>
+          <NinjaScriptOutputProperties xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+            <AlwaysOnTop>false</AlwaysOnTop>
+            <DualView>false</DualView>
+            <FontInfo1>
+              <Bold>false</Bold>
+              <FamilySerialize>#Montserrat</FamilySerialize>
+              <Italic>false</Italic>
+              <Size>12</Size>
+            </FontInfo1>
+            <FontInfo2>
+              <Bold>false</Bold>
+              <FamilySerialize>#Montserrat</FamilySerialize>
+              <Italic>false</Italic>
+              <Size>12</Size>
+            </FontInfo2>
+            <SyncVertScrolling>false</SyncVertScrolling>
+          </NinjaScriptOutputProperties>
+        </NinjaScriptOutputProperties>
+      </NinjaScriptOutput-aaa96501064d448f89f1ce940935698f>
+      <Output1Width>
+        <double>350</double>
+      </Output1Width>
+      <Output2Width>
+        <double>350</double>
+      </Output2Width>
+    </NinjaScriptOutput-aaa96501064d448f89f1ce940935698f>
+  </NTWindows>
+</NinjaTrader>

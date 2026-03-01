@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Activity, Zap, Shield, Database, Clock, RefreshCw, FileText, Monitor, Moon, Sun, Terminal, Download, Save, ChevronDown, ChevronRight } from 'lucide-react';
+import { Activity, Zap, Shield, Database, Clock, RefreshCw, FileText, Monitor, Moon, Sun, Terminal, Download, DownloadCloud, Save, ChevronDown, ChevronRight } from 'lucide-react';
 import { useTheme } from '../../context/ThemeProvider';
 import { useChartTheme } from '../../context/ChartThemeContext';
 import { fetchDirect } from '../../lib/client-api';
@@ -150,6 +150,9 @@ export function SystemView() {
 
                     {/* System Settings */}
                     <SystemSettingsSection />
+
+                    {/* Auto Update UI */}
+                    <SystemUpdateSection />
 
                     {/* Master File Monitor */}
                     <SystemFileMonitor 
@@ -471,6 +474,131 @@ function SystemFileMonitor({ isOpen, onToggle }: { isOpen: boolean, onToggle: ()
                     </div>
                 </div>
             )}
+        </section>
+    );
+}
+
+function SystemUpdateSection() {
+    const [status, setStatus] = useState<any>(null);
+    const [loading, setLoading] = useState(true);
+    const [executing, setExecuting] = useState(false);
+    const [restartInstances, setRestartInstances] = useState(true);
+
+    useEffect(() => {
+        fetchStatus();
+        const interval = setInterval(fetchStatus, 30000); // refresh every 30s
+        return () => clearInterval(interval);
+    }, []);
+
+    const fetchStatus = async () => {
+        try {
+            const res = await fetch('/api/system/update/status');
+            if (res.ok) {
+                const data = await res.json();
+                setStatus(data);
+            }
+        } catch (e) {
+            console.error("Failed to fetch update status", e);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleExecuteUpdate = async () => {
+        if (!confirm("⚠️ WARNUNG: Das System wird nun aktualisiert. Das Frontend und Backend werden währenddessen für einige Sekunden nicht erreichbar sein. Fortfahren?")) return;
+        
+        setExecuting(true);
+        try {
+            const res = await fetch('/api/system/update/execute', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ restartInstances })
+            });
+            const data = await res.json();
+            
+            if (data.success) {
+                alert("Update-Prozess (update.ps1) wurde erfolgreich im Hintergrund gestartet!\nBitte lade die Seite in ca. 30 Sekunden neu.");
+            } else {
+                alert("Fehler beim Starten des Updates: " + data.error);
+            }
+        } catch (e: any) {
+            alert("Netzwerkfehler beim Starten des Updates: " + e.message);
+        } finally {
+            setExecuting(false);
+        }
+    };
+
+    if (loading) return null;
+
+    if (!status?.updateAvailable) {
+        return (
+            <section className="border border-slate-200 dark:border-slate-800 rounded-lg overflow-hidden bg-white dark:bg-slate-900 opacity-70">
+                <div className="bg-slate-50 dark:bg-slate-900/50 px-4 py-2 border-b border-slate-200 dark:border-slate-800 text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center justify-between">
+                    <div>System Updates</div>
+                    <div className="flex items-center gap-1 text-[10px] text-emerald-500 bg-emerald-500/10 px-2 py-0.5 rounded">
+                        <Shield size={12} /> System ist auf dem neuesten Stand
+                    </div>
+                </div>
+            </section>
+        );
+    }
+
+    return (
+        <section className="border border-indigo-200 dark:border-indigo-900/50 rounded-lg overflow-hidden bg-white dark:bg-slate-900 shadow-sm">
+            <div className="bg-indigo-50 dark:bg-indigo-900/20 px-4 py-2 border-b border-indigo-100 dark:border-indigo-900/50 text-xs font-bold text-indigo-700 dark:text-indigo-400 uppercase tracking-wider flex items-center gap-2">
+                <DownloadCloud size={14} className="animate-pulse" />
+                Update Verfügbar
+            </div>
+            
+            <div className="p-4 space-y-4">
+                <div className="flex flex-col gap-2">
+                    <h3 className="text-sm font-semibold text-slate-800 dark:text-slate-200">
+                        {status.commits?.length || 0} neue Änderungen gefunden
+                    </h3>
+                    <div className="flex flex-wrap gap-2">
+                        {status.components?.map((comp: string) => (
+                            <span key={comp} className="text-[10px] uppercase font-bold px-2 py-1 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700">
+                                {comp}
+                            </span>
+                        ))}
+                    </div>
+                </div>
+
+                <div className="bg-slate-50 dark:bg-slate-950 rounded border border-slate-200 dark:border-slate-800 p-2 max-h-40 overflow-y-auto">
+                    {status.commits?.map((commit: any, idx: number) => (
+                        <div key={idx} className="text-xs py-1 border-b border-slate-100 dark:border-slate-800 last:border-0 flex gap-2">
+                            <span className="text-slate-400 font-mono shrink-0">{commit.hash.substring(0, 7)}</span>
+                            <span className="text-slate-700 dark:text-slate-300">{commit.msg}</span>
+                        </div>
+                    ))}
+                </div>
+
+                <div className="bg-amber-50 dark:bg-amber-900/10 border border-amber-200 dark:border-amber-900/30 rounded p-3">
+                    <label className="flex items-start gap-2 cursor-pointer">
+                        <input 
+                            type="checkbox" 
+                            checked={restartInstances}
+                            onChange={(e) => setRestartInstances(e.target.checked)}
+                            className="mt-1"
+                        />
+                        <div className="text-xs text-amber-800 dark:text-amber-500">
+                            <strong>Instanzen neustarten (Für MetaTrader/NinjaTrader)</strong>
+                            <p className="opacity-80 mt-0.5">Erzwingt das Beenden von Plattform-Prozessen vor dem Update, damit neue Templates und Indikatoren vom Terminal sofort neu geladen werden.</p>
+                        </div>
+                    </label>
+                </div>
+
+                <div className="flex justify-end pt-2">
+                    <button
+                        onClick={handleExecuteUpdate}
+                        disabled={executing}
+                        className="flex items-center gap-2 px-6 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-lg shadow-md transition-all active:scale-95 disabled:opacity-50 text-sm"
+                    >
+                        {executing ? <RefreshCw className="animate-spin" size={16} /> : <Download size={16} />}
+                        {executing ? 'Update läuft...' : 'Update Jetzt Ausführen'}
+                    </button>
+                </div>
+            </div>
         </section>
     );
 }

@@ -2,7 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "../context/ThemeProvider";
-// KeepAliveManager removed
+import { UpdateBanner } from "../components/ui/UpdateBanner";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -34,6 +34,7 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <ThemeProvider defaultTheme="dark" storageKey="trading-theme">
+          <UpdateBanner />
           {children}
         </ThemeProvider>
       </body>

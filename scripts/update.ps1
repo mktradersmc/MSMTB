@@ -7,8 +7,8 @@ param(
 $isAdmin = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
 if (-not $isAdmin) {
     Write-Host "Das Skript benoetigt Administratorrechte (fuer Windows Dienste und Backups). Fordere UAC an..." -ForegroundColor Yellow
-    # CRITICAL FIX: Convert parameter to simple string wrapper to prevent System.Boolean parser crashes
-    Start-Process powershell.exe -ArgumentList "-NoProfile -ExecutionPolicy Bypass -NoExit -File `"$PSCommandPath`" -RestartInstances `"$RestartInstances`"" -Verb RunAs
+    # CRITICAL FIX: Convert parameter to simple string wrapper to prevent System.Boolean parser crashes. Removed -NoExit to prevent hanging.
+    Start-Process powershell.exe -ArgumentList "-NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File `"$PSCommandPath`" -RestartInstances `"$RestartInstances`"" -Verb RunAs
     exit
 }
 

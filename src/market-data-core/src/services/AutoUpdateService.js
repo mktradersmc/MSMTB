@@ -150,10 +150,16 @@ class AutoUpdateService {
         const { spawn } = require('child_process');
 
         try {
-            const out = fs.openSync(path.join(this.projectRoot, 'logs', 'update-process.log'), 'a');
-            const err = fs.openSync(path.join(this.projectRoot, 'logs', 'update-error.log'), 'a');
+            const outPath = path.join(this.projectRoot, 'logs', 'update-process.log');
+            const errPath = path.join(this.projectRoot, 'logs', 'update-error.log');
 
-            const child = spawn('powershell.exe', [
+            const out = fs.openSync(outPath, 'a');
+            const err = fs.openSync(errPath, 'a');
+
+            // On Windows, simply detaching Node.js might not be enough if the parent PM2 process is killed immediately.
+            // Using 'start' via cmd.exe creates a truly independent process window (hidden) that survives PM2 stop.
+            const child = spawn('cmd.exe', [
+                '/c', 'start', '/b', '""', 'powershell.exe',
                 '-NoProfile',
                 '-ExecutionPolicy', 'Bypass',
                 '-File', updateScript,
@@ -167,14 +173,14 @@ class AutoUpdateService {
 
             child.unref(); // Detach completely
 
-            console.log('[AutoUpdateService] Detached update process successfully spawned. This backend will now exit gracefully.');
+            console.log(`[AutoUpdateService] Detached update process successfully spawned (cmd start).`);
+            console.log(`[AutoUpdateService] update.ps1 will now execute 'pm2 stop all' and take over.`);
 
-            // Allow time for the script to start before we kill ourselves
-            setTimeout(() => {
-                process.exit(0);
-            }, 2000);
+            // Do NOT call process.exit(0) here! 
+            // Let the update.ps1 script kill this Node.js process via `pm2 stop all` gracefully!
+            // If we exit here, PM2 will instantly restart the backend while update.ps1 is trying to copy files, causing EBUSY locks.
 
-            return { success: true, message: "Update initiated. Backend shutting down." };
+            return { success: true, message: "Update initiated. update.ps1 is now shutting down PM2." };
         } catch (error) {
             console.error('[AutoUpdateService] Failed to execute update script:', error);
             return { success: false, message: "Failed to start update process: " + error.message };

@@ -72,7 +72,7 @@ app.get('/api/system/status', authenticateToken, (req, res) => {
 });
 
 // --- Auto-Update Routes ---
-app.get('/api/system/update/status', authenticateToken, (req, res) => {
+app.get('/api/system/update/status', (req, res) => {
     res.json(autoUpdateService.getBasicStatus());
 });
 

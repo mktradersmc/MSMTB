@@ -3,6 +3,18 @@ const { parse } = require('url');
 const next = require('next');
 const fs = require('fs');
 const path = require('path');
+const httpProxy = require('http-proxy');
+
+const proxy = httpProxy.createProxyServer({
+    secure: false, // This is the crucial fix for self-signed certificates
+    changeOrigin: true
+});
+
+proxy.on('error', (err, req, res) => {
+    console.error('[HTTP-Proxy Error]', err.message);
+    res.writeHead(500, { 'Content-Type': 'text/plain' });
+    res.end('Proxy error: ' + err.message);
+});
 
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0'; // Allow Next.js proxy to connect to self-signed backend
 try {
@@ -65,9 +77,15 @@ app.prepare().then(() => {
 
             server = createServer(httpsOptions, (req, res) => {
                 const parsedUrl = parse(req.url, true);
-                handle(req, res, parsedUrl);
+                if (req.url.startsWith('/api/distribution/') || req.url.startsWith('/api/broker-symbols/') || req.url.startsWith('/api/mappings')) {
+                    proxy.web(req, res, { target: 'https://localhost:3005' });
+                } else if (req.url.startsWith('/api/system/') || req.url.startsWith('/management-console')) {
+                    proxy.web(req, res, { target: 'https://localhost:3006' });
+                } else {
+                    handle(req, res, parsedUrl);
+                }
             });
-            console.log(`[Next.js] Custom HTTPS Server starting on port ${port}...`);
+            console.log(`[Next.js] Custom HTTPS Server starting on port ${port} with insecure API proxy enabled...`);
 
         } catch (err) {
             console.error('[Next.js] HTTPS setup failed. Falling back to HTTP.', err.message);
@@ -78,7 +96,13 @@ app.prepare().then(() => {
             const http = require('http');
             server = http.createServer((req, res) => {
                 const parsedUrl = parse(req.url, true);
-                handle(req, res, parsedUrl);
+                if (req.url.startsWith('/api/distribution/') || req.url.startsWith('/api/broker-symbols/') || req.url.startsWith('/api/mappings')) {
+                    proxy.web(req, res, { target: 'http://localhost:3005' });
+                } else if (req.url.startsWith('/api/system/') || req.url.startsWith('/management-console')) {
+                    proxy.web(req, res, { target: 'http://localhost:3006' });
+                } else {
+                    handle(req, res, parsedUrl);
+                }
             });
         }
     } else {
@@ -86,7 +110,13 @@ app.prepare().then(() => {
         const http = require('http');
         server = http.createServer((req, res) => {
             const parsedUrl = parse(req.url, true);
-            handle(req, res, parsedUrl);
+            if (req.url.startsWith('/api/distribution/') || req.url.startsWith('/api/broker-symbols/') || req.url.startsWith('/api/mappings')) {
+                proxy.web(req, res, { target: 'http://localhost:3005' });
+            } else if (req.url.startsWith('/api/system/') || req.url.startsWith('/management-console')) {
+                proxy.web(req, res, { target: 'http://localhost:3006' });
+            } else {
+                handle(req, res, parsedUrl);
+            }
         });
     }
 

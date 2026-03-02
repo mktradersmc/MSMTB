@@ -3,6 +3,7 @@ import React, { useMemo, useState, useEffect } from 'react';
 import { ChevronRight, ChevronDown, CheckCircle, XCircle, Shield, Briefcase, Play, Pause, X, AlertTriangle, RefreshCw } from 'lucide-react';
 import { AggregatedTrade } from '../../hooks/useTradeMonitor'; // Reuse Type
 import { useWorkspaceStore } from '../../stores/useWorkspaceStore';
+import { fetchDirect } from '../../lib/client-api';
 
 export const HistoryPanel: React.FC<{
     onClose: () => void;
@@ -24,7 +25,7 @@ export const HistoryPanel: React.FC<{
         setIsLoading(true);
         try {
             const envParam = isTestMode ? 'test' : 'live';
-            const res = await fetch(`http://localhost:3005/api/trade-history?limit=50&env=${envParam}`);
+            const res = await fetchDirect(`/api/trade-history?limit=50&env=${envParam}`);
             const body = await res.json();
             if (body.success) {
                 const mapped: AggregatedTrade[] = body.history.map((h: any) => ({
@@ -162,8 +163,8 @@ export const HistoryPanel: React.FC<{
                                     setActiveFilters(newFilters);
                                 }}
                                 className={`px-2 py-0.5 text-[9px] font-bold rounded transition-colors ${activeFilters.has(f)
-                                        ? 'bg-slate-100 dark:bg-slate-700 text-slate-800 dark:text-slate-200 shadow-sm'
-                                        : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 hover:bg-slate-200/50 dark:hover:bg-slate-800'
+                                    ? 'bg-slate-100 dark:bg-slate-700 text-slate-800 dark:text-slate-200 shadow-sm'
+                                    : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 hover:bg-slate-200/50 dark:hover:bg-slate-800'
                                     }`}
                             >
                                 {f}

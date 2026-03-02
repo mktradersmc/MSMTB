@@ -50,7 +50,7 @@ class AutoUpdateService {
 
     async checkForUpdates() {
         try {
-            const gitRepoPath = this.projectRoot; // MSMTB is the repo root
+            const gitRepoPath = path.join(this.projectRoot, '.github_main');
 
             // 1. Lightweight Check: Ping GitHub for the latest hash without downloading objects
             const remoteHashOutput = await this.execCommand('git ls-remote origin refs/heads/main', gitRepoPath);
@@ -74,7 +74,7 @@ class AutoUpdateService {
 
     async fetchUpdateDetails() {
         try {
-            const gitRepoPath = this.projectRoot;
+            const gitRepoPath = path.join(this.projectRoot, '.github_main');
 
             console.log('[AutoUpdateService] On-Demand fetch triggered by UI. Fetching objects from GitHub...');
             // 2. Heavy Check: Fetch objects since structural changes exist

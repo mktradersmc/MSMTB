@@ -5,6 +5,13 @@ const fs = require('fs');
 const path = require('path');
 
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0'; // Allow Next.js proxy to connect to self-signed backend
+try {
+    const { setGlobalDispatcher, Agent } = require('undici');
+    setGlobalDispatcher(new Agent({ connect: { rejectUnauthorized: false } }));
+    console.log('[Next.js Server] Configured global undici dispatcher to accept self-signed certificates.');
+} catch (e) {
+    console.log('[Next.js Server] Undici dispatcher override failed or not applicable:', e.message);
+}
 
 // Konfiguration laden
 const projectRoot = path.resolve(__dirname, '../../');

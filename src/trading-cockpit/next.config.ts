@@ -31,31 +31,31 @@ const nextConfig: NextConfig = {
     return [
       {
         source: '/api/mappings',
-        destination: `${backendScheme}://127.0.0.1:3005/api/mappings`,
+        destination: `${backendScheme}://localhost:3005/api/mappings`,
       },
       {
         source: '/api/broker-symbols/:path*',
-        destination: `${backendScheme}://127.0.0.1:3005/api/broker-symbols/:path*`,
+        destination: `${backendScheme}://localhost:3005/api/broker-symbols/:path*`,
       },
       {
         source: '/api/distribution/config',
-        destination: `${backendScheme}://127.0.0.1:3005/api/distribution/config`,
+        destination: `${backendScheme}://localhost:3005/api/distribution/config`,
       },
       {
         source: '/api/distribution/execute',
-        destination: `${backendScheme}://127.0.0.1:3005/api/distribution/execute`,
+        destination: `${backendScheme}://localhost:3005/api/distribution/execute`,
       },
       {
         source: '/api/system/update/:path*',
-        destination: `${backendScheme}://127.0.0.1:3006/api/system/update/:path*`,
+        destination: `${backendScheme}://localhost:3006/api/system/update/:path*`,
       },
       {
         source: '/management-console',
-        destination: `${backendScheme}://127.0.0.1:3006/`,
+        destination: `${backendScheme}://localhost:3006/`,
       },
       {
         source: '/management-console/:path*',
-        destination: `${backendScheme}://127.0.0.1:3006/:path*`,
+        destination: `${backendScheme}://localhost:3006/:path*`,
       },
     ];
   },

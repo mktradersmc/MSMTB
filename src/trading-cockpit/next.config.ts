@@ -23,6 +23,19 @@ try {
 if (backendScheme === 'https') {
   console.log('[Next.js Config] Enforcing NODE_TLS_REJECT_UNAUTHORIZED=0 for internal self-signed SSL proxying.');
   process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+
+  // Also enforce it at the `https` global agent level for Next.js internal HTTP proxying
+  import('https').then(https => {
+    https.globalAgent.options.rejectUnauthorized = false;
+  }).catch(() => { });
+
+  // For undici (Next.js 13+ fetch and edge features)
+  try {
+    const { setGlobalDispatcher, Agent } = require('undici');
+    setGlobalDispatcher(new Agent({ connect: { rejectUnauthorized: false } }));
+  } catch (e) {
+    console.warn('[Next.js Config] Could not set undici global dispatcher', e);
+  }
 }
 
 const nextConfig: NextConfig = {

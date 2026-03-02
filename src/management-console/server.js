@@ -4,6 +4,16 @@ const path = require('path');
 const fs = require('fs');
 const https = require('https');
 const jwt = require('jsonwebtoken');
+
+// FIX: Hardcode self-signed certificate acceptance for proxying to the data-core backend
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+try {
+    const { setGlobalDispatcher, Agent } = require('undici');
+    setGlobalDispatcher(new Agent({ connect: { rejectUnauthorized: false } }));
+} catch (e) {
+    // Console log suppressed
+}
+
 const autoUpdateService = require('./services/AutoUpdateService');
 
 const app = express();
@@ -103,13 +113,14 @@ app.get('/api/system/config', authenticateToken, (req, res) => {
         config: {
             projectRoot: config.projectRoot || '',
             systemUsername: config.systemUsername || '',
-            systemPassword: config.systemPassword || ''
+            systemPassword: config.systemPassword || '',
+            ntUsername: config.ntUsername || ''
         }
     });
 });
 
 app.post('/api/system/config', authenticateToken, (req, res) => {
-    const { systemUsername, systemPassword } = req.body;
+    const { systemUsername, systemPassword, ntUsername, ntPassword } = req.body;
     try {
         let config = getSystemConfig() || {};
         let modified = false;
@@ -120,6 +131,14 @@ app.post('/api/system/config', authenticateToken, (req, res) => {
         }
         if (systemPassword !== undefined && systemPassword !== '') {
             config.systemPassword = systemPassword;
+            modified = true;
+        }
+        if (ntUsername !== undefined) {
+            config.ntUsername = ntUsername;
+            modified = true;
+        }
+        if (ntPassword !== undefined) {
+            config.ntPassword = ntPassword;
             modified = true;
         }
 

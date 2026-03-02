@@ -86,6 +86,28 @@ app.get('/api/system/update/status', (req, res) => {
     res.json(autoUpdateService.getBasicStatus());
 });
 
+app.get('/api/system/update/progress', (req, res) => {
+    try {
+        const config = getSystemConfig();
+        const root = config?.projectRoot || path.resolve(__dirname, '../../');
+        const logPath = path.join(root, 'logs', 'update-progress.json');
+
+        if (fs.existsSync(logPath)) {
+            let data = fs.readFileSync(logPath, 'utf8');
+            if (data.charCodeAt(0) === 0xFEFF) data = data.slice(1);
+            if (data.includes('\u0000')) data = fs.readFileSync(logPath, 'utf16le');
+
+            res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+            res.end(data);
+        } else {
+            res.json({ step: 0, text: "Initialisiere Update-Monitor..." });
+        }
+    } catch (e) {
+        console.error('[Update API] Progress read error:', e);
+        res.status(500).json({ error: e.message });
+    }
+});
+
 app.get('/api/system/update/details', authenticateToken, async (req, res) => {
     try {
         const result = await autoUpdateService.fetchUpdateDetails();

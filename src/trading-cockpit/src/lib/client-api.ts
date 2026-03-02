@@ -3,8 +3,8 @@ export const getBaseUrl = () => {
         return `${window.location.protocol}//${window.location.hostname}:3005`;
     }
     // Server Side (SSR or App Router handlers)
-    // Assume HTTPS internally if self-signed is used, which avoids mixing protocols. 
-    return process.env.NEXT_PUBLIC_BACKEND_URL || 'https://127.0.0.1:3005';
+    // Assume HTTP internally by default if system.json logic isn't dynamically setting this.
+    return process.env.NEXT_PUBLIC_BACKEND_URL || 'http://127.0.0.1:3005';
 };
 
 const BACKEND_URL = `${getBaseUrl()}/api`;

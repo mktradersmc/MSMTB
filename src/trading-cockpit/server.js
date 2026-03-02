@@ -28,7 +28,7 @@ try {
 }
 
 // Ports und SSL aus der Konfiguration
-let useSSL = sysConfig?.backend?.useSSL !== false; // Default: SSL an
+let useSSL = sysConfig?.backend?.useSSL === true; // Default: HTTP anstatt HTTPS
 let port = sysConfig?.frontend?.port || (useSSL ? 443 : 3001);
 const pfxPassword = sysConfig?.backend?.pfxPassword || 'cockpit';
 

@@ -13,7 +13,7 @@ try {
     const configPath = path.resolve(process.cwd(), '../market-data-core/data/system.json');
     if (fs.existsSync(configPath)) {
         const sysConfig = JSON.parse(fs.readFileSync(configPath, 'utf8'));
-        useSSL = sysConfig?.backend?.useSSL !== false;
+        useSSL = sysConfig?.backend?.useSSL === true;
     }
 } catch (e: any) {
     console.warn('[Data Client] Failed to read system.json for SSL flag, defaulting to false', e.message);

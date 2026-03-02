@@ -57,8 +57,4 @@ SystemOrchestrator = systemOrchestrator;
 const economicCalendar = require('./src/services/EconomicCalendarService');
 economicCalendar.start();
 
-// Start Background Auto-Updater (GitHub Polling)
-const autoUpdateService = require('./src/services/AutoUpdateService');
-autoUpdateService.start();
-
 console.log("MarketDataCore Services initialized.");

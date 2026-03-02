@@ -5,13 +5,13 @@ import path from 'path';
 const isLegacy = process.env.NEXT_COMPILER_MODE === 'legacy';
 
 // Dynamically determine protocol based on system.json
-let backendScheme = 'https';
+let backendScheme = 'http';
 try {
   const configPath = path.resolve(process.cwd(), '../market-data-core/data/system.json');
   if (fs.existsSync(configPath)) {
     const sysConfig = JSON.parse(fs.readFileSync(configPath, 'utf8'));
-    if (sysConfig?.backend?.useSSL === false) {
-      backendScheme = 'http';
+    if (sysConfig?.backend?.useSSL === true) {
+      backendScheme = 'https';
     }
   }
 } catch (e) {

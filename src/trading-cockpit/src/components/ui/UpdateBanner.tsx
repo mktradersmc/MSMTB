@@ -14,7 +14,7 @@ export function UpdateBanner() {
                 const res = await fetch('/api/system/update/status');
                 if (res.ok) {
                     const data = await res.json();
-                    if (data.status && data.status.updateAvailable) {
+                    if (data && data.updateAvailable) {
                         setUpdateAvailable(true);
                     } else {
                         setUpdateAvailable(false);

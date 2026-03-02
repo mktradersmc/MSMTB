@@ -158,7 +158,7 @@ export default function ManagementConsole() {
     if (isUpdating) {
       interval = setInterval(async () => {
         try {
-          const res = await fetch("/api/system/update/progress");
+          const res = await fetch("/api/system/update/progress?t=" + Date.now(), { cache: "no-store" });
           if (res.ok) {
             const data = await res.json();
             setUpdateProgress(data);
@@ -173,7 +173,7 @@ export default function ManagementConsole() {
           // Polling might fail while NodeJS is restarting, we just keep retrying.
           console.log("Waiting for backend during PM2 restart...");
         }
-      }, 1500);
+      }, 500);
     }
     return () => clearInterval(interval);
   }, [isUpdating]);
@@ -233,7 +233,36 @@ export default function ManagementConsole() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-950 text-gray-100 p-4 md:p-8 font-sans">
+    <div className="min-h-screen bg-gray-950 text-gray-100 p-4 md:p-8 font-sans relative">
+      {isUpdating && (
+        <div className="fixed inset-0 z-50 bg-gray-950/90 backdrop-blur-sm flex flex-col items-center justify-center p-4">
+          <div className="max-w-md w-full bg-gray-900 border border-gray-800 rounded-xl shadow-2xl p-8 animate-in fade-in zoom-in-95 duration-300">
+            <h2 className="text-2xl font-bold text-white mb-2 text-center">System Update Läuft</h2>
+            <p className="text-gray-400 text-sm text-center mb-8">Das System wird aktualisiert. Bitte schließen Sie diese Seite nicht.</p>
+
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm font-semibold text-blue-400">Installationsfortschritt</span>
+              <span className="text-xs font-mono bg-blue-900/40 text-blue-300 px-2 py-0.5 rounded border border-blue-800">
+                Schritt {Math.max(1, updateProgress?.step || 1)} / 9
+              </span>
+            </div>
+
+            <div className="w-full bg-gray-950 rounded-full h-3 mb-6 border border-gray-800 overflow-hidden shadow-Inner">
+              <div
+                className={`h-3 rounded-full transition-all duration-500 ease-out ${updateProgress?.step === -1 ? 'bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.5)]' : 'bg-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.5)]'}`}
+                style={{ width: `${Math.max(5, (Math.max(1, updateProgress?.step || 1) / 9) * 100)}%` }}
+              />
+            </div>
+
+            <div className="bg-black/60 p-4 rounded-lg border border-gray-800 flex items-start">
+              <RefreshCw className="animate-spin text-blue-500 mr-3 shrink-0 mt-0.5" />
+              <p className="text-sm font-mono text-gray-300 leading-relaxed break-words">
+                {updateProgress?.text || "Verbinde mit Installations-Log..."}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
       <div className="max-w-4xl mx-auto">
         <header className="flex items-center justify-between mb-8 pb-4 border-b border-gray-800">
           <div>
@@ -324,40 +353,16 @@ export default function ManagementConsole() {
                   </div>
 
                   <div className="pt-2">
-                    {isUpdating ? (
-                      <div className="bg-gray-950 border border-gray-800 rounded-lg p-5">
-                        <div className="flex items-center justify-between mb-2">
-                          <span className="text-sm font-semibold text-blue-400">Installationsfortschritt</span>
-                          <span className="text-xs font-mono bg-blue-900/40 text-blue-300 px-2 py-0.5 rounded border border-blue-800">
-                            Schritt {Math.max(1, updateProgress?.step || 1)} / 9
-                          </span>
-                        </div>
-                        <div className="w-full bg-gray-900 rounded-full h-2 mb-4 border border-gray-800 overflow-hidden">
-                          <div
-                            className={`h-2 rounded-full transition-all duration-500 ${updateProgress?.step === -1 ? 'bg-red-500' : 'bg-blue-500'}`}
-                            style={{ width: `${Math.max(5, (Math.max(1, updateProgress?.step || 1) / 9) * 100)}%` }}
-                          />
-                        </div>
-                        <div className="bg-black/50 p-3 rounded border border-gray-800/50 flex items-center">
-                          <RefreshCw className="animate-spin text-gray-500 mr-3 shrink-0" />
-                          <p className="text-sm font-mono text-gray-300">
-                            {updateProgress?.text || "Verbinde mit Installations-Log..."}
-                          </p>
-                        </div>
-                      </div>
-                    ) : (
-                      <>
-                        <button
-                          onClick={handleExecuteUpdate}
-                          className="w-full bg-blue-600 hover:bg-blue-500 focus:ring-4 focus:ring-blue-900 text-white font-medium py-3 rounded-lg transition-all flex justify-center items-center shadow-lg shadow-blue-500/20"
-                        >
-                          System Aktualisieren
-                        </button>
-                        <p className="text-xs text-center text-gray-500 mt-4 leading-relaxed">
-                          Das Update wird in einem separaten Hintergrundprozess ausgeführt.<br />Sie können den Live-Fortschritt hier mitverfolgen.
-                        </p>
-                      </>
-                    )}
+                    <button
+                      onClick={handleExecuteUpdate}
+                      disabled={isUpdating}
+                      className="w-full bg-blue-600 hover:bg-blue-500 focus:ring-4 focus:ring-blue-900 text-white font-medium py-3 rounded-lg transition-all flex justify-center items-center shadow-lg shadow-blue-500/20 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      System Aktualisieren
+                    </button>
+                    <p className="text-xs text-center text-gray-500 mt-4 leading-relaxed">
+                      Das Update wird in einem separaten Hintergrundprozess ausgeführt.<br />Sie können den Live-Fortschritt hier mitverfolgen.
+                    </p>
                   </div>
                 </div>
               ) : (

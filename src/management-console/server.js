@@ -92,6 +92,47 @@ app.post('/api/system/update/execute', authenticateToken, (req, res) => {
     res.json(result);
 });
 
+// --- System Config Routes ---
+app.get('/api/system/config', authenticateToken, (req, res) => {
+    const config = getSystemConfig();
+    if (!config) {
+        return res.status(500).json({ error: 'System configuration missing' });
+    }
+    res.json({
+        success: true,
+        config: {
+            projectRoot: config.projectRoot || '',
+            systemUsername: config.systemUsername || '',
+            systemPassword: config.systemPassword || ''
+        }
+    });
+});
+
+app.post('/api/system/config', authenticateToken, (req, res) => {
+    const { systemUsername, systemPassword } = req.body;
+    try {
+        let config = getSystemConfig() || {};
+        let modified = false;
+
+        if (systemUsername !== undefined && systemUsername !== '') {
+            config.systemUsername = systemUsername;
+            modified = true;
+        }
+        if (systemPassword !== undefined && systemPassword !== '') {
+            config.systemPassword = systemPassword;
+            modified = true;
+        }
+
+        if (modified) {
+            fs.writeFileSync(SYSTEM_JSON_PATH, JSON.stringify(config, null, 4), 'utf8');
+        }
+        res.json({ success: true });
+    } catch (e) {
+        console.error('[Management Console] Failed to write system.json', e);
+        res.status(500).json({ error: 'Failed to save configuration' });
+    }
+});
+
 // Serve frontend build (if any)
 app.use(express.static(path.join(__dirname, 'public')));
 app.use((req, res, next) => {

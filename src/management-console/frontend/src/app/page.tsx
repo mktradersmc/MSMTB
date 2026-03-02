@@ -19,11 +19,18 @@ export default function ManagementConsole() {
   const [restartInstances, setRestartInstances] = useState(false);
   const [sysMesg, setSysMesg] = useState("");
 
+  const [sysConfig, setSysConfig] = useState<any>(null);
+  const [configUsername, setConfigUsername] = useState("");
+  const [configPassword, setConfigPassword] = useState("");
+  const [isSavingConfig, setIsSavingConfig] = useState(false);
+  const [configMesg, setConfigMesg] = useState("");
+
   useEffect(() => {
     const stored = localStorage.getItem("mc_token");
     if (stored) {
       setToken(stored);
       fetchUpdateDetails(stored);
+      fetchSystemConfig(stored);
     }
   }, []);
 
@@ -41,6 +48,7 @@ export default function ManagementConsole() {
         localStorage.setItem("mc_token", data.token);
         setToken(data.token);
         fetchUpdateDetails(data.token);
+        fetchSystemConfig(data.token);
       } else {
         setLoginError(data.error || "Login fehlgeschlagen.");
       }
@@ -74,6 +82,47 @@ export default function ManagementConsole() {
       setSysMesg("Netzwerkfehler beim Status-Abruf.");
     }
     setIsLoading(false);
+  };
+
+  const fetchSystemConfig = async (authToken: string) => {
+    try {
+      const res = await fetch("/api/system/config", {
+        headers: { "Authorization": `Bearer ${authToken}` }
+      });
+      const data = await res.json();
+      if (data.success && data.config) {
+        setSysConfig(data.config);
+        setConfigUsername(data.config.systemUsername || "");
+        setConfigPassword(data.config.systemPassword || "");
+      }
+    } catch (err) {
+      console.error("Failed to load generic system config", err);
+    }
+  };
+
+  const handleSaveConfig = async () => {
+    setIsSavingConfig(true);
+    setConfigMesg("");
+    try {
+      const res = await fetch("/api/system/config", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify({ systemUsername: configUsername, systemPassword: configPassword })
+      });
+      const data = await res.json();
+      if (data.success) {
+        setConfigMesg("Einstellungen erfolgreich gespeichert!");
+        fetchSystemConfig(token!);
+      } else {
+        setConfigMesg("Fehler beim Speichern der Konfiguration: " + data.error);
+      }
+    } catch (err) {
+      setConfigMesg("Netzwerkfehler beim Speichern der Konfiguration.");
+    }
+    setIsSavingConfig(false);
   };
 
   const handleExecuteUpdate = async () => {
@@ -110,6 +159,7 @@ export default function ManagementConsole() {
     setToken(null);
     localStorage.removeItem("mc_token");
     setUpdateStatus(null);
+    setSysConfig(null);
   };
 
   if (!token) {
@@ -270,6 +320,71 @@ export default function ManagementConsole() {
                   <CheckCircle />
                   <h3 className="text-lg font-medium text-white mt-5">System ist auf dem neuesten Stand</h3>
                   <p className="text-sm text-gray-500 mt-2 text-center max-w-sm">Ihre lokale Installation ist exakt synchronisiert mit dem produktiven Master Branch.</p>
+                </div>
+              )}
+            </div>
+          </section>
+
+          {/* System Settings Section */}
+          <section className="bg-gray-900 rounded-xl border border-gray-800 overflow-hidden shadow-2xl">
+            <div className="p-5 border-b border-gray-800 flex justify-between items-center bg-gray-900/80 backdrop-blur">
+              <div>
+                <h2 className="text-lg font-semibold text-white">System Parameter</h2>
+                <p className="text-xs text-gray-400 mt-1">Globale Konfiguration des Backends</p>
+              </div>
+            </div>
+
+            <div className="p-6 space-y-5 animate-in fade-in duration-300">
+              {configMesg && (
+                <div className={`p-3 rounded text-sm ${configMesg.includes('Fehler') || configMesg.includes('Netzwerk') ? 'bg-red-900/20 text-red-400 border border-red-800' : 'bg-green-900/20 text-green-400 border border-green-800'}`}>
+                  {configMesg}
+                </div>
+              )}
+
+              {sysConfig ? (
+                <>
+                  <div>
+                    <label className="block text-xs font-semibold uppercase tracking-wider text-gray-500 mb-1.5">Installationspfad (Basis)</label>
+                    <input
+                      type="text"
+                      value={sysConfig.projectRoot || 'Unbekannt'}
+                      readOnly
+                      className="w-full bg-gray-950 border border-gray-800 rounded p-2.5 text-gray-400 cursor-not-allowed font-mono text-sm"
+                    />
+                  </div>
+                  <div className="flex flex-col sm:flex-row gap-4">
+                    <div className="flex-1">
+                      <label className="block text-xs font-semibold uppercase tracking-wider text-gray-400 mb-1.5">System-Benutzername</label>
+                      <input
+                        type="text"
+                        value={configUsername}
+                        onChange={(e) => setConfigUsername(e.target.value)}
+                        className="w-full bg-gray-950 border border-gray-800 rounded p-2.5 text-white focus:outline-none focus:border-blue-500 font-mono text-sm"
+                      />
+                    </div>
+                    <div className="flex-1">
+                      <label className="block text-xs font-semibold uppercase tracking-wider text-gray-400 mb-1.5">System-Passwort</label>
+                      <input
+                        type="password"
+                        value={configPassword}
+                        onChange={(e) => setConfigPassword(e.target.value)}
+                        className="w-full bg-gray-950 border border-gray-800 rounded p-2.5 text-white focus:outline-none focus:border-blue-500 font-mono text-sm"
+                      />
+                    </div>
+                  </div>
+                  <div className="pt-3 border-t border-gray-800 flex justify-end">
+                    <button
+                      onClick={handleSaveConfig}
+                      disabled={isSavingConfig || (configUsername === sysConfig?.systemUsername && configPassword === sysConfig?.systemPassword)}
+                      className="bg-blue-600 hover:bg-blue-500 focus:ring-4 focus:ring-blue-900 disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium py-2 px-6 rounded-lg transition-all shadow-lg shadow-blue-500/20 text-sm flex items-center"
+                    >
+                      {isSavingConfig ? "Wird gespeichert..." : "Konfiguration Speichern"}
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <div className="flex items-center justify-center py-8 text-gray-500 test-sm">
+                  Konfiguration wird geladen...
                 </div>
               )}
             </div>

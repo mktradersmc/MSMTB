@@ -67,7 +67,7 @@ export function SystemView() {
                     </section>
 
                     {/* System Settings */}
-                    <SystemSettingsSection />
+                    {/* Moved to Management Console */}
 
                     {/* Auto Update UI moved to Management Console */}
 
@@ -84,106 +84,7 @@ export function SystemView() {
     );
 }
 
-function SystemSettingsSection() {
-    const [path, setPath] = useState('');
-    const [username, setUsername] = useState('');
-    const [password, setPassword] = useState('');
-    const [origUsername, setOrigUsername] = useState('');
-    const [origPassword, setOrigPassword] = useState('');
-    const [loading, setLoading] = useState(true);
-    const [saving, setSaving] = useState(false);
 
-    useEffect(() => {
-        // Use native fetch to hit Next.js API
-        fetch('/api/system/config')
-            .then(res => res.json())
-            .then(data => {
-                if (data.success && data.config) {
-                    setPath(data.config.projectRoot || 'Path not found');
-                    setUsername(data.config.systemUsername || '');
-                    setPassword(data.config.systemPassword || '');
-                    setOrigUsername(data.config.systemUsername || '');
-                    setOrigPassword(data.config.systemPassword || '');
-                }
-            })
-            .finally(() => setLoading(false));
-    }, []);
-
-    const isModified = username !== origUsername || password !== origPassword;
-
-    const handleSave = async () => {
-        setSaving(true);
-        try {
-            const res = await fetch('/api/system/config', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ systemUsername: username, systemPassword: password })
-            });
-            const data = await res.json();
-
-            if (data.success) {
-                setOrigUsername(username);
-                setOrigPassword(password);
-            } else {
-                alert("Failed to save: " + data.error);
-            }
-        } catch (e: any) {
-            alert("Network Error: " + e.message);
-        } finally {
-            setSaving(false);
-        }
-    };
-
-    if (loading) return null;
-
-    return (
-        <section className="border border-slate-200 dark:border-slate-800 rounded-lg overflow-hidden bg-white dark:bg-slate-900">
-            <div className="bg-slate-50 dark:bg-slate-900/50 px-4 py-2 border-b border-slate-200 dark:border-slate-800 text-xs font-bold text-slate-500 uppercase tracking-wider">
-                System Settings
-            </div>
-            <div className="p-4 space-y-4">
-                <div>
-                    <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1.5">Project Root</label>
-                    <input
-                        type="text"
-                        value={path}
-                        readOnly
-                        className="w-full bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded px-3 py-2 text-xs font-mono text-slate-500 dark:text-slate-400 focus:outline-none cursor-default"
-                    />
-                </div>
-                <div className="flex gap-4">
-                    <div className="flex-1">
-                        <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1.5">Username</label>
-                        <input
-                            type="text"
-                            value={username}
-                            onChange={(e) => setUsername(e.target.value)}
-                            className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded px-3 py-2 text-xs font-mono text-slate-600 dark:text-slate-300 focus:ring-1 focus:ring-indigo-500 outline-none transition-colors"
-                        />
-                    </div>
-                    <div className="flex-1">
-                        <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1.5">Password</label>
-                        <input
-                            type="password"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded px-3 py-2 text-xs font-mono text-slate-600 dark:text-slate-300 focus:ring-1 focus:ring-indigo-500 outline-none transition-colors"
-                        />
-                    </div>
-                </div>
-                <div className="flex justify-end pt-2">
-                    <button
-                        onClick={handleSave}
-                        disabled={!isModified || saving}
-                        className={`flex items-center gap-2 px-4 py-2 font-bold rounded-lg shadow-sm transition-all text-xs h-[34px] ${isModified ? 'bg-indigo-600 hover:bg-indigo-500 text-white cursor-pointer' : 'bg-slate-200 dark:bg-slate-800 text-slate-400 dark:text-slate-600 cursor-not-allowed'}`}
-                    >
-                        <Save size={14} /> {saving ? 'Saving...' : 'Save Config'}
-                    </button>
-                </div>
-            </div>
-        </section>
-    );
-}
 
 function SystemFileMonitor({ isOpen, onToggle }: { isOpen: boolean, onToggle: () => void }) {
     const [files, setFiles] = useState<any[]>([]);

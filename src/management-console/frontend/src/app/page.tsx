@@ -248,7 +248,7 @@ export default function ManagementConsole() {
                   <RefreshCw className="animate-spin h-8 w-8 mb-4 text-blue-500" />
                   <p className="text-sm">Abgleich mit Origin/Main...</p>
                 </div>
-              ) : updateStatus?.updateAvailable ? (
+              ) : (updateStatus?.commits?.length > 0) ? (
                 <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
                   <div className="flex items-start bg-blue-900/10 border border-blue-800/40 p-4 rounded-lg">
                     <div className="mr-4 mt-1">
@@ -256,19 +256,21 @@ export default function ManagementConsole() {
                     </div>
                     <div>
                       <h3 className="text-blue-400 font-medium">Update Verfügbar</h3>
-                      <p className="text-sm text-gray-400 mt-1">Es wurden <strong className="text-white">{updateStatus.recentCommits?.length || 0} neue Commits</strong> auf dem Server gefunden.</p>
+                      <p className="text-sm text-gray-400 mt-1">Es wurden <strong className="text-white">{updateStatus.commits.length} neue Commits</strong> auf dem Server gefunden.</p>
                     </div>
                   </div>
 
                   <div>
                     <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Betroffene Komponenten</h4>
                     <div className="flex flex-wrap gap-2">
-                      {updateStatus.affectedComponents?.map((comp: string) => (
-                        <span key={comp} className="bg-gray-800 border border-gray-700 px-3 py-1.5 rounded-lg text-sm font-medium text-gray-300 shadow-sm">
-                          {comp}
-                        </span>
-                      ))}
-                      {(!updateStatus.affectedComponents || updateStatus.affectedComponents.length === 0) && (
+                      {updateStatus.components && Object.entries(updateStatus.components)
+                        .filter(([_, isAffected]) => isAffected)
+                        .map(([comp, _]) => (
+                          <span key={comp} className="bg-gray-800 border border-gray-700 px-3 py-1.5 rounded-lg text-sm font-medium text-gray-300 shadow-sm capitalize">
+                            {comp}
+                          </span>
+                        ))}
+                      {(!updateStatus.components || !Object.values(updateStatus.components).some(v => v)) && (
                         <span className="text-gray-600 italic text-sm">Keine ermittelbar</span>
                       )}
                     </div>
@@ -277,10 +279,10 @@ export default function ManagementConsole() {
                   <div>
                     <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Commit Historie</h4>
                     <div className="bg-gray-950 rounded-lg border border-gray-800 divide-y divide-gray-800 max-h-64 overflow-y-auto">
-                      {updateStatus.recentCommits?.map((commit: any, i: number) => (
+                      {updateStatus.commits?.map((commit: any, i: number) => (
                         <div key={i} className="p-3.5 hover:bg-gray-900/50 transition-colors">
-                          <p className="text-sm font-medium text-gray-200">{commit.subject}</p>
-                          <p className="text-xs text-gray-500 mt-1.5 font-mono">{commit.date} • {commit.author}</p>
+                          <p className="text-sm font-medium text-gray-200">{commit.message}</p>
+                          <p className="text-xs text-gray-500 mt-1.5 font-mono">{commit.hash}</p>
                         </div>
                       ))}
                     </div>

@@ -130,21 +130,24 @@ if (useSSL) {
             throw new Error('Certificates not found in ' + CERTS_DIR);
         }
 
-        https.createServer(sslOptions, app).listen(PORT, () => {
+        const server = https.createServer(sslOptions, app).listen(PORT, '0.0.0.0', () => {
             console.log(`🚀 Management Console running on https://127.0.0.1:${PORT}`);
             autoUpdateService.start();
         });
+        server.on('error', (e) => console.error('[Management Console] HTTPS Server Error:', e.message));
 
     } catch (e) {
         console.error('[Management Console] Failed to start with SSL, falling back to HTTP:', e.message);
-        app.listen(PORT, () => {
+        const server = app.listen(PORT, '0.0.0.0', () => {
             console.log(`🚀 Management Console running on http://127.0.0.1:${PORT} (SSL Fallback)`);
             autoUpdateService.start();
         });
+        server.on('error', (e) => console.error('[Management Console] HTTP Server Error:', e.message));
     }
 } else {
-    app.listen(PORT, () => {
+    const server = app.listen(PORT, '0.0.0.0', () => {
         console.log(`🚀 Management Console running on http://127.0.0.1:${PORT} (No SSL Configured)`);
         autoUpdateService.start();
     });
+    server.on('error', (e) => console.error('[Management Console] HTTP Server Error:', e.message));
 }

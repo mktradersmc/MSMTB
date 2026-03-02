@@ -47,7 +47,7 @@ export function UpdateBanner() {
             </div>
 
             <button
-                onClick={() => window.location.href = '/management-console'}
+                onClick={() => window.location.href = `${window.location.protocol}//${window.location.hostname}:3006/`}
                 className="flex items-center gap-1 bg-white/20 hover:bg-white/30 transition-colors px-3 py-1 rounded text-xs font-medium"
             >
                 Zum Update

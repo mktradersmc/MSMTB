@@ -188,22 +188,22 @@ export const MainSidebar: React.FC<MainSidebarProps> = ({ activeView, onNavigate
 
             </div>
 
-            {/* Edge Toggle Overlay */}
+            {/* Edge Toggle Overlay - Widened hitbox to keep hover state active when popper appears */}
             <div
-                className="absolute top-0 right-0 h-full w-4 z-[200] flex items-center justify-center cursor-pointer group"
+                className="absolute top-0 right-[-16px] h-full w-8 z-[200] flex items-center justify-center cursor-pointer group"
                 onClick={toggleSidebar}
                 title={isCollapsed ? "Expand" : "Collapse"}
             >
                 {/* Visual Strip Background */}
-                <div className="absolute inset-y-0 right-0 w-0.5 bg-transparent group-hover:bg-indigo-500/50 transition-colors duration-200" />
+                <div className="absolute inset-y-0 left-4 w-0.5 bg-transparent group-hover:bg-indigo-500/50 transition-colors duration-200" />
 
                 {/* Arrow Button - Dynamic Direction */}
                 <div className={cn(
                     "absolute w-5 h-10 bg-white dark:bg-slate-800 border-y border-slate-200 dark:border-slate-700 shadow-lg flex items-center justify-center transition-all duration-200 opacity-0 group-hover:opacity-100",
                     // Dynamic Positioning & Styling
                     isCollapsed
-                        ? "right-0 translate-x-full rounded-r-md border-r border-l-0" // Pops Right (Expand)
-                        : "right-0 translate-x-0 rounded-l-md border-l border-r-0" // Pops Left (Collapse) - Adjusted to be flush with edge
+                        ? "left-4 translate-x-0 rounded-r-md border-r border-l-0" // Pops Right (Expand)
+                        : "left-4 -translate-x-full rounded-l-md border-l border-r-0" // Pops Left (Collapse)
                 )}>
                     {isCollapsed ? <ChevronRight size={14} className="text-indigo-500" /> : <ChevronLeft size={14} className="text-indigo-500" />}
                 </div>

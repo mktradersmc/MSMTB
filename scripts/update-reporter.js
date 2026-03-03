@@ -64,7 +64,7 @@ const requestHandler = (req, res) => {
 };
 
 // 3. Server starten (Mit denselben SSL-Einstellungen wie das Hauptsystem)
-let server;
+let options = null;
 if (useSSL) {
     try {
         const root = sysConfig.projectRoot || path.resolve(__dirname, '../');
@@ -72,46 +72,44 @@ if (useSSL) {
         const certPath = path.join(root, 'certs', 'server.crt');
         const keyPath = path.join(root, 'certs', 'server.key');
 
-        let httpsOptions = {};
         if (fs.existsSync(pfxPath)) {
-            httpsOptions = {
+            options = {
                 pfx: fs.readFileSync(pfxPath),
                 passphrase: sysConfig?.backend?.pfxPassword || 'cockpit'
             };
         } else {
-            httpsOptions = {
+            options = {
                 key: fs.readFileSync(keyPath),
                 cert: fs.readFileSync(certPath)
             };
         }
-        server = https.createServer(httpsOptions, requestHandler);
     } catch (e) {
         console.error("SSL fallback failed", e);
-        server = http.createServer(requestHandler);
     }
-} else {
-    server = http.createServer(requestHandler);
 }
 
-function startServer(retryCount = 0) {
-    server.listen(port, () => {
-        console.log(`[Update Reporter] Gefaked Backend Listening on Port ${port} for Progress UI`);
+function createAndStartServer(portToBind, retryCount = 0) {
+    const srv = (useSSL && options) ? https.createServer(options, requestHandler) : http.createServer(requestHandler);
+    srv.listen(portToBind, () => {
+        console.log(`[Update Reporter] Gefaked Backend Listening on Port ${portToBind} for Progress UI`);
     }).on('error', (e) => {
         if (e.code === 'EADDRINUSE') {
             if (retryCount < 15) {
-                console.log(`Port ${port} belegt, warte auf Shutdown des echten Backends (Versuch ${retryCount + 1} / 15)...`);
+                console.log(`Port ${portToBind} belegt, warte auf Shutdown des echten Backends (Versuch ${retryCount + 1} / 15)...`);
                 setTimeout(() => {
-                    server.close();
-                    startServer(retryCount + 1);
+                    srv.close();
+                    createAndStartServer(portToBind, retryCount + 1);
                 }, 1000);
             } else {
-                console.error("Max retries reached. Port 3005 bleibt belegt.");
-                process.exit(1);
+                console.error(`Max retries reached. Port ${portToBind} bleibt belegt.`);
             }
         }
     });
 }
-startServer();
+
+// Starte Reporter für Trading Cockpit (3005) und Management Console (3006)
+createAndStartServer(3005);
+createAndStartServer(3006);
 
 // Failsafe: Dieser temporäre Prozess darf maximal 15 Minuten leben
 setTimeout(() => {

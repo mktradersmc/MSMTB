@@ -243,14 +243,14 @@ export default function ManagementConsole() {
             <div className="flex items-center justify-between mb-2">
               <span className="text-sm font-semibold text-blue-400">Installationsfortschritt</span>
               <span className="text-xs font-mono bg-blue-900/40 text-blue-300 px-2 py-0.5 rounded border border-blue-800">
-                Schritt {Math.max(1, updateProgress?.step || 1)} / 9
+                Schritt {Math.max(1, updateProgress?.step || 1)} / {updateProgress?.total || 9}
               </span>
             </div>
 
             <div className="w-full bg-gray-950 rounded-full h-3 mb-6 border border-gray-800 overflow-hidden shadow-Inner">
               <div
                 className={`h-3 rounded-full transition-all duration-500 ease-out ${updateProgress?.step === -1 ? 'bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.5)]' : 'bg-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.5)]'}`}
-                style={{ width: `${Math.max(5, (Math.max(1, updateProgress?.step || 1) / 9) * 100)}%` }}
+                style={{ width: `${Math.max(5, (Math.max(1, updateProgress?.step || 1) / (updateProgress?.total || 9)) * 100)}%` }}
               />
             </div>
 

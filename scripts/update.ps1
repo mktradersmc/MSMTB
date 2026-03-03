@@ -25,9 +25,10 @@ function Write-Log {
     Write-Host $Message -ForegroundColor $Color
 }
 
+$TotalSteps = 9
 function Set-Progress {
     param([int]$Step, [string]$Message)
-    $obj = @{ step = $Step; text = $Message }
+    $obj = @{ step = $Step; total = $TotalSteps; text = $Message }
     $json = $obj | ConvertTo-Json -Compress
     [System.IO.File]::WriteAllText((Join-Path $LogDir "update-progress.json"), $json, [System.Text.Encoding]::UTF8)
 }

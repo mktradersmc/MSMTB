@@ -4,7 +4,7 @@ const fs = require('fs');
 const path = require('path');
 
 // 1. Lade Konfiguration für SSL Zertifikate
-const configPath = path.resolve(__dirname, '../market-data-core/data/system.json');
+const configPath = path.resolve(__dirname, '../components/market-data-core/data/system.json');
 
 let sysConfig = {};
 try {
@@ -32,7 +32,7 @@ const requestHandler = (req, res) => {
         return;
     }
 
-    if (req.url === '/api/system/update/progress') {
+    if (req.url.startsWith('/api/system/update/progress')) {
         try {
             if (fs.existsSync(logPath)) {
                 // Return progress JSON written by update.ps1

@@ -15,7 +15,7 @@ export default function ManagementConsole() {
 
   const [updateStatus, setUpdateStatus] = useState<any>(null);
   const [isUpdating, setIsUpdating] = useState(false);
-  const [updateProgress, setUpdateProgress] = useState<{ step: number, text: string } | null>(null);
+  const [updateProgress, setUpdateProgress] = useState<{ step: number, text: string, total?: number } | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [restartInstances, setRestartInstances] = useState(false);
   const [sysMesg, setSysMesg] = useState("");

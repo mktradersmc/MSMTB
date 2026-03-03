@@ -19,6 +19,9 @@ export function SettingsView() {
     const [newBrokerShort, setNewBrokerShort] = useState('');
     const [newBrokerDefaultSymbol, setNewBrokerDefaultSymbol] = useState('EURUSD');
     const [newBrokerServers, setNewBrokerServers] = useState('');
+    const [newBrokerPlatform, setNewBrokerPlatform] = useState<'MT5' | 'NT8'>('MT5');
+    const [newBrokerUsername, setNewBrokerUsername] = useState('');
+    const [newBrokerPassword, setNewBrokerPassword] = useState('');
     const [loading, setLoading] = useState(false);
 
     // Edit State
@@ -102,7 +105,10 @@ export function SettingsView() {
             name: newBrokerName,
             shorthand: newBrokerShort,
             defaultSymbol: newBrokerDefaultSymbol,
-            servers: newBrokerServers.split(',').map(s => s.trim()).filter(Boolean),
+            servers: newBrokerPlatform === 'MT5' ? newBrokerServers.split(',').map(s => s.trim()).filter(Boolean) : [],
+            platform: newBrokerPlatform,
+            username: newBrokerPlatform === 'NT8' ? newBrokerUsername : undefined,
+            password: newBrokerPlatform === 'NT8' ? newBrokerPassword : undefined,
             symbolMappings: existingBroker?.symbolMappings || {} // Preserve existing mappings
         };
 
@@ -123,6 +129,9 @@ export function SettingsView() {
         setNewBrokerShort('');
         setNewBrokerDefaultSymbol('EURUSD');
         setNewBrokerServers('');
+        setNewBrokerPlatform('MT5');
+        setNewBrokerUsername('');
+        setNewBrokerPassword('');
     };
 
     const handleEdit = (broker: Broker) => {
@@ -131,11 +140,14 @@ export function SettingsView() {
         setNewBrokerShort(broker.shorthand);
         setNewBrokerDefaultSymbol(broker.defaultSymbol || 'EURUSD');
         setNewBrokerServers(broker.servers?.join(', ') || '');
+        setNewBrokerPlatform(broker.platform || 'MT5');
+        setNewBrokerUsername(broker.username || '');
+        setNewBrokerPassword(broker.password || '');
         setIsAddOpen(true);
     };
 
     const handleDelete = async (id: string) => {
-        if (!confirm('Delete this broker?')) return;
+        if (!confirm('Delete this connection?')) return;
         await fetchDirect(`/brokers/${id}`, { method: 'DELETE' });
         loadBrokers();
     };
@@ -189,8 +201,8 @@ export function SettingsView() {
                         <Settings size={20} />
                     </div>
                     <div>
-                        <h2 className="font-bold text-lg tracking-tight text-slate-900 dark:text-white leading-tight">Broker Configuration</h2>
-                        <p className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold">Manage Broker Connections & API Keys</p>
+                        <h2 className="font-bold text-lg tracking-tight text-slate-900 dark:text-white leading-tight">Connection Configuration</h2>
+                        <p className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold">Manage Connections & API Keys</p>
                     </div>
                 </div>
 
@@ -198,7 +210,7 @@ export function SettingsView() {
                     onClick={() => { resetForm(); setIsAddOpen(true); }}
                     className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-bold rounded-lg shadow-lg shadow-indigo-500/20 transition-all active:scale-95"
                 >
-                    <Plus size={16} /> Add Broker
+                    <Plus size={16} /> Neue Verbindung
                 </button>
             </div>
 
@@ -251,7 +263,7 @@ export function SettingsView() {
                         </div>
                     </div>
                     <div className="flex justify-end mt-4">
-                        <button 
+                        <button
                             onClick={handleSaveSystemConfig}
                             disabled={!sysProjectRoot || !sysUsername}
                             className="flex items-center gap-2 px-5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium rounded-lg shadow-md transition-colors disabled:opacity-50"
@@ -278,7 +290,7 @@ export function SettingsView() {
                                     <div className={`w-10 h-10 rounded-lg flex items-center justify-center text-white font-bold text-base shadow-md shrink-0
                                     ${isTest ? 'bg-amber-500 shadow-amber-500/20' : 'bg-indigo-500 shadow-indigo-500/20'}
                                 `}>
-                                        {broker.shorthand.substring(0, 2)}
+                                        {(broker.shorthand || broker.name || '??').substring(0, 2)}
                                     </div>
                                     <div>
                                         <h3 className="font-bold text-base text-slate-900 dark:text-white leading-tight">{broker.name}</h3>
@@ -304,7 +316,7 @@ export function SettingsView() {
                                     <button
                                         onClick={() => handleDelete(broker.id)}
                                         className="p-2 text-slate-400 hover:text-red-500 hover:bg-white dark:hover:bg-slate-800 rounded-lg transition-colors"
-                                        title="Delete Broker"
+                                        title="Delete Connection"
                                     >
                                         <Trash size={16} />
                                     </button>
@@ -318,15 +330,37 @@ export function SettingsView() {
                 {isAddOpen && (
                     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
                         <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl shadow-2xl w-full max-w-md p-6 animate-in zoom-in-95">
-                            <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-6">{editingId ? 'Edit Broker' : 'Add New Broker'}</h3>
+                            <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-6">{editingId ? 'Edit Connection' : 'Neue Verbindung'}</h3>
 
                             <div className="space-y-4">
+                                {/* Platform Selector */}
+                                <div className="flex gap-4 p-1 bg-slate-100 dark:bg-slate-800 rounded-lg w-full mb-6">
+                                    <button
+                                        onClick={() => setNewBrokerPlatform('MT5')}
+                                        className={cn(
+                                            "flex-1 py-2 text-sm font-bold rounded-md transition-all text-center",
+                                            newBrokerPlatform === 'MT5' ? "bg-white dark:bg-slate-600 shadow-sm text-indigo-600 dark:text-white" : "text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200"
+                                        )}
+                                    >
+                                        MetaTrader 5
+                                    </button>
+                                    <button
+                                        onClick={() => setNewBrokerPlatform('NT8')}
+                                        className={cn(
+                                            "flex-1 py-2 text-sm font-bold rounded-md transition-all text-center",
+                                            newBrokerPlatform === 'NT8' ? "bg-white dark:bg-slate-600 shadow-sm text-indigo-600 dark:text-white" : "text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200"
+                                        )}
+                                    >
+                                        NinjaTrader 8
+                                    </button>
+                                </div>
+
                                 <div>
-                                    <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Broker Name</label>
+                                    <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Connection Name</label>
                                     <input
                                         type="text"
-                                        placeholder="Broker Name (e.g. FTMO)"
-                                        className="bg-slate-100 dark:bg-slate-700 border-none rounded p-2 text-slate-900 dark:text-white text-sm w-full"
+                                        placeholder="Name (e.g. FTMO)"
+                                        className="bg-slate-100 dark:bg-slate-700 border-none rounded p-2 text-slate-900 dark:text-white text-sm w-full outline-none focus:ring-1 focus:ring-indigo-500"
                                         value={newBrokerName}
                                         onChange={e => setNewBrokerName(e.target.value)}
                                     />
@@ -336,7 +370,7 @@ export function SettingsView() {
                                     <input
                                         type="text"
                                         placeholder="Shorthand (e.g. FTMO)"
-                                        className="bg-slate-100 dark:bg-slate-700 border-none rounded p-2 text-slate-900 dark:text-white text-sm w-full"
+                                        className="bg-slate-100 dark:bg-slate-700 border-none rounded p-2 text-slate-900 dark:text-white text-sm w-full outline-none focus:ring-1 focus:ring-indigo-500"
                                         value={newBrokerShort}
                                         onChange={e => setNewBrokerShort(e.target.value)}
                                     />
@@ -346,21 +380,49 @@ export function SettingsView() {
                                     <input
                                         type="text"
                                         placeholder="Default Symbol (e.g. EURUSD)"
-                                        className="bg-slate-100 dark:bg-slate-700 border-none rounded p-2 text-slate-900 dark:text-white text-sm w-full"
+                                        className="bg-slate-100 dark:bg-slate-700 border-none rounded p-2 text-slate-900 dark:text-white text-sm w-full outline-none focus:ring-1 focus:ring-indigo-500"
                                         value={newBrokerDefaultSymbol}
                                         onChange={e => setNewBrokerDefaultSymbol(e.target.value)}
                                     />
                                 </div>
-                                <div>
-                                    <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Servers (comma separated)</label>
-                                    <input
-                                        type="text"
-                                        placeholder="e.g. FTMO-Demo, FTMO-Live"
-                                        className="bg-slate-100 dark:bg-slate-700 border-none rounded p-2 text-slate-900 dark:text-white text-sm w-full"
-                                        value={newBrokerServers}
-                                        onChange={e => setNewBrokerServers(e.target.value)}
-                                    />
-                                </div>
+
+                                {newBrokerPlatform === 'MT5' && (
+                                    <div>
+                                        <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Servers (comma separated)</label>
+                                        <input
+                                            type="text"
+                                            placeholder="e.g. FTMO-Demo, FTMO-Live"
+                                            className="bg-slate-100 dark:bg-slate-700 border-none rounded p-2 text-slate-900 dark:text-white text-sm w-full outline-none focus:ring-1 focus:ring-indigo-500"
+                                            value={newBrokerServers}
+                                            onChange={e => setNewBrokerServers(e.target.value)}
+                                        />
+                                    </div>
+                                )}
+
+                                {newBrokerPlatform === 'NT8' && (
+                                    <>
+                                        <div>
+                                            <label className="block text-xs font-bold text-slate-500 uppercase mb-1">NinjaTrader Username</label>
+                                            <input
+                                                type="text"
+                                                placeholder="Username"
+                                                className="bg-slate-100 dark:bg-slate-700 border-none rounded p-2 text-slate-900 dark:text-white text-sm w-full outline-none focus:ring-1 focus:ring-indigo-500"
+                                                value={newBrokerUsername}
+                                                onChange={e => setNewBrokerUsername(e.target.value)}
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-xs font-bold text-slate-500 uppercase mb-1">NinjaTrader Password</label>
+                                            <input
+                                                type="password"
+                                                placeholder="Password"
+                                                className="bg-slate-100 dark:bg-slate-700 border-none rounded p-2 text-slate-900 dark:text-white text-sm w-full outline-none focus:ring-1 focus:ring-indigo-500"
+                                                value={newBrokerPassword}
+                                                onChange={e => setNewBrokerPassword(e.target.value)}
+                                            />
+                                        </div>
+                                    </>
+                                )}
                             </div>
 
                             <div className="flex justify-end gap-3 mt-8">
@@ -370,7 +432,7 @@ export function SettingsView() {
                                     disabled={!newBrokerName || !newBrokerShort}
                                     className="px-6 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
-                                    {editingId ? 'Update Broker' : 'Save Broker'}
+                                    {editingId ? 'Update Connection' : 'Save Connection'}
                                 </button>
                             </div>
                         </div>
@@ -384,7 +446,7 @@ export function SettingsView() {
                             <div className="flex justify-between items-center mb-6 border-b border-slate-200 dark:border-slate-800 pb-4">
                                 <div>
                                     <h3 className="text-lg font-bold text-slate-900 dark:text-white">Symbol Mappings</h3>
-                                    <p className="text-slate-500 dark:text-slate-400 text-sm">Map internal symbols to broker-specific names for <span className="text-indigo-600 dark:text-indigo-400">{editingBroker.name}</span></p>
+                                    <p className="text-slate-500 dark:text-slate-400 text-sm">Map internal symbols to connection-specific names for <span className="text-indigo-600 dark:text-indigo-400">{editingBroker.name}</span></p>
                                 </div>
                                 <button onClick={() => setEditingBroker(null)} className="text-slate-500 hover:text-slate-900 dark:hover:text-white"><X size={20} /></button>
                             </div>
@@ -392,7 +454,7 @@ export function SettingsView() {
                             <div className="flex-1 overflow-y-auto pr-2 space-y-3">
                                 <div className="grid grid-cols-[1fr,1fr,auto] gap-3 text-xs font-bold text-slate-500 uppercase px-1">
                                     <div>Internal (e.g. GER40)</div>
-                                    <div>Broker (e.g. DAX30)</div>
+                                    <div>Connection (e.g. DAX30)</div>
                                     <div></div>
                                 </div>
                                 {mappingList.map((m, idx) => (
@@ -409,7 +471,7 @@ export function SettingsView() {
                                         />
                                         <input
                                             className="bg-slate-100 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded px-3 py-2 text-slate-900 dark:text-slate-200 focus:border-indigo-500 outline-none"
-                                            placeholder="Broker Symbol"
+                                            placeholder="Connection Symbol"
                                             value={m.value}
                                             onChange={e => {
                                                 const newList = [...mappingList];

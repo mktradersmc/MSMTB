@@ -17,7 +17,10 @@ export async function POST(req: Request) {
         shorthand: body.shorthand,
         servers: body.servers || [],
         symbolMappings: body.symbolMappings || {},
-        defaultSymbol: body.defaultSymbol || "EURUSD"
+        defaultSymbol: body.defaultSymbol || "EURUSD",
+        platform: body.platform,
+        username: body.username,
+        password: body.password
     };
     await saveBroker(broker);
     return NextResponse.json(broker);

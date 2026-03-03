@@ -100,7 +100,7 @@ class DatabaseService {
         this.marketDb.exec(`
             CREATE TABLE IF NOT EXISTS brokers (
                 id TEXT PRIMARY KEY, name TEXT, shorthand TEXT, servers TEXT, symbol_mappings TEXT,
-                default_symbol TEXT, type TEXT, api TEXT, environment TEXT
+                default_symbol TEXT, type TEXT, api TEXT, environment TEXT, username TEXT, password TEXT
             );
             CREATE TABLE IF NOT EXISTS accounts (
                 id TEXT PRIMARY KEY, bot_id TEXT, broker_id TEXT, login TEXT, password TEXT, server TEXT,
@@ -126,6 +126,10 @@ class DatabaseService {
                 bot_id TEXT PRIMARY KEY, config TEXT, updated_at INTEGER
             );
         `);
+
+        // Migrations for brokers (NinjaTrader credentials)
+        try { this.marketDb.exec("ALTER TABLE brokers ADD COLUMN username TEXT"); } catch (e) { }
+        try { this.marketDb.exec("ALTER TABLE brokers ADD COLUMN password TEXT"); } catch (e) { }
 
         // Perform Data Migration from JSON if tables are empty
         this.migrateJsonToDb();
@@ -406,22 +410,26 @@ class DatabaseService {
                 ...r,
                 servers: JSON.parse(r.servers || '[]'),
                 symbolMappings: symbolMappings,
-                defaultSymbol: r.default_symbol
+                defaultSymbol: r.default_symbol,
+                platform: r.type, // Map DB 'type' to API 'platform'
+                username: r.username,
+                password: r.password
             };
         });
     }
 
     saveBroker(b) {
         const stmt = this.marketDb.prepare(`
-            INSERT OR REPLACE INTO brokers (id, name, shorthand, servers, symbol_mappings, default_symbol, type, api, environment)
-            VALUES (@id, @name, @shorthand, @servers, @symbolMappings, @defaultSymbol, @type, @api, @environment)
+            INSERT OR REPLACE INTO brokers (id, name, shorthand, servers, symbol_mappings, default_symbol, type, api, environment, username, password)
+            VALUES (@id, @name, @shorthand, @servers, @symbolMappings, @defaultSymbol, @type, @api, @environment, @username, @password)
         `);
         stmt.run({
             id: b.id, name: b.name, shorthand: b.shorthand,
             servers: JSON.stringify(b.servers || []),
             symbolMappings: JSON.stringify(b.symbolMappings || {}),
             defaultSymbol: b.defaultSymbol,
-            type: b.type, api: b.api, environment: b.environment
+            type: b.platform || b.type, api: b.api, environment: b.environment,
+            username: b.username || null, password: b.password || null
         });
     }
 

@@ -6,6 +6,9 @@ export interface Broker {
     servers: string[]; // List of Available Servers e.g. ["FTMO-Demo", "FTMO-Live"]
     symbolMappings?: Record<string, string>; // e.g. { "EURUSD": "EURUSD.pro", "DAX": "GER40" }
     defaultSymbol?: string; // e.g. "EURUSD" (Internal Name)
+    platform?: 'MT5' | 'NT8'; // MT5 vs NT8 connection types
+    username?: string; // Credentials (especially for NT8)
+    password?: string;
 }
 
 export interface TradingAccount {

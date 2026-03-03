@@ -22,6 +22,9 @@ interface BrokerInfo {
     servers?: string[];
     symbolMappings?: Record<string, string>;
     environment?: string;
+    platform?: 'MT5' | 'NT8';
+    username?: string;
+    password?: string;
 }
 
 // --- Components ---
@@ -56,13 +59,16 @@ const BrokerCard = ({ broker, stats, onClick, onEdit, onDelete }: { broker: Brok
                     <div className={`w-10 h-10 rounded-lg flex items-center justify-center shadow-md transition-colors text-white font-bold text-sm shrink-0
                         ${broker.environment === 'TEST' ? 'bg-amber-500 shadow-amber-500/20' : (isComplete ? 'bg-emerald-500 shadow-emerald-500/20' : 'bg-indigo-500 shadow-indigo-500/20')}
                     `}>
-                        {broker.shorthand.substring(0, 2)}
+                        {(broker.shorthand || broker.name || '??').substring(0, 2)}
                     </div>
                     <div>
                         <h3 className="font-bold text-sm text-slate-900 dark:text-white leading-tight">{broker.name}</h3>
                         <div className="flex items-center gap-2 mt-0.5">
                             <span className="text-[10px] font-mono font-bold bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 px-1.5 py-0.5 rounded border border-slate-200 dark:border-slate-700">
-                                {broker.shorthand}
+                                {broker.shorthand || 'No shorthand'}
+                            </span>
+                            <span className="text-[10px] font-mono font-bold bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 px-1.5 py-0.5 rounded border border-slate-200 dark:border-slate-700">
+                                {broker.platform || 'MT5'}
                             </span>
                             {broker.environment === 'TEST' && (
                                 <span className="text-[10px] font-bold text-amber-600 dark:text-amber-400 uppercase">
@@ -75,8 +81,8 @@ const BrokerCard = ({ broker, stats, onClick, onEdit, onDelete }: { broker: Brok
 
                 <div className="flex items-center gap-2">
                     <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button onClick={onEdit} className="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-slate-100 dark:hover:bg-slate-800 rounded transition-colors" title="Edit Broker"><Pencil size={14} /></button>
-                        <button onClick={onDelete} className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded transition-colors" title="Delete Broker"><Trash size={14} /></button>
+                        <button onClick={onEdit} className="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-slate-100 dark:hover:bg-slate-800 rounded transition-colors" title="Edit Connection"><Pencil size={14} /></button>
+                        <button onClick={onDelete} className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded transition-colors" title="Delete Connection"><Trash size={14} /></button>
                     </div>
                     {isComplete && <div className="text-emerald-500"><CheckCircle2 size={16} /></div>}
                 </div>
@@ -194,7 +200,7 @@ const DetailView = ({
                 <button
                     onClick={onBack}
                     className="p-1.5 -ml-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors"
-                    title="Back to Brokers"
+                    title="Back to Connections"
                 >
                     <ArrowLeft size={18} />
                 </button>
@@ -334,6 +340,9 @@ export default function AssetMappingsPage({ onUpdate }: { onUpdate?: () => void 
     const [newBrokerShort, setNewBrokerShort] = useState('');
     const [newBrokerDefaultSymbol, setNewBrokerDefaultSymbol] = useState('EURUSD');
     const [newBrokerServers, setNewBrokerServers] = useState('');
+    const [newBrokerPlatform, setNewBrokerPlatform] = useState<'MT5' | 'NT8'>('MT5');
+    const [newBrokerUsername, setNewBrokerUsername] = useState('');
+    const [newBrokerPassword, setNewBrokerPassword] = useState('');
     const [brokerSaving, setBrokerSaving] = useState(false);
 
     // Data Load
@@ -370,6 +379,9 @@ export default function AssetMappingsPage({ onUpdate }: { onUpdate?: () => void 
         setNewBrokerShort('');
         setNewBrokerDefaultSymbol('EURUSD');
         setNewBrokerServers('');
+        setNewBrokerPlatform('MT5');
+        setNewBrokerUsername('');
+        setNewBrokerPassword('');
     };
 
     const handleEditBroker = (e: React.MouseEvent, broker: BrokerInfo) => {
@@ -379,12 +391,15 @@ export default function AssetMappingsPage({ onUpdate }: { onUpdate?: () => void 
         setNewBrokerShort(broker.shorthand);
         setNewBrokerDefaultSymbol(broker.defaultSymbol || 'EURUSD');
         setNewBrokerServers(broker.servers?.join(', ') || '');
+        setNewBrokerPlatform(broker.platform || 'MT5');
+        setNewBrokerUsername(broker.username || '');
+        setNewBrokerPassword(broker.password || '');
         setIsAddOpen(true);
     };
 
     const handleDeleteBroker = async (e: React.MouseEvent, id: string) => {
         e.stopPropagation();
-        if (!confirm('Delete this broker?')) return;
+        if (!confirm('Delete this connection?')) return;
         await fetchDirect(`/brokers/${id}`, { method: 'DELETE' });
         loadData();
     };
@@ -398,7 +413,10 @@ export default function AssetMappingsPage({ onUpdate }: { onUpdate?: () => void 
             name: newBrokerName,
             shorthand: newBrokerShort,
             defaultSymbol: newBrokerDefaultSymbol,
-            servers: newBrokerServers.split(',').map((s: string) => s.trim()).filter(Boolean),
+            servers: newBrokerPlatform === 'MT5' ? newBrokerServers.split(',').map((s: string) => s.trim()).filter(Boolean) : [],
+            platform: newBrokerPlatform,
+            username: newBrokerPlatform === 'NT8' ? newBrokerUsername : undefined,
+            password: newBrokerPlatform === 'NT8' ? newBrokerPassword : undefined,
             symbolMappings: existingBroker?.symbolMappings || {}
         };
 
@@ -412,7 +430,7 @@ export default function AssetMappingsPage({ onUpdate }: { onUpdate?: () => void 
             resetBrokerForm();
             loadData();
         } catch (e) {
-            setStatusMsg({ type: 'error', text: "Failed to save broker." });
+            setStatusMsg({ type: 'error', text: "Failed to save connection." });
         } finally {
             setBrokerSaving(false);
         }
@@ -516,9 +534,9 @@ export default function AssetMappingsPage({ onUpdate }: { onUpdate?: () => void 
                     </div>
                     <div>
                         <h2 className="font-bold text-lg tracking-tight text-slate-900 dark:text-white leading-tight">
-                            Broker Configuration
+                            Connection Configuration
                         </h2>
-                        <p className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold">Manage Broker Connections & Asset Mappings</p>
+                        <p className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold">Manage Connections & Asset Mappings</p>
                     </div>
                 </div>
 
@@ -528,22 +546,24 @@ export default function AssetMappingsPage({ onUpdate }: { onUpdate?: () => void 
                             onClick={() => { resetBrokerForm(); setIsAddOpen(true); }}
                             className="flex items-center gap-2 px-4 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-900 dark:text-white text-sm font-bold rounded-lg transition-all active:scale-95 border border-slate-200 dark:border-slate-700"
                         >
-                            <Plus size={16} /> Add Broker
+                            <Plus size={16} /> Neue Verbindung
                         </button>
                     )}
-                    <button
-                        onClick={handleSave}
-                        disabled={saving || !hasChanges}
-                        className={cn(
-                            "flex items-center gap-2 px-6 py-2 font-bold rounded-lg shadow-lg transition-all text-sm",
-                            hasChanges
-                                ? "bg-amber-500 hover:bg-amber-400 text-white shadow-amber-500/20 active:scale-95"
-                                : "bg-slate-100 dark:bg-slate-800 text-slate-400 cursor-not-allowed"
-                        )}
-                    >
-                        {saving ? <RefreshCw className="animate-spin" size={16} /> : <Save size={16} />}
-                        {saving ? 'Saving...' : (hasChanges ? 'Save Changes *' : 'No Changes')}
-                    </button>
+                    {selectedBroker && (
+                        <button
+                            onClick={handleSave}
+                            disabled={saving || !hasChanges}
+                            className={cn(
+                                "flex items-center gap-2 px-6 py-2 font-bold rounded-lg shadow-lg transition-all text-sm",
+                                hasChanges
+                                    ? "bg-amber-500 hover:bg-amber-400 text-white shadow-amber-500/20 active:scale-95"
+                                    : "bg-slate-100 dark:bg-slate-800 text-slate-400 cursor-not-allowed"
+                            )}
+                        >
+                            {saving ? <RefreshCw className="animate-spin" size={16} /> : <Save size={16} />}
+                            {saving ? 'Saving...' : (hasChanges ? 'Save Changes *' : 'No Changes')}
+                        </button>
+                    )}
                 </div>
             </div>
 
@@ -601,15 +621,37 @@ export default function AssetMappingsPage({ onUpdate }: { onUpdate?: () => void 
             {isAddOpen && (
                 <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
                     <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl shadow-2xl w-full max-w-md p-6 animate-in zoom-in-95">
-                        <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-6">{editingId ? 'Edit Broker' : 'Add New Broker'}</h3>
+                        <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-6">{editingId ? 'Edit Connection' : 'Neue Verbindung'}</h3>
 
                         <div className="space-y-4">
+                            {/* Platform Selector */}
+                            <div className="flex gap-4 p-1 bg-slate-100 dark:bg-slate-800 rounded-lg w-full mb-6">
+                                <button
+                                    onClick={() => setNewBrokerPlatform('MT5')}
+                                    className={cn(
+                                        "flex-1 py-2 text-sm font-bold rounded-md transition-all text-center",
+                                        newBrokerPlatform === 'MT5' ? "bg-white dark:bg-slate-600 shadow-sm text-indigo-600 dark:text-white" : "text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200"
+                                    )}
+                                >
+                                    MetaTrader 5
+                                </button>
+                                <button
+                                    onClick={() => setNewBrokerPlatform('NT8')}
+                                    className={cn(
+                                        "flex-1 py-2 text-sm font-bold rounded-md transition-all text-center",
+                                        newBrokerPlatform === 'NT8' ? "bg-white dark:bg-slate-600 shadow-sm text-indigo-600 dark:text-white" : "text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200"
+                                    )}
+                                >
+                                    NinjaTrader 8
+                                </button>
+                            </div>
+
                             <div>
-                                <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Broker Name</label>
+                                <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Connection Name</label>
                                 <input
                                     type="text"
-                                    placeholder="Broker Name (e.g. FTMO)"
-                                    className="bg-slate-100 dark:bg-slate-700 border-none rounded p-2 text-slate-900 dark:text-white text-sm w-full"
+                                    placeholder="Name (e.g. FTMO)"
+                                    className="bg-slate-100 dark:bg-slate-700 border-none rounded p-2 text-slate-900 dark:text-white text-sm w-full outline-none focus:ring-1 focus:ring-indigo-500"
                                     value={newBrokerName}
                                     onChange={e => setNewBrokerName(e.target.value)}
                                 />
@@ -619,7 +661,7 @@ export default function AssetMappingsPage({ onUpdate }: { onUpdate?: () => void 
                                 <input
                                     type="text"
                                     placeholder="Shorthand (e.g. FTMO)"
-                                    className="bg-slate-100 dark:bg-slate-700 border-none rounded p-2 text-slate-900 dark:text-white text-sm w-full"
+                                    className="bg-slate-100 dark:bg-slate-700 border-none rounded p-2 text-slate-900 dark:text-white text-sm w-full outline-none focus:ring-1 focus:ring-indigo-500"
                                     value={newBrokerShort}
                                     onChange={e => setNewBrokerShort(e.target.value)}
                                 />
@@ -629,21 +671,49 @@ export default function AssetMappingsPage({ onUpdate }: { onUpdate?: () => void 
                                 <input
                                     type="text"
                                     placeholder="Default Symbol (e.g. EURUSD)"
-                                    className="bg-slate-100 dark:bg-slate-700 border-none rounded p-2 text-slate-900 dark:text-white text-sm w-full"
+                                    className="bg-slate-100 dark:bg-slate-700 border-none rounded p-2 text-slate-900 dark:text-white text-sm w-full outline-none focus:ring-1 focus:ring-indigo-500"
                                     value={newBrokerDefaultSymbol}
                                     onChange={e => setNewBrokerDefaultSymbol(e.target.value)}
                                 />
                             </div>
-                            <div>
-                                <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Servers (comma separated)</label>
-                                <input
-                                    type="text"
-                                    placeholder="e.g. FTMO-Demo, FTMO-Live"
-                                    className="bg-slate-100 dark:bg-slate-700 border-none rounded p-2 text-slate-900 dark:text-white text-sm w-full"
-                                    value={newBrokerServers}
-                                    onChange={e => setNewBrokerServers(e.target.value)}
-                                />
-                            </div>
+
+                            {newBrokerPlatform === 'MT5' && (
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Servers (comma separated)</label>
+                                    <input
+                                        type="text"
+                                        placeholder="e.g. FTMO-Demo, FTMO-Live"
+                                        className="bg-slate-100 dark:bg-slate-700 border-none rounded p-2 text-slate-900 dark:text-white text-sm w-full outline-none focus:ring-1 focus:ring-indigo-500"
+                                        value={newBrokerServers}
+                                        onChange={e => setNewBrokerServers(e.target.value)}
+                                    />
+                                </div>
+                            )}
+
+                            {newBrokerPlatform === 'NT8' && (
+                                <>
+                                    <div>
+                                        <label className="block text-xs font-bold text-slate-500 uppercase mb-1">NinjaTrader Username</label>
+                                        <input
+                                            type="text"
+                                            placeholder="Username"
+                                            className="bg-slate-100 dark:bg-slate-700 border-none rounded p-2 text-slate-900 dark:text-white text-sm w-full outline-none focus:ring-1 focus:ring-indigo-500"
+                                            value={newBrokerUsername}
+                                            onChange={e => setNewBrokerUsername(e.target.value)}
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs font-bold text-slate-500 uppercase mb-1">NinjaTrader Password</label>
+                                        <input
+                                            type="password"
+                                            placeholder="Password"
+                                            className="bg-slate-100 dark:bg-slate-700 border-none rounded p-2 text-slate-900 dark:text-white text-sm w-full outline-none focus:ring-1 focus:ring-indigo-500"
+                                            value={newBrokerPassword}
+                                            onChange={e => setNewBrokerPassword(e.target.value)}
+                                        />
+                                    </div>
+                                </>
+                            )}
                         </div>
 
                         <div className="flex justify-end gap-3 mt-8">
@@ -654,7 +724,7 @@ export default function AssetMappingsPage({ onUpdate }: { onUpdate?: () => void 
                                 className="px-6 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                             >
                                 {brokerSaving && <RefreshCw size={14} className="animate-spin" />}
-                                {editingId ? 'Update Broker' : 'Save Broker'}
+                                {editingId ? 'Update Connection' : 'Save Connection'}
                             </button>
                         </div>
                     </div>

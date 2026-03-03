@@ -149,7 +149,7 @@ export const MainSidebar: React.FC<MainSidebarProps> = ({ activeView, onNavigate
 
                     <SectionHeader label="Environment" />
                     <SidebarItem id="ACCOUNTS" icon={Users} label="Accounts" />
-                    <SidebarItem id="ASSET_MAPPINGS" icon={Settings} label="Brokers" />
+                    <SidebarItem id="ASSET_MAPPINGS" icon={Settings} label="Connections" />
                     <SidebarItem id="DATAFEED" icon={Database} label="Datafeeds" />
 
                     <SectionHeader label="Analysis" />

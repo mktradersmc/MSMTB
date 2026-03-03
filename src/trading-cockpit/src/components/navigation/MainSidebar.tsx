@@ -115,7 +115,7 @@ export const MainSidebar: React.FC<MainSidebarProps> = ({ activeView, onNavigate
     return (
         <aside
             className={cn(
-                "bg-white dark:bg-slate-900 border-r border-slate-300 dark:border-slate-800 flex flex-col z-50 shrink-0 transition-all duration-300 ease-in-out relative",
+                "bg-white dark:bg-slate-900 border-r border-slate-300 dark:border-slate-800 flex flex-col z-20 shrink-0 transition-all duration-300 ease-in-out relative",
                 isCollapsed ? "w-16" : "w-64"
             )}
         >
@@ -188,22 +188,22 @@ export const MainSidebar: React.FC<MainSidebarProps> = ({ activeView, onNavigate
 
             </div>
 
-            {/* Edge Toggle Overlay - Widened hitbox to keep hover state active when popper appears */}
+            {/* Edge Toggle Overlay */}
             <div
-                className="absolute top-0 right-[-24px] h-full w-12 z-[200] flex items-center justify-center cursor-pointer group"
+                className="absolute top-0 right-0 h-full w-4 z-[200] flex items-center justify-center cursor-pointer group"
                 onClick={toggleSidebar}
                 title={isCollapsed ? "Expand" : "Collapse"}
             >
                 {/* Visual Strip Background */}
-                <div className="absolute inset-y-0 left-6 w-0.5 bg-transparent group-hover:bg-indigo-500/50 transition-colors duration-200" />
+                <div className="absolute inset-y-0 right-0 w-0.5 bg-transparent group-hover:bg-indigo-500/50 transition-colors duration-200" />
 
                 {/* Arrow Button - Dynamic Direction */}
                 <div className={cn(
                     "absolute w-5 h-10 bg-white dark:bg-slate-800 border-y border-slate-200 dark:border-slate-700 shadow-lg flex items-center justify-center transition-all duration-200 opacity-0 group-hover:opacity-100",
                     // Dynamic Positioning & Styling
                     isCollapsed
-                        ? "left-6 translate-x-0 rounded-r-md border-r border-l-0" // Pops Right (Expand)
-                        : "left-6 -translate-x-full rounded-l-md border-l border-r-0" // Pops Left (Collapse)
+                        ? "right-0 translate-x-full rounded-r-md border-r border-l-0" // Pops Right (Expand)
+                        : "right-0 translate-x-0 rounded-l-md border-l border-r-0" // Pops Left (Collapse) - Adjusted to be flush with edge
                 )}>
                     {isCollapsed ? <ChevronRight size={14} className="text-indigo-500" /> : <ChevronLeft size={14} className="text-indigo-500" />}
                 </div>

@@ -11,7 +11,8 @@ export function UpdateBanner() {
     useEffect(() => {
         const checkUpdate = async () => {
             try {
-                const res = await fetch('/api/system/update/status');
+                // Add timestamp to prevent Next.js / Browser caching the generic GET request
+                const res = await fetch(`/api/system/update/status?t=${Date.now()}`, { cache: "no-store" });
                 if (res.ok) {
                     const data = await res.json();
                     if (data && data.updateAvailable) {
@@ -35,8 +36,8 @@ export function UpdateBanner() {
 
     return (
         <div
-            className="w-full bg-blue-600/90 text-white px-4 py-2 flex items-center justify-between text-sm shadow-md"
-            style={{ zIndex: 9999, position: 'relative' }}
+            className="fixed top-0 left-0 w-full bg-blue-600/90 text-white px-4 py-2 flex items-center justify-between text-sm shadow-md"
+            style={{ zIndex: 9999 }}
         >
             <div className="flex items-center gap-2">
                 <DownloadCloud className="w-4 h-4 animate-bounce" />

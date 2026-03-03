@@ -147,6 +147,16 @@ class AutoUpdateService {
         console.log(`[AutoUpdateService] Triggering update.ps1 (Restart Instances: ${restartInstances})...`);
         const updateScript = path.join(this.projectRoot, 'scripts', 'update.ps1');
 
+        // Delete previous update status to prevent the UI from instantly closing the dialog
+        const logPath = path.join(this.projectRoot, 'logs', 'update-progress.json');
+        try {
+            if (fs.existsSync(logPath)) {
+                fs.unlinkSync(logPath);
+            }
+        } catch (e) {
+            console.error('[AutoUpdateService] Could not delete old progress log', e);
+        }
+
         // Pass a flag to the powershell script if instances should be restarted
         // Convert boolean to PowerShell string argument "True" / "False"
         const psRestartFlag = restartInstances ? 'True' : 'False';

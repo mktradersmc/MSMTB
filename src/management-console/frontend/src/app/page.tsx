@@ -178,6 +178,29 @@ export default function ManagementConsole() {
     return () => clearInterval(interval);
   }, [isUpdating]);
 
+  // Polling for new updates in the background
+  useEffect(() => {
+    if (!token || isUpdating) return;
+
+    const checkUpdates = async () => {
+      try {
+        const res = await fetch("/api/system/update/status");
+        if (res.ok) {
+          const data = await res.json();
+          // If update available and not currently shown on screen (commits list is empty), fetch details automatically
+          if (data.updateAvailable && (!updateStatus?.commits || updateStatus.commits.length === 0)) {
+            fetchUpdateDetails(token);
+          }
+        }
+      } catch (e) {
+        console.error("Failed to check background update status", e);
+      }
+    };
+
+    const intervalId = setInterval(checkUpdates, 10000);
+    return () => clearInterval(intervalId);
+  }, [token, isUpdating, updateStatus?.commits?.length]);
+
   const handleLogout = () => {
     setToken(null);
     localStorage.removeItem("mc_token");

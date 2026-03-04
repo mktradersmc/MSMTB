@@ -25,7 +25,7 @@ function Write-Log {
     Write-Host $Message -ForegroundColor $Color
 }
 
-$TotalSteps = 9
+$TotalSteps = 10
 function Set-Progress {
     param([int]$Step, [string]$Message)
     $obj = @{ step = $Step; total = $TotalSteps; text = $Message }
@@ -302,9 +302,18 @@ try {
     $reporters = Get-WmiObject Win32_Process -Filter "name='node.exe'" | Where-Object { $_.CommandLine -match "update-reporter.js" }
     foreach ($r in $reporters) { Stop-Process -Id $r.ProcessId -Force -ErrorAction SilentlyContinue }
 
+    Set-Progress 9 "Führe benutzerdefinierte Update-Skripte aus..."
+    Write-Log "  -> Führe ausstehende Update-Hooks aus..." "Cyan"
+    $HookRunner = Join-Path $TargetDir "scripts\run-update-hooks.js"
+    if (Test-Path $HookRunner) {
+        $HookDataPath = Join-Path $MCLive "data"
+        node $HookRunner --data-path "$HookDataPath" 2>&1 | Out-File -Append -FilePath $LogFile
+        if ($LASTEXITCODE -ne 0) { throw "Update-Hooks fehlgeschlagen (Exit Code: $LASTEXITCODE). Rollback erforderlich!" }
+    }
+
     pm2 start all 2>&1 | Out-File -Append -FilePath $LogFile
     
-    Set-Progress 9 "Fertig"
+    Set-Progress 10 "Fertig"
 
     Write-Log "`n[OK] UPDATE ERFOLGREICH ABGESCHLOSSEN!" "Green"
 }

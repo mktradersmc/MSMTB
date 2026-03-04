@@ -164,9 +164,12 @@ export default function ManagementConsole() {
             setUpdateProgress(data);
 
             if (data.step === 9 || data.step === -1) {
-              setIsUpdating(false);
+              clearInterval(interval);
               setSysMesg(data.step === 9 ? "Update erfolgreich abgeschlossen!" : "Update fehlgeschlagen. System-Rollback aktiv.");
-              setTimeout(() => window.location.reload(), 3000); // Reload after showing final message briefly
+              setTimeout(() => {
+                setIsUpdating(false);
+                window.location.reload();
+              }, 3000); // Reload after showing final message briefly
             }
           }
         } catch (e) {

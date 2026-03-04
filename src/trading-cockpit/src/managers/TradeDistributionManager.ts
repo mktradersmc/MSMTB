@@ -58,7 +58,7 @@ export class TradeDistributionManager {
         console.log(`\n======================================================`);
         console.log(`[TradeDistribution] 🚀 DISTRIBUTE TRADE INITIATED`);
         console.log(`[TradeDistribution] Symbol: ${baseTrade?.symbol}, isTestMode: ${isTestMode}, previewOnly: ${previewOnly}`);
-        console.log(`[TradeDistribution] Input Config:`, config ? `Loaded (${Object.keys(config.brokers||{}).length} live, ${Object.keys(config.test_brokers||{}).length} test)` : 'NULL');
+        console.log(`[TradeDistribution] Input Config:`, config ? `Loaded (${Object.keys(config.brokers || {}).length} live, ${Object.keys(config.test_brokers || {}).length} test)` : 'NULL');
         console.log(`[TradeDistribution] Input Accounts Count: ${accounts ? accounts.length : 0}`);
         if (accounts && accounts.length > 0) {
             console.log(`[TradeDistribution] Input Accounts Dump:`, accounts.map(a => `${a.login} (ID: ${a.id}, isTest: ${a.isTest}, type: ${a.accountType})`));
@@ -106,7 +106,7 @@ export class TradeDistributionManager {
                 console.warn(`[TradeDistribution] ⚠️ Unknown broker ID: ${brokerId} for accounts:`, brokerAccounts.map(a => a.login));
                 return;
             }
-            
+
             console.log(`\n[TradeDistribution] --- Processing Broker: ${brokerNode.name} (${brokerId}) ---`);
             console.log(`[TradeDistribution] Accounts surviving Stage 1 for this broker:`, brokerAccounts.map(a => `${a.login} (ID: ${a.id})`));
 
@@ -120,7 +120,7 @@ export class TradeDistributionManager {
                 // Perform case-insensitive search
                 const targetKey = baseTrade.symbol.toUpperCase().trim();
                 const matchedKey = Object.keys(brokerNode.symbolMappings).find(k => k.toUpperCase().trim() === targetKey);
-                
+
                 if (matchedKey) {
                     mappedSym = brokerNode.symbolMappings[matchedKey];
                 }
@@ -217,6 +217,10 @@ export class TradeDistributionManager {
 
             if (validAccounts.length > 0) {
                 console.log(`[TradeDistribution] ✅ SUCCESS: Broker ${brokerNode.name} final execution accounts:`, validAccounts.map(a => a.login));
+
+                // Explicitly tag the environment so the backend saves it correctly in the database
+                mappedTrade.environment = isTestMode ? 'test' : 'live';
+
                 batches.push({
                     brokerId: brokerId,
                     trade: mappedTrade,

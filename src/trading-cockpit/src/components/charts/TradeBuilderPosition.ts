@@ -118,16 +118,15 @@ export class TradeBuilderPosition extends InteractiveChartObject {
 
             const trade = this.getTradeObject();
 
-            // 1. Generate ID
+            // 1. Generate Temporary ID for React unique keys/references during transit
             const tradeId = TradeLogService.getNextId();
 
             // 2. Inject ID
             (trade as any).id = tradeId;
 
-            // 3. Log to DB
-            TradeLogService.logTrade(trade);
+            // 3. (REMOVED: Logging to DB happens asynchronously in ChartContainer after Backend assigns REAL ID)
 
-            console.log(`[TradeBuilder] Execute clicked! ID: ${tradeId}`, trade);
+            console.log(`[TradeBuilder] Execute clicked! Transit ID: ${tradeId}`, trade);
             this.onExecute?.(trade);
         }
 

@@ -284,6 +284,11 @@ Write-Log "  Richte PM2-Autostart für den aktuellen Benutzer ein..." "Cyan"
 npm install -g pm2-windows-startup 2>&1 | Out-File -Append -FilePath $LogFile
 pm2-startup install *>> $LogFile
 pm2 save *>> $LogFile
+Write-Log "  Initialisiere Trade-ID Sequenz auf 100000..." "Cyan"
+Push-Location $TargetDir
+node scripts/set-sequence.js 100000 *>> $LogFile
+Pop-Location
+
 Write-Log "`n=========================================" "Green"
 Write-Log "   SETUP ERFOLGREICH ABGESCHLOSSEN       " "Green"
 Write-Log "=========================================" "Green"

@@ -307,7 +307,8 @@ class TradeWorker extends AbstractWorker {
                 magic: magic,
                 initial_entry: response.entry_price !== undefined ? response.entry_price : (payload.entry && payload.entry.price !== undefined ? payload.entry.price : undefined),
                 initial_sl: response.sl !== undefined ? response.sl : (payload.sl && payload.sl.price !== undefined ? payload.sl.price : undefined),
-                initial_tp: response.tp !== undefined ? response.tp : (payload.tp && payload.tp.price !== undefined ? payload.tp.price : undefined)
+                initial_tp: response.tp !== undefined ? response.tp : (payload.tp && payload.tp.price !== undefined ? payload.tp.price : undefined),
+                environment: payload.environment || 'test' // Propagate environment
             });
             // Update Aggregation
             this.db.checkAggregateTradeStatus(masterId);
@@ -323,7 +324,8 @@ class TradeWorker extends AbstractWorker {
                 accountId: accountId,
                 status: 'ERROR',
                 error_message: e.message || 'RPC Timeout / Offline',
-                magic: magic
+                magic: magic,
+                environment: payload.environment || 'test' // Propagate environment
             });
             this.db.checkAggregateTradeStatus(masterId);
         }

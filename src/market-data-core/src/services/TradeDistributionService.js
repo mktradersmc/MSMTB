@@ -211,23 +211,14 @@ class TradeDistributionService {
 
         // PERSISTENCE (Step 1 of User Request)
         const db = require('./DatabaseService');
-        // REF-0189: Use Numeric ID for Magic Number compatibility
-        let tradeId = trade.id || `${Date.now()}`;
 
         // GENERIC MAGIC NUMBER GENERATION - STRICT ALIGNMENT WITH USER REQUEST
-        // User: "TradeID = MagicNumber". TradeID IS the source of truth.
-        // We assume trade.id is numeric strings (e.g. "1738291...") from Frontend.
-        let magic = 0;
-        if (trade.id && !isNaN(trade.id)) {
-            magic = Number(trade.id);
-            tradeId = trade.id.toString(); // Ensure string
-            console.log(`[TradeDist] ✅ ID PRESERVED: ${tradeId} (Magic=${magic})`);
-        } else {
-            // Fallback only if absolutely necessary
-            magic = Date.now();
-            tradeId = magic.toString();
-            console.log(`[TradeDist] 🔄 STRICT ID REASSIGNMENT: Original=${trade.id} -> New=${tradeId} (Magic=${magic})`);
-        }
+        // The ID is now retrieved reliably and exclusively from the backend global_settings table.
+        const sequenceId = db.getNextTradeSequence();
+        const tradeId = sequenceId.toString();
+        const magic = sequenceId;
+
+        console.log(`[TradeDist] 🔄 BACKEND SEQUENCE ASSIGNMENT: Client-ID=${trade.id} -> New=${tradeId} (Magic=${magic})`);
 
         // Ensure ID and Magic are on the trade object
         trade.id = tradeId;
@@ -284,7 +275,8 @@ class TradeDistributionService {
                         brokerId: acc.brokerId,
                         accountId: acc.accountId || acc.id,
                         status: 'DISPATCHED',
-                        magic: magic
+                        magic: magic,
+                        environment: trade.environment || 'test' // Fix: propagate environment to child execs
                     });
 
                     const workerPayload = {

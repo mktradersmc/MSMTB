@@ -2077,6 +2077,14 @@ export const ChartContainer = React.forwardRef<ChartContainerHandle, ChartContai
                     if (res.ok) {
                         const result = await res.json();
                         console.log(`[ChartContainer] Batch for ${batch.brokerId} executed:`, result);
+
+                        // FIX: Backend now assigns the real database Sequence ID. (e.g., 100000)
+                        // Update the local trade object so logs/widgets reflect the real ID instead of TEMP-<timestamp>
+                        if (result.tradeId) {
+                            tradeToExecute.id = result.tradeId;
+                            console.log(`[ChartContainer] Re-assigned Trade ID from Backend: ${result.tradeId}`);
+                        }
+
                         return { status: 'success', brokerId: batch.brokerId, accounts: batch.accounts, details: result };
                     } else {
                         console.error(`[ChartContainer] Batch execution failed for ${batch.brokerId}: ${res.statusText}`);
@@ -2087,6 +2095,9 @@ export const ChartContainer = React.forwardRef<ChartContainerHandle, ChartContai
                     return { status: 'error', brokerId: batch.brokerId, accounts: batch.accounts, error: e.message };
                 }
             }));
+
+            // Log to Local History exactly once AFTER receiving the definitive ID from the backend
+            TradeLogService.logTrade(tradeToExecute);
 
             // SKIP SUMMARY DIALOG (User Request)
             // setExecutionSummary(results);

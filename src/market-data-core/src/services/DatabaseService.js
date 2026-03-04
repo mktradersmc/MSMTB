@@ -125,6 +125,9 @@ class DatabaseService {
             CREATE TABLE IF NOT EXISTS bot_configs (
                 bot_id TEXT PRIMARY KEY, config TEXT, updated_at INTEGER
             );
+            CREATE TABLE IF NOT EXISTS global_settings (
+                key_name TEXT PRIMARY KEY, key_value TEXT, updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+            );
         `);
 
         // Migrations for brokers (NinjaTrader credentials)
@@ -643,6 +646,24 @@ class DatabaseService {
             console.error("[DB] saveBrokerSymbols Error:", e);
             return false;
         }
+    }
+
+    // --- TRADE SEQUENCE ---
+    getNextTradeSequence() {
+        // Atomic increment
+        const stmtUpdate = this.marketDb.prepare("UPDATE global_settings SET key_value = CAST(key_value AS INTEGER) + 1, updated_at = CURRENT_TIMESTAMP WHERE key_name = 'TRADE_SEQUENCE'");
+        const info = stmtUpdate.run();
+
+        if (info.changes === 0) {
+            // Fallback if not explicitly initialized
+            console.warn("[DB] TRADE_SEQUENCE not initialized. Automatic fallback to 1000.");
+            this.marketDb.prepare("INSERT OR IGNORE INTO global_settings (key_name, key_value) VALUES ('TRADE_SEQUENCE', '1001')").run();
+            return 1001;
+        }
+
+        const stmtGet = this.marketDb.prepare("SELECT key_value FROM global_settings WHERE key_name = 'TRADE_SEQUENCE'");
+        const row = stmtGet.get();
+        return parseInt(row.key_value, 10);
     }
 
     // --- TRADE MANAGEMENT ---

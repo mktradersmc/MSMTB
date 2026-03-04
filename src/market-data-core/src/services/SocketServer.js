@@ -131,13 +131,15 @@ class SocketServer {
         this.app.get('/api/system/config', (req, res) => {
             const sysConfig = systemConfigService.getConfig();
             // Don't send password to frontend
-            res.json({ success: true, config: { projectRoot: sysConfig.projectRoot, systemUsername: sysConfig.systemUsername } });
+            res.json({ success: true, config: { projectRoot: sysConfig.projectRoot, systemUsername: sysConfig.systemUsername, ntUsername: sysConfig.ntUsername, ntPassword: sysConfig.ntPassword } });
         });
 
         this.app.post('/api/system/config', (req, res) => {
-            const { projectRoot, systemUsername, systemPassword } = req.body;
+            const { projectRoot, systemUsername, systemPassword, ntUsername, ntPassword } = req.body;
             const newConfig = { projectRoot, systemUsername };
             if (systemPassword) newConfig.systemPassword = systemPassword; // Only update if provided
+            if (ntUsername !== undefined) newConfig.ntUsername = ntUsername;
+            if (ntPassword) newConfig.ntPassword = ntPassword;
             const success = systemConfigService.saveConfig(newConfig);
             res.json({ success });
         });
@@ -228,7 +230,6 @@ class SocketServer {
         // --- NinjaTrader Lifecycle Control ---
         this.app.post('/api/admin/ninjatrader/start', (req, res) => {
             console.log("[API] Received Request to START NinjaTrader...");
-            const { username, password } = req.body;
 
             try {
                 // Lazy Load Bootstrapper to avoid path issues if not deployed
@@ -241,8 +242,13 @@ class SocketServer {
 
                 if (require('fs').existsSync(managerPath)) {
                     const nt8Manager = require(managerPath);
-                    // Credentials passed directly
-                    nt8Manager.startNinjaTrader(username, password);
+
+                    // Retrieve Global App Credentials from SystemConfigService
+                    const sysConfig = systemConfigService.getConfig();
+                    const sysUser = sysConfig.ntUsername || '';
+                    const sysPass = sysConfig.ntPassword || '';
+
+                    nt8Manager.startNinjaTrader(sysUser, sysPass);
                     res.json({ success: true, message: "NinjaTrader Start Triggered" });
                 } else {
                     console.error(`[API] Bootstrapper not found at ${managerPath}`);
@@ -250,6 +256,32 @@ class SocketServer {
                 }
             } catch (e) {
                 console.error("[API] Failed to start NT8:", e);
+                res.status(500).json({ success: false, error: e.message });
+            }
+        });
+
+        this.app.post('/api/admin/ninjatrader/connection', (req, res) => {
+            console.log("[API] Received Request to CREATE NinjaTrader Connection...");
+            const { username, password } = req.body;
+
+            try {
+                const path = require('path');
+                const managerPath = path.resolve(__dirname, '../bootstrapper/nt8-process-manager.js');
+
+                if (require('fs').existsSync(managerPath)) {
+                    const nt8Manager = require(managerPath);
+                    if (nt8Manager.createConnection) {
+                        nt8Manager.createConnection(username, password);
+                        res.json({ success: true, message: "NinjaTrader Connection Creation Triggered" });
+                    } else {
+                        res.status(500).json({ success: false, error: "createConnection function not found in Bootstrapper." });
+                    }
+                } else {
+                    console.error(`[API] Bootstrapper not found at ${managerPath}`);
+                    res.status(404).json({ success: false, error: "Bootstrapper module not found on server." });
+                }
+            } catch (e) {
+                console.error("[API] Failed to trigger connection creation:", e);
                 res.status(500).json({ success: false, error: e.message });
             }
         });
@@ -727,9 +759,43 @@ class SocketServer {
             }
         });
 
-        this.app.post('/api/brokers', (req, res) => {
+        this.app.post('/api/brokers', async (req, res) => {
             try {
+                // Check if broker is new before saving
+                const isNew = !db.getBrokers().find(b => b.id === req.body.id);
+
                 db.saveBroker(req.body);
+
+                // --- NinjaTrader Automation Pipeline ---
+                if (isNew && (req.body.type === 'NinjaTrader' || req.body.platform === 'NinjaTrader' || req.body.platform === 'NT8')) {
+                    const managerPath = path.resolve(__dirname, '../bootstrapper/nt8-process-manager.js');
+                    if (fs.existsSync(managerPath)) {
+                        const nt8Manager = require(managerPath);
+                        const sysConfig = systemConfigService.getConfig();
+                        const sysUser = sysConfig.ntUsername || '';
+                        const sysPass = sysConfig.ntPassword || '';
+
+                        console.log(`[API] New NinjaTrader connection saved! Initiating automated provisioning...`);
+
+                        // Fire-and-forget the automation so we don't block the HTTP response
+                        (async () => {
+                            try {
+                                // Step 1: Wait for NT8 to launch and the auto-login script to finish
+                                await nt8Manager.startNinjaTrader(sysUser, sysPass);
+
+                                // Step 2: Auto-login is done. The Control Center is loading.
+                                // createConnection's EnumWindows loop handles waiting for the Control Center natively.
+                                if (nt8Manager.createConnection) {
+                                    console.log(`[API] Auto-Login completed. Firing NinjaTrader Connection UI Automation for new broker: ${req.body.username}...`);
+                                    nt8Manager.createConnection(req.body.username, req.body.password);
+                                }
+                            } catch (e) {
+                                console.error(`[API] NinjaTrader Automated Provisioning Failed:`, e);
+                            }
+                        })();
+                    }
+                }
+
                 res.json({ success: true });
             } catch (e) {
                 console.error("[API] Error saving broker:", e);

@@ -66,8 +66,8 @@ class NT8DiscoveryWorker extends AbstractWorker {
         const now = Date.now();
 
         const insertBrokerStmt = this.db.prepare(`
-            INSERT OR IGNORE INTO brokers (id, name, type, api, environment) 
-            VALUES (?, ?, ?, ?, ?)
+            INSERT OR IGNORE INTO brokers (id, name, shorthand, type, api, environment) 
+            VALUES (?, ?, ?, ?, ?, ?)
         `);
 
         // The actual schema in DatabaseService: id, bot_id, broker_id, login, password, server, account_type, is_test, instance_path, is_datafeed, platform, timezone, balance, account_size, created_at
@@ -79,8 +79,10 @@ class NT8DiscoveryWorker extends AbstractWorker {
         this.db.transaction(() => {
             accounts.forEach(acc => {
                 try {
+                    if (acc.provider === 'Unknown') return;
+
                     // 1. Broker Logic
-                    let brokerId = 'NinjaTrader';
+                    let brokerId = 'NinjaTrader-Fallback';
                     if (acc.provider && acc.provider !== 'Unknown') {
                         // 1. Try to find an existing broker by name (case-insensitive) to get the real UUID
                         const existingBroker = this.db.prepare('SELECT id FROM brokers WHERE name = ? COLLATE NOCASE LIMIT 1').get(acc.provider);
@@ -88,14 +90,15 @@ class NT8DiscoveryWorker extends AbstractWorker {
                         if (existingBroker) {
                             brokerId = existingBroker.id;
                         } else {
-                            // 2. Only if no broker exists, create a new simple fallback
-                            const cleanProvider = acc.provider.replace(/[^a-zA-Z0-9]/g, '_');
-                            brokerId = cleanProvider;
+                            // 2. Only if no broker exists, create a new simple fallback using a proper UUID
+                            const crypto = require('crypto');
+                            brokerId = crypto.randomUUID();
 
                             insertBrokerStmt.run(
                                 brokerId,
                                 acc.provider,
-                                'NinjaTrader',
+                                'NT',        // Shorthand
+                                'NT8',       // Platform type should be NT8, not NinjaTrader
                                 'Bridge',
                                 acc.isTest ? 'demo' : 'live'
                             );
@@ -117,7 +120,7 @@ class NT8DiscoveryWorker extends AbstractWorker {
                         acc.accountType || 'Trading', // account_type
                         acc.isTest ? 1 : 0, // is_test
                         '',                 // instance_path
-                        0,                  // is_datafeed
+                        acc.isDatafeed ? 1 : 0, // is_datafeed
                         'NT8',              // platform
                         'UTC',              // timezone
                         providedBalance,    // balance

@@ -17,15 +17,13 @@ if ($Install) {
         New-Item -ItemType Directory -Force -Path "$nt8Dir\AddOns\AwesomeCockpit" | Out-Null
     }
 
+    Copy-Item "$srcDir\AddOn.cs" "$nt8Dir\AddOns\AwesomeCockpit\AddOn.cs" -Force
     Copy-Item "$srcDir\BridgeWebSocket.cs" "$nt8Dir\AddOns\AwesomeCockpit\BridgeWebSocket.cs" -Force
     Copy-Item "$srcDir\DiscoveryService.cs" "$nt8Dir\AddOns\AwesomeCockpit\DiscoveryService.cs" -Force
     Copy-Item "$srcDir\SubscriptionManager.cs" "$nt8Dir\AddOns\AwesomeCockpit\SubscriptionManager.cs" -Force
     Copy-Item "$srcDir\ExecutionManager.cs" "$nt8Dir\AddOns\AwesomeCockpit\ExecutionManager.cs" -Force
     
-    # Clean up deprecated strategy file
-    if (Test-Path "$nt8Dir\AddOns\AwesomeCockpit\HeadlessBarTrackerStrategy.cs") {
-        Remove-Item "$nt8Dir\AddOns\AwesomeCockpit\HeadlessBarTrackerStrategy.cs" -Force
-    }
+    Copy-Item "$srcDir\HeadlessBarTrackerStrategy.cs" "$nt8Dir\AddOns\AwesomeCockpit\HeadlessBarTrackerStrategy.cs" -Force
     
     Write-Host "Files copied successfully." -ForegroundColor Green
 }

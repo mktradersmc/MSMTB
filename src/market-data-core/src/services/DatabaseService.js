@@ -419,6 +419,11 @@ class DatabaseService {
     }
 
     saveBroker(b) {
+        if (!b.id) {
+            const crypto = require('crypto');
+            b.id = crypto.randomUUID();
+        }
+
         const stmt = this.marketDb.prepare(`
             INSERT OR REPLACE INTO brokers (id, name, shorthand, servers, symbol_mappings, default_symbol, type, api, environment, username, password)
             VALUES (@id, @name, @shorthand, @servers, @symbolMappings, @defaultSymbol, @type, @api, @environment, @username, @password)

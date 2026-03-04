@@ -97,19 +97,12 @@ export async function POST(req: Request, props: { params: Promise<{ id: string }
             return NextResponse.json({ success: true, status: 'STOPPED' });
         } else if (action === 'START') {
             if (account.platform === 'NT8') {
-                const username = account.login;
-                const password = account.password;
-
-                if (!username || !password) {
-                    return NextResponse.json({ error: "NinjaTrader credentials (username/password) are missing on this account." }, { status: 400 });
-                }
-
                 try {
-                    console.log(`[ActionAPI] Forwarding NT8 Start request to backend...`);
+                    console.log(`[ActionAPI] Forwarding NT8 Start request to backend (Credentials managed by backend)...`);
                     const response = await fetch(`${API_BASE}/admin/ninjatrader/start`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ username, password })
+                        body: JSON.stringify({})
                     });
 
                     const data = await response.json().catch(() => ({}));

@@ -6,6 +6,7 @@ using NinjaTrader.Cbi;
 using NinjaTrader.Core;
 using NinjaTrader.Data;
 using NinjaTrader.NinjaScript;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 namespace AwesomeCockpit.NT8.Bridge
@@ -204,7 +205,7 @@ namespace AwesomeCockpit.NT8.Bridge
                     {
                         // Open event
                         var entryExecutions = tm.Executions.Where(ex => (tm.Type == 0 && ex.Order.OrderAction == OrderAction.Buy) || (tm.Type == 1 && ex.Order.OrderAction == OrderAction.SellShort)).ToList();
-                        
+
                         int totalEntryVol = entryExecutions.Sum(ex => ex.Quantity);
                         tm.Vol = totalEntryVol;
 
@@ -928,285 +929,285 @@ namespace AwesomeCockpit.NT8.Bridge
                             if (targetAccount == null)
                                 targetAccount = Account.All.FirstOrDefault(a => a != null && a.Name.StartsWith("Sim"));
 
-                if (targetAccount == null)
-                {
-                    SendRejectResponse("No suitable trading account found for modification", id, reqId, botId);
-                    return;
-                }
-
-                // In NT8, modifications mean finding the existing working Order and calling ChangeOrder
-                bool modified = false;
-
-                // Let's resolve the new SL / TP 
-                // We need an Instrument to properly Resolve anchors, so we MUST find the existing order or position first to get the Instrument
-                Instrument targetInst = null;
-
-                // Find all working orders for this ID
-                var workingOrders = targetAccount.Orders.Where(o => o.OrderState == OrderState.Working || o.OrderState == OrderState.Accepted).ToList();
-                var associatedOrders = workingOrders.Where(o => o.Name.StartsWith(id)).ToList(); // Matches id, id_SL, id_TP
-
-                if (associatedOrders.Count > 0)
-                {
-                    targetInst = associatedOrders.First().Instrument;
-                }
-                else
-                {
-                    // Maybe we only have a Position, no SL/TP yet?
-                    var pos = targetAccount.Positions.FirstOrDefault(p => p.MarketPosition != MarketPosition.Flat /* Can't easily link ID to position unless we use Executions */);
-                    // This is hard in NT8 since Positions don't track Name. The Executions do.
-                    // If no orders exist, we need to know the symbol from the payload or tracking map.
-                    if (_activeTrades.TryGetValue(id, out TradeMetric tm) && !string.IsNullOrEmpty(tm.Symbol))
-                    {
-                        targetInst = ResolveInstrument(tm.Symbol);
-                    }
-                }
-
-                if (targetInst == null)
-                {
-                    SendRejectResponse("Cannot resolve instrument for modification", id, reqId, botId);
-                    return;
-                }
-
-                double newSl = ResolveAnchor(payload["sl"]?["anchor"], targetInst);
-                if (newSl == 0.0 && payload["sl"]?["price"] != null && payload["sl"]["price"].Type != JTokenType.Null)
-                    newSl = Convert.ToDouble(payload["sl"]["price"]);
-
-                double newTp = ResolveAnchor(payload["tp"]?["anchor"], targetInst);
-                if (newTp == 0.0 && payload["tp"]?["price"] != null && payload["tp"]["price"].Type != JTokenType.Null)
-                    newTp = Convert.ToDouble(payload["tp"]["price"]);
-
-                // Modify SL Order
-                if (newSl > 0)
-                {
-                    var slOrder = associatedOrders.FirstOrDefault(o => o.Name == id + "_SL");
-                    var tpOrder = associatedOrders.FirstOrDefault(o => o.Name == id + "_TP");
-                    if (slOrder != null)
-                    {
-                        // Canceling one OCO leg cancels both in NT8. We must rebuild both.
-                        string newOco = $"OCO_MOD_{id}_{NinjaTrader.Core.Globals.Now.Ticks}";
-                        
-#pragma warning disable 0618
-                        Order newSlOrder = targetAccount.CreateOrder(targetInst, slOrder.OrderAction, OrderType.StopMarket, TimeInForce.Gtc, slOrder.Quantity, 0, newSl, newOco, id + "_SL", null);
-                        if (newSlOrder != null) targetAccount.Submit(new[] { newSlOrder });
-
-                        if (tpOrder != null)
-                        {
-                            Order newTpOrder = targetAccount.CreateOrder(targetInst, tpOrder.OrderAction, OrderType.Limit, TimeInForce.Gtc, tpOrder.Quantity, tpOrder.LimitPrice, 0, newOco, id + "_TP", null);
-                            if (newTpOrder != null) targetAccount.Submit(new[] { newTpOrder });
-                        }
-#pragma warning restore 0618
-                        
-                        // Safety: Only cancel the old pair AFTER the new pair has been dispatched
-                        targetAccount.Cancel(new[] { slOrder }); // This drops the TP as well
-                        
-                        if (_activeTrades.TryGetValue(id, out TradeMetric tm)) tm.Sl = newSl;
-                        
-                        modified = true;
-                    }
-                }
-
-                // Modify TP Order
-                if (newTp > 0)
-                {
-                    var slOrder = associatedOrders.FirstOrDefault(o => o.Name == id + "_SL");
-                    var tpOrder = associatedOrders.FirstOrDefault(o => o.Name == id + "_TP");
-                    if (tpOrder != null)
-                    {
-                        string newOco = $"OCO_MOD_{id}_{NinjaTrader.Core.Globals.Now.Ticks}";
-                        
-#pragma warning disable 0618
-                        Order newTpOrder = targetAccount.CreateOrder(targetInst, tpOrder.OrderAction, OrderType.Limit, TimeInForce.Gtc, tpOrder.Quantity, newTp, 0, newOco, id + "_TP", null);
-                        if (newTpOrder != null) targetAccount.Submit(new[] { newTpOrder });
-
-                        if (slOrder != null)
-                        {
-                            Order newSlOrder = targetAccount.CreateOrder(targetInst, slOrder.OrderAction, OrderType.StopMarket, TimeInForce.Gtc, slOrder.Quantity, 0, slOrder.StopPrice, newOco, id + "_SL", null);
-                            if (newSlOrder != null) targetAccount.Submit(new[] { newSlOrder });
-                        }
-#pragma warning restore 0618
-                        
-                        // Safety: Only cancel the old pair AFTER the new pair has been dispatched
-                        targetAccount.Cancel(new[] { tpOrder }); // This drops the SL as well
-                        
-                        if (_activeTrades.TryGetValue(id, out TradeMetric tm)) tm.Tp = newTp;
-                        
-                        modified = true;
-                    }
-                }
-
-                string action = payload["action"]?.ToString()?.ToUpper();
-
-                if (action == "CANCEL")
-                {
-                    if (associatedOrders.Count > 0)
-                    {
-                        targetAccount.Cancel(associatedOrders);
-                        modified = true;
-                        NinjaTrader.Code.Output.Process($"[ExecutionManager] Cancelled {associatedOrders.Count} Pending Orders (Entry, SL, TP) for: {id}", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
-                    }
-                    else
-                    {
-                        NinjaTrader.Code.Output.Process($"[ExecutionManager] Cancel Failed: Could not find working orders for {id}", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
-                    }
-                }
-                else if (action == "SL_BE")
-                {
-                    if (_activeTrades.TryGetValue(id, out TradeMetric tm))
-                    {
-                        var slOrder = associatedOrders.FirstOrDefault(o => o.Name == id + "_SL");
-                        if (slOrder != null)
-                        {
-                            // STRICT CALCULATION: Find the EXACT entry execution price, overriding any theoretical tm.Open value
-                            double bePrice = tm.Open;
-                            var entryExecution = tm.Executions.FirstOrDefault(ex => (tm.Type == 0 && ex.Order.OrderAction == OrderAction.Buy) || (tm.Type == 1 && ex.Order.OrderAction == OrderAction.SellShort));
-                            if (entryExecution != null && entryExecution.Price > 0)
+                            if (targetAccount == null)
                             {
-                                bePrice = entryExecution.Price;
+                                SendRejectResponse("No suitable trading account found for modification", id, reqId, botId);
+                                return;
                             }
 
-                            double tickSize = targetInst.MasterInstrument.TickSize;
-                            bePrice = Math.Round(bePrice / tickSize) * tickSize;
+                            // In NT8, modifications mean finding the existing working Order and calling ChangeOrder
+                            bool modified = false;
 
-                            // Modify the StopPrice property by Rebuilding the OCO Pair
-                            var tpOrder = associatedOrders.FirstOrDefault(o => o.Name == id + "_TP");
-                            string newOco = $"OCO_MOD_{id}_{NinjaTrader.Core.Globals.Now.Ticks}";
-                            
-#pragma warning disable 0618
-                            Order newSlOrder = targetAccount.CreateOrder(targetInst, slOrder.OrderAction, OrderType.StopMarket, TimeInForce.Gtc, slOrder.Quantity, 0, bePrice, newOco, id + "_SL", null);
-                            if (newSlOrder != null) targetAccount.Submit(new[] { newSlOrder });
+                            // Let's resolve the new SL / TP 
+                            // We need an Instrument to properly Resolve anchors, so we MUST find the existing order or position first to get the Instrument
+                            Instrument targetInst = null;
 
-                            if (tpOrder != null)
+                            // Find all working orders for this ID
+                            var workingOrders = targetAccount.Orders.Where(o => o.OrderState == OrderState.Working || o.OrderState == OrderState.Accepted).ToList();
+                            var associatedOrders = workingOrders.Where(o => o.Name.StartsWith(id)).ToList(); // Matches id, id_SL, id_TP
+
+                            if (associatedOrders.Count > 0)
                             {
-                                Order newTpOrder = targetAccount.CreateOrder(targetInst, tpOrder.OrderAction, OrderType.Limit, TimeInForce.Gtc, tpOrder.Quantity, tpOrder.LimitPrice, 0, newOco, id + "_TP", null);
-                                if (newTpOrder != null) targetAccount.Submit(new[] { newTpOrder });
-                            }
-#pragma warning restore 0618
-                            
-                            // Safety: Only cancel the old pair AFTER the new pair has been dispatched
-                            targetAccount.Cancel(new[] { slOrder }); // Drops both
-                            
-                            tm.Sl = bePrice;
-                            tm.SlAtBe = true;
-                            
-                            modified = true;
-
-                            NinjaTrader.Code.Output.Process($"[ExecutionManager] Moved Stop Loss for {id} to Breakeven exactly at Execution Price: {bePrice}", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
-                        }
-                    }
-                }
-                else if (action == "CLOSE" || action == "CLOSE_FULL" || action == "CLOSE_PARTIAL")
-                {
-                    if (_activeTrades.TryGetValue(id, out TradeMetric tm))
-                    {
-                        int entryVol = tm.Executions.Where(ex => (tm.Type == 0 && ex.Order.OrderAction == OrderAction.Buy) || (tm.Type == 1 && ex.Order.OrderAction == OrderAction.SellShort)).Sum(ex => ex.Quantity);
-                        int exitVol = tm.Executions.Where(ex => (tm.Type == 0 && (ex.Order.OrderAction == OrderAction.Sell || ex.Order.OrderAction == OrderAction.SellShort)) || (tm.Type == 1 && (ex.Order.OrderAction == OrderAction.Buy || ex.Order.OrderAction == OrderAction.BuyToCover))).Sum(ex => ex.Quantity);
-
-                        int remainingVol = entryVol - exitVol;
-
-                        if (remainingVol > 0)
-                        {
-                            int closeVol = remainingVol;
-                            if (action == "CLOSE_PARTIAL" && payload["percent"] != null)
-                            {
-                                double percent = (double)payload["percent"];
-                                if (percent > 1.0) percent = percent / 100.0;
-
-                                // EXACT MQL5 Match: use Epsilon for 100% close
-                                if (percent < 0.9999)
-                                {
-                                    closeVol = (int)Math.Floor(remainingVol * percent);
-                                    if (closeVol < 1) closeVol = 1;
-                                    if (closeVol > remainingVol) closeVol = remainingVol;
-                                }
-                            }
-
-                            int newWorkingVol = remainingVol - closeVol;
-
-                            // Cleanup / Reduce orphaned SL and TP Orders
-                            var currentWorkingOrders = targetAccount.Orders.Where(o => o.OrderState == OrderState.Working || o.OrderState == OrderState.Accepted).ToList();
-                            var slOrder = currentWorkingOrders.FirstOrDefault(o => o.Name == id + "_SL");
-                            var tpOrder = currentWorkingOrders.FirstOrDefault(o => o.Name == id + "_TP");
-
-                            long ts = NinjaTrader.Core.Globals.Now.Ticks;
-
-                            if (newWorkingVol <= 0)
-                            {
-                                // Full Close -> Cancel all orphaned protective orders
-                                if (slOrder != null) targetAccount.Cancel(new[] { slOrder });
-                                if (tpOrder != null) targetAccount.Cancel(new[] { tpOrder });
-                                NinjaTrader.Code.Output.Process($"[ExecutionManager] FULL CLOSE: Cancelled orphaned SL/TP orders for {id}", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
+                                targetInst = associatedOrders.First().Instrument;
                             }
                             else
                             {
-                                // Partial Close -> Cancel old and replace with new reduced volume
-                                string newOco = $"OCO_SLTP_{id}_{ts}";
+                                // Maybe we only have a Position, no SL/TP yet?
+                                var pos = targetAccount.Positions.FirstOrDefault(p => p.MarketPosition != MarketPosition.Flat /* Can't easily link ID to position unless we use Executions */);
+                                // This is hard in NT8 since Positions don't track Name. The Executions do.
+                                // If no orders exist, we need to know the symbol from the payload or tracking map.
+                                if (_activeTrades.TryGetValue(id, out TradeMetric tm) && !string.IsNullOrEmpty(tm.Symbol))
+                                {
+                                    targetInst = ResolveInstrument(tm.Symbol);
+                                }
+                            }
+
+                            if (targetInst == null)
+                            {
+                                SendRejectResponse("Cannot resolve instrument for modification", id, reqId, botId);
+                                return;
+                            }
+
+                            double newSl = ResolveAnchor(payload["sl"]?["anchor"], targetInst);
+                            if (newSl == 0.0 && payload["sl"]?["price"] != null && payload["sl"]["price"].Type != JTokenType.Null)
+                                newSl = Convert.ToDouble(payload["sl"]["price"]);
+
+                            double newTp = ResolveAnchor(payload["tp"]?["anchor"], targetInst);
+                            if (newTp == 0.0 && payload["tp"]?["price"] != null && payload["tp"]["price"].Type != JTokenType.Null)
+                                newTp = Convert.ToDouble(payload["tp"]["price"]);
+
+                            // Modify SL Order
+                            if (newSl > 0)
+                            {
+                                var slOrder = associatedOrders.FirstOrDefault(o => o.Name == id + "_SL");
+                                var tpOrder = associatedOrders.FirstOrDefault(o => o.Name == id + "_TP");
                                 if (slOrder != null)
                                 {
-                                    targetAccount.Cancel(new[] { slOrder });
+                                    // Canceling one OCO leg cancels both in NT8. We must rebuild both.
+                                    string newOco = $"OCO_MOD_{id}_{NinjaTrader.Core.Globals.Now.Ticks}";
+
 #pragma warning disable 0618
-                                    Order scaledSl = targetAccount.CreateOrder(targetInst, slOrder.OrderAction, OrderType.StopMarket, TimeInForce.Gtc, newWorkingVol, 0, slOrder.StopPrice, newOco, id + "_SL", null);
-                                    if (scaledSl != null) targetAccount.Submit(new[] { scaledSl });
+                                    Order newSlOrder = targetAccount.CreateOrder(targetInst, slOrder.OrderAction, OrderType.StopMarket, TimeInForce.Gtc, slOrder.Quantity, 0, newSl, newOco, id + "_SL", null);
+                                    if (newSlOrder != null) targetAccount.Submit(new[] { newSlOrder });
+
+                                    if (tpOrder != null)
+                                    {
+                                        Order newTpOrder = targetAccount.CreateOrder(targetInst, tpOrder.OrderAction, OrderType.Limit, TimeInForce.Gtc, tpOrder.Quantity, tpOrder.LimitPrice, 0, newOco, id + "_TP", null);
+                                        if (newTpOrder != null) targetAccount.Submit(new[] { newTpOrder });
+                                    }
 #pragma warning restore 0618
+
+                                    // Safety: Only cancel the old pair AFTER the new pair has been dispatched
+                                    targetAccount.Cancel(new[] { slOrder }); // This drops the TP as well
+
+                                    if (_activeTrades.TryGetValue(id, out TradeMetric tm)) tm.Sl = newSl;
+
+                                    modified = true;
                                 }
+                            }
+
+                            // Modify TP Order
+                            if (newTp > 0)
+                            {
+                                var slOrder = associatedOrders.FirstOrDefault(o => o.Name == id + "_SL");
+                                var tpOrder = associatedOrders.FirstOrDefault(o => o.Name == id + "_TP");
                                 if (tpOrder != null)
                                 {
-                                    targetAccount.Cancel(new[] { tpOrder });
+                                    string newOco = $"OCO_MOD_{id}_{NinjaTrader.Core.Globals.Now.Ticks}";
+
 #pragma warning disable 0618
-                                    Order scaledTp = targetAccount.CreateOrder(targetInst, tpOrder.OrderAction, OrderType.Limit, TimeInForce.Gtc, newWorkingVol, tpOrder.LimitPrice, 0, newOco, id + "_TP", null);
-                                    if (scaledTp != null) targetAccount.Submit(new[] { scaledTp });
+                                    Order newTpOrder = targetAccount.CreateOrder(targetInst, tpOrder.OrderAction, OrderType.Limit, TimeInForce.Gtc, tpOrder.Quantity, newTp, 0, newOco, id + "_TP", null);
+                                    if (newTpOrder != null) targetAccount.Submit(new[] { newTpOrder });
+
+                                    if (slOrder != null)
+                                    {
+                                        Order newSlOrder = targetAccount.CreateOrder(targetInst, slOrder.OrderAction, OrderType.StopMarket, TimeInForce.Gtc, slOrder.Quantity, 0, slOrder.StopPrice, newOco, id + "_SL", null);
+                                        if (newSlOrder != null) targetAccount.Submit(new[] { newSlOrder });
+                                    }
 #pragma warning restore 0618
+
+                                    // Safety: Only cancel the old pair AFTER the new pair has been dispatched
+                                    targetAccount.Cancel(new[] { tpOrder }); // This drops the SL as well
+
+                                    if (_activeTrades.TryGetValue(id, out TradeMetric tm)) tm.Tp = newTp;
+
+                                    modified = true;
                                 }
-                                NinjaTrader.Code.Output.Process($"[ExecutionManager] PARTIAL CLOSE: Reduced orphaned SL/TP orders to {newWorkingVol} for {id}", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
                             }
 
-                            OrderAction closeAction = tm.Type == 0 ? OrderAction.Sell : OrderAction.BuyToCover;
+                            string action = payload["action"]?.ToString()?.ToUpper();
 
-                            // Prevent Duplicate Order / OCO conflicts on multiple partial closes
-                            string closeOco = $"OCO_{id}_{ts}";
-                            string closeOrderId = $"{id}_C_{ts}";
+                            if (action == "CANCEL")
+                            {
+                                if (associatedOrders.Count > 0)
+                                {
+                                    targetAccount.Cancel(associatedOrders);
+                                    modified = true;
+                                    NinjaTrader.Code.Output.Process($"[ExecutionManager] Cancelled {associatedOrders.Count} Pending Orders (Entry, SL, TP) for: {id}", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
+                                }
+                                else
+                                {
+                                    NinjaTrader.Code.Output.Process($"[ExecutionManager] Cancel Failed: Could not find working orders for {id}", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
+                                }
+                            }
+                            else if (action == "SL_BE")
+                            {
+                                if (_activeTrades.TryGetValue(id, out TradeMetric tm))
+                                {
+                                    var slOrder = associatedOrders.FirstOrDefault(o => o.Name == id + "_SL");
+                                    if (slOrder != null)
+                                    {
+                                        // STRICT CALCULATION: Find the EXACT entry execution price, overriding any theoretical tm.Open value
+                                        double bePrice = tm.Open;
+                                        var entryExecution = tm.Executions.FirstOrDefault(ex => (tm.Type == 0 && ex.Order.OrderAction == OrderAction.Buy) || (tm.Type == 1 && ex.Order.OrderAction == OrderAction.SellShort));
+                                        if (entryExecution != null && entryExecution.Price > 0)
+                                        {
+                                            bePrice = entryExecution.Price;
+                                        }
+
+                                        double tickSize = targetInst.MasterInstrument.TickSize;
+                                        bePrice = Math.Round(bePrice / tickSize) * tickSize;
+
+                                        // Modify the StopPrice property by Rebuilding the OCO Pair
+                                        var tpOrder = associatedOrders.FirstOrDefault(o => o.Name == id + "_TP");
+                                        string newOco = $"OCO_MOD_{id}_{NinjaTrader.Core.Globals.Now.Ticks}";
 
 #pragma warning disable 0618
-                            Order closeOrder = targetAccount.CreateOrder(targetInst, closeAction, OrderType.Market, TimeInForce.Gtc, closeVol, 0, 0, closeOco, closeOrderId, null);
-                            if (closeOrder != null)
-                            {
-                                targetAccount.Submit(new[] { closeOrder });
-                                modified = true;
-                                NinjaTrader.Code.Output.Process($"[ExecutionManager] Submitted {closeAction} Market Order to CLOSE {closeVol} contracts for {id}", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
-                            }
-#pragma warning restore 0618
-                        }
-                    }
-                }
+                                        Order newSlOrder = targetAccount.CreateOrder(targetInst, slOrder.OrderAction, OrderType.StopMarket, TimeInForce.Gtc, slOrder.Quantity, 0, bePrice, newOco, id + "_SL", null);
+                                        if (newSlOrder != null) targetAccount.Submit(new[] { newSlOrder });
 
-                if (modified)
-                {
-                    string reqCmd = msg["command"]?.ToString() ?? "CMD_MODIFY_POSITION";
-                    var successPayload = new
-                    {
-                        status = "OK",
-                        message = "Command Dispatched",
-                        id = id,
-                        sl_at_be_success = (action == "SL_BE")
-                    };
-                    _socket.SendProtocolMessage($"{reqCmd}_RESPONSE", successPayload, botId, "TRADING", "ALL", reqId);
-                }
-                else
-                {
-                    string reqCmd = msg["command"]?.ToString() ?? "CMD_MODIFY_POSITION";
-                    var rejectPayload = new
-                    {
-                        status = "REJECTED",
-                        message = "Could not find working orders to modify or cancel",
-                        id = id
-                    };
-                    _socket.SendProtocolMessage($"{reqCmd}_RESPONSE", rejectPayload, botId, "TRADING", "ALL", reqId);
-                }
+                                        if (tpOrder != null)
+                                        {
+                                            Order newTpOrder = targetAccount.CreateOrder(targetInst, tpOrder.OrderAction, OrderType.Limit, TimeInForce.Gtc, tpOrder.Quantity, tpOrder.LimitPrice, 0, newOco, id + "_TP", null);
+                                            if (newTpOrder != null) targetAccount.Submit(new[] { newTpOrder });
+                                        }
+#pragma warning restore 0618
+
+                                        // Safety: Only cancel the old pair AFTER the new pair has been dispatched
+                                        targetAccount.Cancel(new[] { slOrder }); // Drops both
+
+                                        tm.Sl = bePrice;
+                                        tm.SlAtBe = true;
+
+                                        modified = true;
+
+                                        NinjaTrader.Code.Output.Process($"[ExecutionManager] Moved Stop Loss for {id} to Breakeven exactly at Execution Price: {bePrice}", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
+                                    }
+                                }
+                            }
+                            else if (action == "CLOSE" || action == "CLOSE_FULL" || action == "CLOSE_PARTIAL")
+                            {
+                                if (_activeTrades.TryGetValue(id, out TradeMetric tm))
+                                {
+                                    int entryVol = tm.Executions.Where(ex => (tm.Type == 0 && ex.Order.OrderAction == OrderAction.Buy) || (tm.Type == 1 && ex.Order.OrderAction == OrderAction.SellShort)).Sum(ex => ex.Quantity);
+                                    int exitVol = tm.Executions.Where(ex => (tm.Type == 0 && (ex.Order.OrderAction == OrderAction.Sell || ex.Order.OrderAction == OrderAction.SellShort)) || (tm.Type == 1 && (ex.Order.OrderAction == OrderAction.Buy || ex.Order.OrderAction == OrderAction.BuyToCover))).Sum(ex => ex.Quantity);
+
+                                    int remainingVol = entryVol - exitVol;
+
+                                    if (remainingVol > 0)
+                                    {
+                                        int closeVol = remainingVol;
+                                        if (action == "CLOSE_PARTIAL" && payload["percent"] != null)
+                                        {
+                                            double percent = (double)payload["percent"];
+                                            if (percent > 1.0) percent = percent / 100.0;
+
+                                            // EXACT MQL5 Match: use Epsilon for 100% close
+                                            if (percent < 0.9999)
+                                            {
+                                                closeVol = (int)Math.Floor(remainingVol * percent);
+                                                if (closeVol < 1) closeVol = 1;
+                                                if (closeVol > remainingVol) closeVol = remainingVol;
+                                            }
+                                        }
+
+                                        int newWorkingVol = remainingVol - closeVol;
+
+                                        // Cleanup / Reduce orphaned SL and TP Orders
+                                        var currentWorkingOrders = targetAccount.Orders.Where(o => o.OrderState == OrderState.Working || o.OrderState == OrderState.Accepted).ToList();
+                                        var slOrder = currentWorkingOrders.FirstOrDefault(o => o.Name == id + "_SL");
+                                        var tpOrder = currentWorkingOrders.FirstOrDefault(o => o.Name == id + "_TP");
+
+                                        long ts = NinjaTrader.Core.Globals.Now.Ticks;
+
+                                        if (newWorkingVol <= 0)
+                                        {
+                                            // Full Close -> Cancel all orphaned protective orders
+                                            if (slOrder != null) targetAccount.Cancel(new[] { slOrder });
+                                            if (tpOrder != null) targetAccount.Cancel(new[] { tpOrder });
+                                            NinjaTrader.Code.Output.Process($"[ExecutionManager] FULL CLOSE: Cancelled orphaned SL/TP orders for {id}", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
+                                        }
+                                        else
+                                        {
+                                            // Partial Close -> Cancel old and replace with new reduced volume
+                                            string newOco = $"OCO_SLTP_{id}_{ts}";
+                                            if (slOrder != null)
+                                            {
+                                                targetAccount.Cancel(new[] { slOrder });
+#pragma warning disable 0618
+                                                Order scaledSl = targetAccount.CreateOrder(targetInst, slOrder.OrderAction, OrderType.StopMarket, TimeInForce.Gtc, newWorkingVol, 0, slOrder.StopPrice, newOco, id + "_SL", null);
+                                                if (scaledSl != null) targetAccount.Submit(new[] { scaledSl });
+#pragma warning restore 0618
+                                            }
+                                            if (tpOrder != null)
+                                            {
+                                                targetAccount.Cancel(new[] { tpOrder });
+#pragma warning disable 0618
+                                                Order scaledTp = targetAccount.CreateOrder(targetInst, tpOrder.OrderAction, OrderType.Limit, TimeInForce.Gtc, newWorkingVol, tpOrder.LimitPrice, 0, newOco, id + "_TP", null);
+                                                if (scaledTp != null) targetAccount.Submit(new[] { scaledTp });
+#pragma warning restore 0618
+                                            }
+                                            NinjaTrader.Code.Output.Process($"[ExecutionManager] PARTIAL CLOSE: Reduced orphaned SL/TP orders to {newWorkingVol} for {id}", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
+                                        }
+
+                                        OrderAction closeAction = tm.Type == 0 ? OrderAction.Sell : OrderAction.BuyToCover;
+
+                                        // Prevent Duplicate Order / OCO conflicts on multiple partial closes
+                                        string closeOco = $"OCO_{id}_{ts}";
+                                        string closeOrderId = $"{id}_C_{ts}";
+
+#pragma warning disable 0618
+                                        Order closeOrder = targetAccount.CreateOrder(targetInst, closeAction, OrderType.Market, TimeInForce.Gtc, closeVol, 0, 0, closeOco, closeOrderId, null);
+                                        if (closeOrder != null)
+                                        {
+                                            targetAccount.Submit(new[] { closeOrder });
+                                            modified = true;
+                                            NinjaTrader.Code.Output.Process($"[ExecutionManager] Submitted {closeAction} Market Order to CLOSE {closeVol} contracts for {id}", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
+                                        }
+#pragma warning restore 0618
+                                    }
+                                }
+                            }
+
+                            if (modified)
+                            {
+                                string reqCmd = msg["command"]?.ToString() ?? "CMD_MODIFY_POSITION";
+                                var successPayload = new
+                                {
+                                    status = "OK",
+                                    message = "Command Dispatched",
+                                    id = id,
+                                    sl_at_be_success = (action == "SL_BE")
+                                };
+                                _socket.SendProtocolMessage($"{reqCmd}_RESPONSE", successPayload, botId, "TRADING", "ALL", reqId);
+                            }
+                            else
+                            {
+                                string reqCmd = msg["command"]?.ToString() ?? "CMD_MODIFY_POSITION";
+                                var rejectPayload = new
+                                {
+                                    status = "REJECTED",
+                                    message = "Could not find working orders to modify or cancel",
+                                    id = id
+                                };
+                                _socket.SendProtocolMessage($"{reqCmd}_RESPONSE", rejectPayload, botId, "TRADING", "ALL", reqId);
+                            }
 
                         }
                         catch (Exception innerEx)
                         {
                             NinjaTrader.Code.Output.Process($"[ExecutionManager] Dispatcher Modify Error: {innerEx.Message}\n{innerEx.StackTrace}", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
-                            
+
                             string reqCmd = msg["command"]?.ToString() ?? "CMD_MODIFY_POSITION";
                             var errorPayload = new { status = "ERROR", message = $"Dispatcher Mod Error: {innerEx.Message}", id = id };
                             _socket.SendProtocolMessage($"{reqCmd}_RESPONSE", errorPayload, botId, "TRADING", "ALL", reqId);

@@ -16,6 +16,7 @@ const fs = require('fs');
 // CONFIGURATION
 const NT8_PATH = "C:\\Program Files\\NinjaTrader 8\\bin\\NinjaTrader.exe"; // Adjust if needed
 const LOGIN_SCRIPT = path.join(__dirname, 'auto-login.ps1');
+const CREATE_CONN_SCRIPT = path.join(__dirname, 'create-connection.ps1');
 
 // No top-level credentials constants - passed dynamically
 
@@ -33,50 +34,87 @@ function checkProcess() {
 }
 
 function startNinjaTrader(username, password) {
-    if (!username || !password) {
-        console.error("[Bootstrapper] ❌ Cannot start NT8: Missing credentials.");
-        return;
-    }
+    return new Promise((resolve, reject) => {
+        if (!username || !password) {
+            console.error("[Bootstrapper] ❌ Cannot start NT8: Missing credentials.");
+            return reject(new Error("Missing credentials"));
+        }
 
-    console.log(`[Bootstrapper] 🚀 Launching: ${NT8_PATH}`);
+        // 1. Check if already running
+        exec('tasklist /FI "IMAGENAME eq NinjaTrader.exe"', { windowsHide: true }, (err, stdout, stderr) => {
+            if (stdout.includes("NinjaTrader.exe")) {
+                console.log("[Bootstrapper] ✅ NinjaTrader is already running. Skipping startup & login.");
+                return resolve(); // Resolve immediately
+            }
 
-    // Spawn detached to survive Node process if needed, 
-    // but usually we want to keep a handle.
-    try {
-        const subprocess = spawn(NT8_PATH, [], {
-            detached: true,
-            stdio: 'ignore'
+            // 2. Not running, boot it up
+            console.log(`[Bootstrapper] 🚀 Launching: ${NT8_PATH}`);
+            try {
+                const subprocess = spawn(NT8_PATH, [], {
+                    detached: true,
+                    stdio: 'ignore'
+                });
+                subprocess.unref();
+
+                console.log("[Bootstrapper] Waiting for Login Window (15s)...");
+
+                // Schedule Login Injection
+                setTimeout(() => {
+                    performLogin(username, password)
+                        .then(() => resolve())
+                        .catch((err) => reject(err));
+                }, 15000); // 15s delay for splash screen
+
+            } catch (e) {
+                console.error("[Bootstrapper] Failed to start NT8:", e);
+                reject(e);
+            }
         });
-        subprocess.unref();
-
-        console.log("[Bootstrapper] Waiting for Login Window (15s)...");
-
-        // Schedule Login Injection
-        setTimeout(() => {
-            performLogin(username, password);
-        }, 15000); // 15s delay for splash screen
-
-    } catch (e) {
-        console.error("[Bootstrapper] Failed to start NT8:", e);
-    }
+    });
 }
 
 function performLogin(username, password) {
-    console.log("[Bootstrapper] 🔑 Attempting Auto-Login via PowerShell...");
+    return new Promise((resolve, reject) => {
+        console.log("[Bootstrapper] 🔑 Attempting Auto-Login via PowerShell...");
+
+        const ps = spawn('powershell.exe', [
+            '-NoProfile',
+            '-ExecutionPolicy', 'Bypass',
+            '-File', LOGIN_SCRIPT
+        ], {
+            env: { ...process.env, NT8_USER: username, NT8_PASS: password }
+        });
+
+        ps.stdout.on('data', (data) => console.log(`[PS Login] ${data}`));
+        ps.stderr.on('data', (data) => console.error(`[PS Login Error] ${data}`));
+
+        ps.on('close', (code) => {
+            console.log(`[Bootstrapper] Login script finished (Code ${code})`);
+            if (code === 0) {
+                resolve();
+            } else {
+                reject(new Error(`Login script failed with code ${code}`));
+            }
+        });
+    });
+}
+
+function createConnection(username, password) {
+    console.log("[Bootstrapper] 🔌 Attempting to Create Connection via PowerShell...");
 
     const ps = spawn('powershell.exe', [
         '-NoProfile',
         '-ExecutionPolicy', 'Bypass',
-        '-File', LOGIN_SCRIPT
+        '-File', CREATE_CONN_SCRIPT
     ], {
         env: { ...process.env, NT8_USER: username, NT8_PASS: password }
     });
 
-    ps.stdout.on('data', (data) => console.log(`[PS Login] ${data}`));
-    ps.stderr.on('data', (data) => console.error(`[PS Login Error] ${data}`));
+    ps.stdout.on('data', (data) => console.log(`[PS CreateConn] ${data}`));
+    ps.stderr.on('data', (data) => console.error(`[PS CreateConn Error] ${data}`));
 
     ps.on('close', (code) => {
-        console.log(`[Bootstrapper] Login script finished (Code ${code})`);
+        console.log(`[Bootstrapper] Create Connection script finished (Code ${code})`);
     });
 }
 
@@ -84,4 +122,4 @@ function performLogin(username, password) {
 setInterval(checkProcess, 60000); // Check every minute
 checkProcess(); // Initial check
 
-module.exports = { startNinjaTrader, performLogin };
+module.exports = { startNinjaTrader, performLogin, createConnection };

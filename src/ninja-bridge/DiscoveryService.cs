@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using NinjaTrader.Code;
 using NinjaTrader.Cbi;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
@@ -26,77 +27,67 @@ namespace AwesomeCockpit.NT8.Bridge
 
         public void SendSymbols(string requestId = "")
         {
-            var commonMasters = new string[] {
-                // Indices (Die Klassiker)
-                "NQ", "MNQ",   // Nasdaq 100 & Micro
-                "ES", "MES",   // S&P 500 & Micro
-                "YM", "MYM",   // Dow Jones & Micro
-                "RTY", "M2K",  // Russell 2000 & Micro
-
-                // Metalle
-                "GC", "MGC",   // Gold & Micro
-                "SI", "SIL",   // Silber & Micro (manchmal SIL oder MSI je nach Feed)
-                "HG",          // Kupfer
-
-                // Energie
-                "CL", "MCL",   // Crude Oil & Micro
-                "NG", "QG",    // Natural Gas & Mini
-
-                // Währungen (FX Futures)
-                "6E", "M6E",   // Euro & Micro
-                "6B", "M6B",   // Britisches Pfund & Micro
-                "6J",          // Japanischer Yen
-                "6A",          // Australischer Dollar
-                "6C",          // Kanadischer Dollar
-
-                // Agrar (Vorsicht: Andere Handelszeiten!)
-                "ZC", "ZS", "ZW" // Mais, Soja, Weizen
+            var symbolCategories = new Dictionary<string, string[]> {
+                { "Equity Futures", new string[] { "ES", "NKD", "NQ", "YM", "EMD", "RTY" } },
+                { "Currency Futures", new string[] { "6A", "6B", "6C", "6E", "6J", "6S", "6N" } },
+                { "Agricultural Futures", new string[] { "HE", "LE", "GF", "ZC", "ZW", "ZS", "ZM", "ZL" } },
+                { "Energy Futures", new string[] { "CL", "QM", "NG", "QG", "HO", "RB" } },
+                { "Metal Futures", new string[] { "GC", "SI", "HG", "PL", "PA", "QI", "QO" } },
+                { "Micro Futures", new string[] { "MES", "MYM", "MNQ", "M2K", "MGC", "M6A", "M6E", "MCL" } },
+                { "Crypto Futures", new string[] { "MBT", "MET" } },
+                { "EUREX", new string[] { "FDAX", "FDXM", "FESX", "FVS", "FXXP", "FDXS", "FSXE", "FGBX", "FGBS", "FGBM", "FGBL" } }
             };
 
             var payload = new List<object>();
             int count = 0;
 
-            foreach (string name in commonMasters)
+            foreach (var kvp in symbolCategories)
             {
-                try
+                string category = kvp.Key;
+                foreach (string name in kvp.Value)
                 {
-                    MasterInstrument master = null;
-                    foreach (MasterInstrument m in MasterInstrument.All)
+                    try
                     {
-                        if (m.Name == name)
+                        MasterInstrument master = null;
+                        foreach (MasterInstrument m in MasterInstrument.All)
                         {
-                            master = m;
-                            break;
+                            if (m.Name == name)
+                            {
+                                master = m;
+                                break;
+                            }
+                        }
+
+                        if (master != null)
+                        {
+                            payload.Add(new
+                            {
+                                name = master.Name, // e.g. "ES"
+                                desc = master.Description, // e.g. "E-mini S&P 500"
+                                path = category, // Emits just "Equity Futures"
+                                digits = GetDigits(master.TickSize),
+                                tick_size = master.TickSize,
+                                point_value = master.PointValue,
+                                currency = master.Currency.ToString(),
+                                exchange = "Default"
+                            });
+                            count++;
+                        }
+                        else
+                        {
+                            NinjaTrader.Code.Output.Process($"AwesomeCockpit: MasterInstrument '{name}' not found locally.", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
                         }
                     }
-
-                    if (master != null)
-                    {
-                        payload.Add(new
-                        {
-                            name = master.Name, // e.g. "ES"
-                            desc = master.Description, // e.g. "E-mini S&P 500"
-                            path = $"{master.InstrumentType}/Default", // e.g "Future/Default"
-                            digits = GetDigits(master.TickSize),
-                            tick_size = master.TickSize,
-                            point_value = master.PointValue,
-                            currency = master.Currency.ToString(),
-                            exchange = "Default"
-                        });
-                        count++;
-                    }
-                    else
-                    {
-                        NinjaTrader.Code.Output.Process($"AwesomeCockpit: MasterInstrument '{name}' not found locally.", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
-                    }
+                    catch { }
                 }
-                catch { }
             }
 
             NinjaTrader.Code.Output.Process($"AwesomeCockpit: Sending {count} Instruments (Broadcasting to Datafeed Accounts)...", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
 
             // LOG for User Verification
-            string symbolListStr = string.Join(", ", commonMasters);
+            var allSymbolsList = symbolCategories.Values.SelectMany(v => v).ToList();
+            string symbolListStr = string.Join(", ", allSymbolsList);
+            // ... (Rest of method)
 
             // BROADCAST STRATEGY: Send on behalf of ALL Datafeed Accounts
             // This ensures every registered Datafeed account gets the symbols assigned.
@@ -164,9 +155,8 @@ namespace AwesomeCockpit.NT8.Bridge
                                 providerName = acc.Connection.Options.Name;
                             }
 
-                            // Filter out disconnected/phantom accounts, but explicitly allow Sim101
-                            if (providerName == "Unknown" && !acc.Name.Equals("Sim101", StringComparison.OrdinalIgnoreCase)) continue;
-                            if (providerName == "Unknown") providerName = "NinjaTrader";
+                            // Filter out disconnected/phantom accounts
+                            if (providerName == "Unknown") continue;
 
                             bool isTest = n.StartsWith("SIM");
                             string safeName = acc.Name.Replace(" ", "_");
@@ -198,9 +188,22 @@ namespace AwesomeCockpit.NT8.Bridge
                     }
                 }));
 
-                // The backend now creates DATAFEED accounts internally using the actual account balance and provider.
-                // Removed the legacy loop that forcefully appended faux 'PROVIDER_DATAFEED' accounts,
-                // which caused the bug where 3 real accounts resulted in 6 reported accounts.
+                // 2. Explicitly append the DATAFEED accounts so they are saved to the Database by the Discovery Worker.
+                foreach (var provider in uniqueProviders)
+                {
+                    accountList.Add(new
+                    {
+                        name = provider + "_DATAFEED",
+                        provider = provider,
+                        isTest = false,
+                        isDatafeed = true,
+                        accountType = "DATAFEED",
+                        timezone = "UTC",
+                        balance = 0,
+                        equity = 0,
+                        profit = 0
+                    });
+                }
 
                 _socket.SendProtocolMessage("CMD_INIT_RESPONSE", accountList, "NT8", "DISCOVERY", "ALL", requestId);
                 NinjaTrader.Code.Output.Process($"AwesomeCockpit: Sent {accountList.Count} accounts (RPC Response).", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
@@ -237,8 +240,7 @@ namespace AwesomeCockpit.NT8.Bridge
                             providerName = acc.Connection.Options.Name;
                         }
 
-                        if (providerName == "Unknown" && !acc.Name.Equals("Sim101", StringComparison.OrdinalIgnoreCase)) continue;
-                        if (providerName == "Unknown") providerName = "NinjaTrader";
+                        if (providerName == "Unknown") continue;
 
                         bool isTest = n.StartsWith("SIM");
                         accountsToRegister.Add(new Tuple<string, string, bool>(safeName, providerName, isTest));

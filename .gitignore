@@ -36,3 +36,4 @@ dist/
 # MetaTrader Master Overrides
 ressources/metatrader/master/**/*.exe
 ressources/metatrader/master/temp/
+components/metatrader/

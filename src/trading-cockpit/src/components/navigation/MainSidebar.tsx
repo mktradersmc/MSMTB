@@ -188,23 +188,17 @@ export const MainSidebar: React.FC<MainSidebarProps> = ({ activeView, onNavigate
 
             </div>
 
-            {/* Edge Toggle Overlay */}
+            {/* In-Menu Toggle Button - Always remains inside the sidebar bounds */}
             <div
-                className="absolute top-0 right-0 h-full w-4 z-[200] flex items-center justify-center cursor-pointer group"
+                className="absolute top-0 right-0 h-full w-6 flex flex-col justify-center border-l-transparent hover:border-l-indigo-500/30 transition-colors duration-200 cursor-pointer group"
                 onClick={toggleSidebar}
                 title={isCollapsed ? "Expand" : "Collapse"}
             >
-                {/* Visual Strip Background */}
-                <div className="absolute inset-y-0 right-0 w-0.5 bg-transparent group-hover:bg-indigo-500/50 transition-colors duration-200" />
+                {/* Visual indicator line on hover */}
+                <div className="absolute right-0 inset-y-0 w-[2px] bg-transparent group-hover:bg-indigo-500/50 transition-colors" />
 
-                {/* Arrow Button - Dynamic Direction */}
-                <div className={cn(
-                    "absolute w-5 h-10 bg-white dark:bg-slate-800 border-y border-slate-200 dark:border-slate-700 shadow-lg flex items-center justify-center transition-all duration-200 opacity-0 group-hover:opacity-100",
-                    // Dynamic Positioning & Styling
-                    isCollapsed
-                        ? "right-0 translate-x-full rounded-r-md border-r border-l-0" // Pops Right (Expand)
-                        : "right-0 translate-x-0 rounded-l-md border-l border-r-0" // Pops Left (Collapse) - Adjusted to be flush with edge
-                )}>
+                {/* Square Handle */}
+                <div className="w-5 h-10 bg-slate-100 dark:bg-slate-800 border-y border-l border-slate-200 dark:border-slate-700 shadow-sm flex items-center justify-center transition-all duration-200 opacity-0 group-hover:opacity-100 self-end">
                     {isCollapsed ? <ChevronRight size={14} className="text-indigo-500" /> : <ChevronLeft size={14} className="text-indigo-500" />}
                 </div>
             </div>

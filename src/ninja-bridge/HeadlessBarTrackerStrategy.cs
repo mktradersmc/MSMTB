@@ -67,17 +67,22 @@ namespace AwesomeCockpit.NT8.Bridge
             // We ONLY care about the live, forming candles from NinjaTrader.
             if (State != NinjaTrader.NinjaScript.State.Realtime) return;
 
-            int bIdx = BarsInProgress;
+            // The primary DataSeries (BarsInProgress = 0) is ignored because 
+            // the custom timeframes we explicitly added start at index 1.
+            int ntIdx = BarsInProgress;
+            if (ntIdx == 0) return;
+
+            int bIdx = ntIdx - 1;
 
             // Strict bounds checking against NT8 engine surprises
-            if (bIdx >= _tfs.Length || _periods[bIdx] == null) return;
-            if (bIdx >= CurrentBars.Length || CurrentBars[bIdx] < 0) return;
-            if (bIdx >= BarsArray.Length || BarsArray[bIdx] == null) return;
-            if (bIdx >= Opens.Length || bIdx >= Highs.Length || bIdx >= Lows.Length || bIdx >= Closes.Length || bIdx >= Volumes.Length) return;
+            if (bIdx < 0 || bIdx >= _tfs.Length || _periods[bIdx] == null) return;
+            if (ntIdx >= CurrentBars.Length || CurrentBars[ntIdx] < 0) return;
+            if (ntIdx >= BarsArray.Length || BarsArray[ntIdx] == null) return;
+            if (ntIdx >= Opens.Length || ntIdx >= Highs.Length || ntIdx >= Lows.Length || ntIdx >= Closes.Length || ntIdx >= Volumes.Length) return;
 
             string tf = _tfs[bIdx];
             BarsPeriod period = _periods[bIdx];
-            int currentNativeBarIdx = CurrentBars[bIdx];
+            int currentNativeBarIdx = CurrentBars[ntIdx];
 
             // Detect if NinjaTrader natively closed a bar boundary
             if (currentNativeBarIdx > _lastBarIndexMap[bIdx])
@@ -87,20 +92,20 @@ namespace AwesomeCockpit.NT8.Bridge
                     try
                     {
                         // The PREVIOUS bar (Bar[1]) is now officially closed!
-                        DateTime openTimeClosed = GetOpenTimeFromExt(BarsArray[bIdx].GetTime(1), period, BarsArray[bIdx].Instrument);
+                        DateTime openTimeClosed = GetOpenTimeFromExt(BarsArray[ntIdx].GetTime(1), period, BarsArray[ntIdx].Instrument);
                         DateTimeOffset offsetTimeClosed = new DateTimeOffset(openTimeClosed, TimeZoneInfo.Local.GetUtcOffset(openTimeClosed));
 
                         var closedPayload = new
                         {
                             time = offsetTimeClosed.ToUnixTimeMilliseconds(),
-                            open = Opens[bIdx][1],
-                            high = Highs[bIdx][1],
-                            low = Lows[bIdx][1],
-                            close = Closes[bIdx][1],
-                            volume = Volumes[bIdx][1]
+                            open = Opens[ntIdx][1],
+                            high = Highs[ntIdx][1],
+                            low = Lows[ntIdx][1],
+                            close = Closes[ntIdx][1],
+                            volume = Volumes[ntIdx][1]
                         };
 
-                        // NinjaTrader.Code.Output.Process($"[HeadlessStrategy] EV_BAR_CLOSED -> {tf} | NT8 CloseTime: {BarsArray[bIdx].GetTime(1):yyyy-MM-dd HH:mm:ss} | Mapped OpenTime Local: {openTimeClosed:yyyy-MM-dd HH:mm:ss}", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
+                        // NinjaTrader.Code.Output.Process($"[HeadlessStrategy] EV_BAR_CLOSED -> {tf} | NT8 CloseTime: {BarsArray[ntIdx].GetTime(1):yyyy-MM-dd HH:mm:ss} | Mapped OpenTime Local: {openTimeClosed:yyyy-MM-dd HH:mm:ss}", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
                         _onBarUpdateCallback?.Invoke(_symbolName, tf, closedPayload, true);
                     }
                     catch (Exception ex)
@@ -114,17 +119,17 @@ namespace AwesomeCockpit.NT8.Bridge
             // Always fire EV_BAR_UPDATE for the actively forming Bar[0]
             try
             {
-                DateTime openTimeAct = GetOpenTimeFromExt(BarsArray[bIdx].GetTime(0), period, BarsArray[bIdx].Instrument);
+                DateTime openTimeAct = GetOpenTimeFromExt(BarsArray[ntIdx].GetTime(0), period, BarsArray[ntIdx].Instrument);
                 DateTimeOffset offsetTimeAct = new DateTimeOffset(openTimeAct, TimeZoneInfo.Local.GetUtcOffset(openTimeAct));
 
                 var updatePayload = new
                 {
                     time = offsetTimeAct.ToUnixTimeMilliseconds(),
-                    open = Opens[bIdx][0],
-                    high = Highs[bIdx][0],
-                    low = Lows[bIdx][0],
-                    close = Closes[bIdx][0],
-                    volume = Volumes[bIdx][0]
+                    open = Opens[ntIdx][0],
+                    high = Highs[ntIdx][0],
+                    low = Lows[ntIdx][0],
+                    close = Closes[ntIdx][0],
+                    volume = Volumes[ntIdx][0]
                 };
 
                 _onBarUpdateCallback?.Invoke(_symbolName, tf, updatePayload, false);
@@ -142,22 +147,24 @@ namespace AwesomeCockpit.NT8.Bridge
                 int bIdx = Array.IndexOf(_tfs, timeframe);
                 if (bIdx == -1) return null;
 
-                // Strict array bounds validation to prevent UI crashes if NT is busy
-                if (BarsArray == null || bIdx >= BarsArray.Length || BarsArray[bIdx] == null) return null;
-                if (CurrentBars == null || bIdx >= CurrentBars.Length || CurrentBars[bIdx] < 0) return null;
-                if (Opens == null || bIdx >= Opens.Length || Highs == null || bIdx >= Highs.Length) return null;
+                int ntIdx = bIdx + 1;
 
-                DateTime openTimeAct = GetOpenTimeFromExt(BarsArray[bIdx].GetTime(0), _periods[bIdx], BarsArray[bIdx].Instrument);
+                // Strict array bounds validation to prevent UI crashes if NT is busy
+                if (BarsArray == null || ntIdx >= BarsArray.Length || BarsArray[ntIdx] == null) return null;
+                if (CurrentBars == null || ntIdx >= CurrentBars.Length || CurrentBars[ntIdx] < 0) return null;
+                if (Opens == null || ntIdx >= Opens.Length || Highs == null || ntIdx >= Highs.Length) return null;
+
+                DateTime openTimeAct = GetOpenTimeFromExt(BarsArray[ntIdx].GetTime(0), _periods[bIdx], BarsArray[ntIdx].Instrument);
                 DateTimeOffset offsetTimeAct = new DateTimeOffset(openTimeAct, TimeZoneInfo.Local.GetUtcOffset(openTimeAct));
 
                 return new
                 {
                     time = offsetTimeAct.ToUnixTimeMilliseconds(),
-                    open = Opens[bIdx][0],
-                    high = Highs[bIdx][0],
-                    low = Lows[bIdx][0],
-                    close = Closes[bIdx][0],
-                    volume = Volumes[bIdx][0]
+                    open = Opens[ntIdx][0],
+                    high = Highs[ntIdx][0],
+                    low = Lows[ntIdx][0],
+                    close = Closes[ntIdx][0],
+                    volume = Volumes[ntIdx][0]
                 };
             }
             catch (Exception ex)

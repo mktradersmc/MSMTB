@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Activity, Shield, RefreshCw, Monitor, Moon, Sun, Download, DownloadCloud, Save, ChevronDown, ChevronRight } from 'lucide-react';
+import { Activity, Shield, RefreshCw, Monitor, Moon, Sun, Download, DownloadCloud, Save, ChevronDown, ChevronRight, Play, Plus } from 'lucide-react';
 import { useTheme } from '../../context/ThemeProvider';
 import { useChartTheme } from '../../context/ChartThemeContext';
 import { fetchDirect } from '../../lib/client-api';
@@ -9,6 +9,120 @@ export function SystemView() {
     const { theme, setTheme } = useTheme();
     const { mode: chartMode, setMode: setChartMode } = useChartTheme();
     const [isMasterFileOpen, setIsMasterFileOpen] = useState(true);
+
+    // System Config State (from Backend API)
+    const [sysProjectRoot, setSysProjectRoot] = useState('');
+    const [sysUsername, setSysUsername] = useState('');
+    const [sysPassword, setSysPassword] = useState('');
+    const [sysNtUsername, setSysNtUsername] = useState('');
+    const [sysNtPassword, setSysNtPassword] = useState('');
+    const [isSavingSystem, setIsSavingSystem] = useState(false);
+    const [sysMesg, setSysMesg] = useState<{ type: 'success' | 'error', text: string } | null>(null);
+
+    // Load generic system config
+    useEffect(() => {
+        const fetchSystemConfig = async () => {
+            try {
+                const res = await fetchDirect('/system/config');
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data.config) {
+                        setSysProjectRoot(data.config.projectRoot || '');
+                        setSysUsername(data.config.systemUsername || '');
+                        setSysNtUsername(data.config.ntUsername || '');
+                        setSysNtPassword(data.config.ntPassword || '');
+                    }
+                }
+            } catch (err) {
+                console.error("Failed to load System Config in SystemView", err);
+            }
+        };
+        fetchSystemConfig();
+    }, []);
+
+    const handleSaveSystemConfig = async () => {
+        setIsSavingSystem(true);
+        setSysMesg(null);
+        try {
+            const res = await fetchDirect('/system/config', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    projectRoot: sysProjectRoot,
+                    systemUsername: sysUsername,
+                    systemPassword: sysPassword ? sysPassword : undefined,
+                    ntUsername: sysNtUsername,
+                    ntPassword: sysNtPassword ? sysNtPassword : undefined
+                })
+            });
+
+            if (res.ok) {
+                setSysMesg({ type: 'success', text: 'NT Configuration saved successfully!' });
+                setSysPassword('');     // Clear password fields after saving
+                setSysNtPassword('');
+            } else {
+                setSysMesg({ type: 'error', text: 'Failed to save configuration.' });
+            }
+        } catch (err) {
+            setSysMesg({ type: 'error', text: `Network Error: ${(err as Error).message}` });
+        } finally {
+            setIsSavingSystem(false);
+        }
+    };
+
+    const handleStartNinjaTrader = async () => {
+        setIsSavingSystem(true);
+        setSysMesg(null);
+        try {
+            const res = await fetchDirect('/admin/ninjatrader/start', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    username: sysNtUsername,
+                    password: sysNtPassword
+                })
+            });
+
+            const data = await res.json();
+
+            if (res.ok && data.success) {
+                setSysMesg({ type: 'success', text: 'NT8 Start Triggered!' });
+            } else {
+                setSysMesg({ type: 'error', text: data.error || 'Failed to start NT8.' });
+            }
+        } catch (err) {
+            setSysMesg({ type: 'error', text: `Network Error: ${(err as Error).message}` });
+        } finally {
+            setIsSavingSystem(false);
+        }
+    };
+
+    const handleCreateConnection = async () => {
+        setIsSavingSystem(true);
+        setSysMesg(null);
+        try {
+            const res = await fetchDirect('/admin/ninjatrader/connection', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    username: sysNtUsername,
+                    password: sysNtPassword
+                })
+            });
+
+            const data = await res.json();
+
+            if (res.ok && data.success) {
+                setSysMesg({ type: 'success', text: 'NT8 Connection Creation Triggered!' });
+            } else {
+                setSysMesg({ type: 'error', text: data.error || 'Failed to create connection.' });
+            }
+        } catch (err) {
+            setSysMesg({ type: 'error', text: `Network Error: ${(err as Error).message}` });
+        } finally {
+            setIsSavingSystem(false);
+        }
+    };
 
     return (
         <div className="h-full flex flex-col bg-slate-50 dark:bg-slate-950">
@@ -66,6 +180,68 @@ export function SystemView() {
                         </div>
                     </section>
 
+                    {/* NinjaTrader Settings - Compact */}
+                    <section className="border border-slate-200 dark:border-slate-800 rounded-lg overflow-hidden bg-white dark:bg-slate-900">
+                        <div className="bg-slate-50 dark:bg-slate-900/50 px-4 py-2 border-b border-slate-200 dark:border-slate-800 text-xs font-bold text-slate-500 uppercase tracking-wider flex justify-between items-center">
+                            <span>NinjaTrader Credentials</span>
+                        </div>
+
+                        {sysMesg && (
+                            <div className={`m-4 px-4 py-3 rounded-lg flex items-center gap-2 text-sm font-medium animate-in fade-in slide-in-from-top-2 ${sysMesg.type === 'success' ? 'bg-emerald-500/10 text-emerald-600 border border-emerald-500/20' : 'bg-red-500/10 text-red-600 border border-red-500/20'}`}>
+                                {sysMesg.text}
+                            </div>
+                        )}
+
+                        <div className="p-4 flex gap-4">
+                            <div className="flex-1">
+                                <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1.5">Username</label>
+                                <input
+                                    type="text"
+                                    placeholder="NinjaTrader Username"
+                                    className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white rounded-md px-3 py-2 text-xs focus:ring-1 focus:ring-indigo-500 outline-none"
+                                    value={sysNtUsername}
+                                    onChange={e => setSysNtUsername(e.target.value)}
+                                />
+                            </div>
+                            <div className="flex-1">
+                                <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1.5">Password</label>
+                                <input
+                                    type="password"
+                                    placeholder="Leave empty to keep unchanged"
+                                    className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white rounded-md px-3 py-2 text-xs focus:ring-1 focus:ring-indigo-500 outline-none"
+                                    value={sysNtPassword}
+                                    onChange={e => setSysNtPassword(e.target.value)}
+                                />
+                            </div>
+                        </div>
+
+                        <div className="bg-slate-50 dark:bg-slate-900/30 px-4 py-3 border-t border-slate-200 dark:border-slate-800 flex justify-end gap-2">
+                            <button
+                                onClick={handleCreateConnection}
+                                disabled={isSavingSystem}
+                                className="flex items-center gap-2 px-4 py-1.5 bg-sky-600 hover:bg-sky-500 text-white text-xs font-medium rounded shadow-sm transition-all disabled:opacity-50"
+                                title="Debug: Automatically configures a new NT8 Connection"
+                            >
+                                <Plus size={14} /> Create Connection
+                            </button>
+                            <button
+                                onClick={handleStartNinjaTrader}
+                                disabled={isSavingSystem}
+                                className="flex items-center gap-2 px-4 py-1.5 bg-slate-600 hover:bg-slate-500 text-white text-xs font-medium rounded shadow-sm transition-all disabled:opacity-50"
+                                title="Debug: Starts the Bootstrapper process"
+                            >
+                                <Play size={14} /> Start NT8 (Debug)
+                            </button>
+                            <button
+                                onClick={handleSaveSystemConfig}
+                                disabled={isSavingSystem}
+                                className="flex items-center gap-2 px-4 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-medium rounded shadow-sm transition-all disabled:opacity-50"
+                            >
+                                <Save size={14} /> {isSavingSystem ? "Saving..." : "Save Credentials"}
+                            </button>
+                        </div>
+                    </section>
+
                     {/* System Settings */}
                     {/* Moved to Management Console */}
 
@@ -77,14 +253,11 @@ export function SystemView() {
                         onToggle={() => setIsMasterFileOpen(!isMasterFileOpen)}
                     />
 
-
                 </div>
             </div>
         </div>
     );
 }
-
-
 
 function SystemFileMonitor({ isOpen, onToggle }: { isOpen: boolean, onToggle: () => void }) {
     const [files, setFiles] = useState<any[]>([]);

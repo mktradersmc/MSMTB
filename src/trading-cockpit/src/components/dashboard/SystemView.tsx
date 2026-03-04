@@ -58,8 +58,7 @@ export function SystemView() {
 
             if (res.ok) {
                 setSysMesg({ type: 'success', text: 'NT Configuration saved successfully!' });
-                setSysPassword('');     // Clear password fields after saving
-                setSysNtPassword('');
+                setSysPassword('');     // Clear system password field after saving, but keep NT password
             } else {
                 setSysMesg({ type: 'error', text: 'Failed to save configuration.' });
             }
@@ -207,7 +206,7 @@ export function SystemView() {
                                 <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1.5">Password</label>
                                 <input
                                     type="password"
-                                    placeholder="Leave empty to keep unchanged"
+                                    placeholder="NinjaTrader Password"
                                     className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white rounded-md px-3 py-2 text-xs focus:ring-1 focus:ring-indigo-500 outline-none"
                                     value={sysNtPassword}
                                     onChange={e => setSysNtPassword(e.target.value)}

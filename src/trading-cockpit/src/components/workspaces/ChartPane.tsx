@@ -243,7 +243,7 @@ export const ChartPane: React.FC<ChartPaneProps> = ({ workspaceId, pane, botId =
 
     const [ohlc, setOhlc] = useState<{ open: number, high: number, low: number, close: number } | null>(null);
 
-    const handlePlaceOrder = useCallback(() => {
+    const handlePlaceOrder = useCallback((side: 'Long' | 'Short') => {
         if (!chartRef.current) return;
         const widget = chartRef.current.getWidget();
         if (!widget) return;
@@ -257,9 +257,26 @@ export const ChartPane: React.FC<ChartPaneProps> = ({ workspaceId, pane, botId =
         const latest = data[data.length - 1];
         if (!latest) return;
 
+        const entryPrice = latest.close as number;
+
+        // Revert to a proportional algorithm (0.1% of price as requested):
+        const spread = entryPrice * 0.001;
+
+        // Organize SL and TP layout to correctly match the chosen direction
+        const stopLossPrice = side === 'Long' ? entryPrice - spread : entryPrice + spread;
+        const takeProfitPrice = side === 'Long' ? entryPrice + (spread * 2) : entryPrice - (spread * 2);
+
         widget.createShape(
-            { time: latest.time as number, price: latest.close as number },
-            { shape: 'TradeBuilder', overrides: {}, disableSelection: false }
+            { time: latest.time as number, price: entryPrice },
+            {
+                shape: 'TradeBuilder',
+                overrides: {
+                    'linetooltradebuilder.orderType': side === 'Long' ? 'Buy' : 'Sell',
+                    'linetooltradebuilder.stopLevel': stopLossPrice,
+                    'linetooltradebuilder.profitLevel': takeProfitPrice,
+                },
+                disableSelection: false
+            }
         );
     }, []);
 

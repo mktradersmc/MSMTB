@@ -25,7 +25,7 @@ export interface ChartOverlayProps {
     precision?: number;
     status: SyncStatus; // New Prop
     isDatafeedOnline?: boolean;
-    onPlaceOrder?: () => void;
+    onPlaceOrder?: (side: 'Long' | 'Short') => void;
     livePrice?: number | null;
 }
 export const ChartOverlay = React.forwardRef<ChartOverlayHandle, ChartOverlayProps>(({
@@ -62,7 +62,7 @@ export const ChartOverlay = React.forwardRef<ChartOverlayHandle, ChartOverlayPro
         statusMessage = executionMessage || undefined;
     }
 
-    const { mode } = useChartTheme();
+    const { mode, theme } = useChartTheme();
     const isDark = mode === 'dark';
 
     const symbolBrowserRef = useRef<SymbolBrowserHandle>(null);
@@ -350,19 +350,33 @@ export const ChartOverlay = React.forwardRef<ChartOverlayHandle, ChartOverlayPro
             <div className="absolute top-4 right-20 z-[30] flex items-start gap-4 pointer-events-none">
                 <ChartStatusIndicator status={effectiveStatus} message={statusMessage} className="shadow-sm backdrop-blur-sm shadow-slate-900/10 mt-1" />
 
-                <button
-                    onClick={(e) => { e.stopPropagation(); onPlaceOrder?.(); }}
-                    className="pointer-events-auto group/orderbtn relative flex items-center justify-center rounded-md border border-blue-600 bg-white/50 p-[2px] shadow-sm transition-all hover:shadow-md"
+                <div
+                    className="cursor-pointer pointer-events-auto group/orderbtn relative flex items-center justify-center rounded-md border border-blue-600 bg-white/50 p-[2px] shadow-sm transition-all hover:shadow-md"
                 >
-                    <div className="flex flex-col items-center justify-center rounded-sm px-2 py-0.5 bg-transparent group-hover/orderbtn:bg-blue-600/50 text-slate-900 group-hover/orderbtn:text-white transition-colors w-full h-full min-w-[70px]">
-                        <span className="text-[9px] uppercase font-bold tracking-wider leading-tight">
+                    <div className="relative flex flex-col items-center justify-center rounded-sm px-2 py-0.5 bg-transparent text-slate-900 group-hover/orderbtn:text-white transition-colors w-full h-full min-w-[70px]">
+                        {/* Split Hover Background */}
+                        <div className="absolute inset-0 flex gap-[2px] opacity-0 group-hover/orderbtn:opacity-100 transition-opacity duration-200">
+                            <div
+                                className="flex-1 rounded-l-sm opacity-50 hover:!opacity-75 transition-opacity duration-200"
+                                style={{ backgroundColor: theme.candles.upColor }}
+                                onClick={(e) => { e.stopPropagation(); onPlaceOrder?.('Long'); }}
+                            />
+                            <div
+                                className="flex-1 rounded-r-sm opacity-50 hover:!opacity-75 transition-opacity duration-200"
+                                style={{ backgroundColor: theme.candles.downColor }}
+                                onClick={(e) => { e.stopPropagation(); onPlaceOrder?.('Short'); }}
+                            />
+                        </div>
+
+                        {/* Text Content */}
+                        <span className="relative z-10 text-[9px] uppercase font-bold tracking-wider leading-tight pointer-events-none">
                             {livePrice ? livePrice.toFixed(precision) : '---'}
                         </span>
-                        <span className="text-[9px] uppercase font-bold tracking-wider leading-tight opacity-80 group-hover/orderbtn:opacity-100">
+                        <span className="relative z-10 text-[9px] uppercase font-bold tracking-wider leading-tight opacity-80 group-hover/orderbtn:opacity-100 pointer-events-none">
                             PLACE ORDER
                         </span>
                     </div>
-                </button>
+                </div>
             </div>
         </>
     );

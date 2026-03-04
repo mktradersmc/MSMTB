@@ -81,6 +81,9 @@ class NT8DiscoveryWorker extends AbstractWorker {
                 try {
                     if (acc.provider === 'Unknown') return;
 
+                    // Determine if it's a test account based on properties or name
+                    const isTestAccount = acc.isTest === true || acc.isTest === 'true' || acc.is_test === true || acc.is_test === 'true' || acc.name === 'Sim101';
+
                     // 1. Broker Logic
                     let brokerId = 'NinjaTrader-Fallback';
                     if (acc.provider && acc.provider !== 'Unknown') {
@@ -94,14 +97,20 @@ class NT8DiscoveryWorker extends AbstractWorker {
                             const crypto = require('crypto');
                             brokerId = crypto.randomUUID();
 
-                            insertBrokerStmt.run(
+                            // Ensure columns align: id, name, shorthand, type, api, environment
+                            this.db.prepare(`
+                                INSERT OR IGNORE INTO brokers (id, name, shorthand, type, api, environment) 
+                                VALUES (?, ?, ?, ?, ?, ?)
+                            `).run(
                                 brokerId,
                                 acc.provider,
-                                'NT',        // Shorthand
-                                'NT8',       // Platform type should be NT8, not NinjaTrader
+                                'NT8',
+                                'NT8',
                                 'Bridge',
-                                acc.isTest ? 'demo' : 'live'
+                                isTestAccount ? 'demo' : 'live'
                             );
+
+                            this._log(`[NT8DiscoveryWorker] Broker ${acc.provider} created internally with id ${brokerId}`);
                         }
                     }
 
@@ -118,7 +127,7 @@ class NT8DiscoveryWorker extends AbstractWorker {
                         '',                 // password
                         'NinjaTrader',      // server
                         acc.accountType || 'Trading', // account_type
-                        acc.isTest ? 1 : 0, // is_test
+                        isTestAccount ? 1 : 0, // is_test
                         '',                 // instance_path
                         acc.isDatafeed ? 1 : 0, // is_datafeed
                         'NT8',              // platform
@@ -127,6 +136,8 @@ class NT8DiscoveryWorker extends AbstractWorker {
                         accountSize,        // account_size
                         now                 // created_at
                     );
+
+                    this._log(`[NT8DiscoveryWorker] Account ${acc.name} updated. Broker: ${brokerId}`);
 
                     successCount++;
                 } catch (e) {

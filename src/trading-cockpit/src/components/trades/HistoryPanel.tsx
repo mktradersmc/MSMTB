@@ -280,6 +280,10 @@ export const HistoryPanel: React.FC<{
                                 </td>
                             </tr>
                         )}
+                        {/* Anti-Stretch Filler Row */}
+                        <tr className="h-full pointer-events-none border-0">
+                            <td colSpan={10} className="p-0 border-0"></td>
+                        </tr>
                     </tbody>
                     <tfoot className="bg-slate-200 dark:bg-slate-900 text-[11px] font-bold text-slate-800 dark:text-slate-300 font-sans tabular-nums sticky bottom-0 z-10 shadow-[0_-1px_0_theme(colors.slate.400)] dark:shadow-[0_-1px_0_theme(colors.slate.700)] mt-auto">
                         {(() => {

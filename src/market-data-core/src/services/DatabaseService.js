@@ -518,7 +518,7 @@ class DatabaseService {
     saveAccountBalance(botId, balance) {
         try {
             this.marketDb.prepare("UPDATE accounts SET balance = ? WHERE id = ? OR bot_id = ?").run(balance, botId, botId);
-            console.log(`[DB] Persisted Balance for bot_id ${botId}: ${balance}`);
+            // console.log(`[DB] Persisted Balance for bot_id ${botId}: ${balance}`);
 
             if (balance > 0) {
                 const acc = this.marketDb.prepare("SELECT account_size FROM accounts WHERE id = ? OR bot_id = ?").get(botId, botId);

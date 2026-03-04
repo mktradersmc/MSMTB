@@ -204,7 +204,7 @@ class TradeWorker extends AbstractWorker {
             accounts = [content.account];
         }
 
-        console.log(`[TradeWorker] 📥 Accounts Report from ${botId}: ${accounts.length} found.`);
+        // console.log(`[TradeWorker] 📥 Accounts Report from ${botId}: ${accounts.length} found.`);
 
         if (accounts.length > 0) {
             let updated = 0;
@@ -249,7 +249,7 @@ class TradeWorker extends AbstractWorker {
                 }
             });
 
-            this.log(`✅ Synced ${updated} accounts.`);
+            // this.log(`✅ Synced ${updated} accounts.`);
         }
     }
 

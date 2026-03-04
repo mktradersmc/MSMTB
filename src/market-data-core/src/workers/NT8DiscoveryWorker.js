@@ -1,30 +1,12 @@
 const AbstractWorker = require('./AbstractWorker');
-
 const path = require('path');
-const Database = require('better-sqlite3');
+const db = require('../services/DatabaseService'); // Singleton
 
 class NT8DiscoveryWorker extends AbstractWorker {
     constructor() {
         super();
-        this.db = null;
-        this.initDB();
+        this.db = db; // Use centralized DB service
         this._log(`[NT8DiscoveryWorker] 🔍 Started. Waiting for Bridge...`);
-    }
-
-    initDB() {
-        try {
-            // Replicate DB connection from DatafeedWorker/DatabaseService
-            const dbPath = process.env.DB_PATH || path.resolve(__dirname, '../../market_data.db'); // Adjust path as needed, usually it's in root/market_data.db or similar
-            // Wait, DatabaseService says: config.DB_MARKET_PATH. 
-            // DatafeedWorker says: path.resolve(__dirname, '../../market_data.db')
-            // Let's match DatafeedWorker for consistency in Workers.
-            this.db = new Database(dbPath);
-            this.db.pragma('journal_mode = WAL');
-            this.db.pragma('busy_timeout = 5000');
-            this._log("✅ DB Connected.");
-        } catch (e) {
-            this._error(`DB Init Failed: ${e.message}`);
-        }
     }
 
     /**
@@ -58,93 +40,87 @@ class NT8DiscoveryWorker extends AbstractWorker {
         this._log(`[NT8DiscoveryWorker] 📥 Processing ${accounts.length} Accounts from Bridge...`);
 
         if (!this.db) {
-            this._error(`[NT8DiscoveryWorker] ❌ DB Not initialized. Cannot save accounts.`);
+            this._error(`[NT8DiscoveryWorker] ❌ DBService Not initialized. Cannot save accounts.`);
             return;
         }
 
         let successCount = 0;
         const now = Date.now();
 
-        const insertBrokerStmt = this.db.prepare(`
-            INSERT OR IGNORE INTO brokers (id, name, shorthand, type, api, environment) 
-            VALUES (?, ?, ?, ?, ?, ?)
-        `);
+        // Transaction is handled implicitly or row-by-row via DBService
+        const existingBrokers = this.db.getBrokers();
 
-        // The actual schema in DatabaseService: id, bot_id, broker_id, login, password, server, account_type, is_test, instance_path, is_datafeed, platform, timezone, balance, account_size, created_at
-        const upsertAccountStmt = this.db.prepare(`
-            INSERT OR REPLACE INTO accounts (id, bot_id, broker_id, login, password, server, account_type, is_test, instance_path, is_datafeed, platform, timezone, balance, account_size, created_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        `);
+        accounts.forEach(acc => {
+            try {
+                if (acc.provider === 'Unknown') return;
 
-        this.db.transaction(() => {
-            accounts.forEach(acc => {
-                try {
-                    if (acc.provider === 'Unknown') return;
+                // Determine if it's a test account based on properties or name
+                const isTestAccount = acc.isTest === true || acc.isTest === 'true' || acc.is_test === true || acc.is_test === 'true' || acc.name === 'Sim101';
 
-                    // Determine if it's a test account based on properties or name
-                    const isTestAccount = acc.isTest === true || acc.isTest === 'true' || acc.is_test === true || acc.is_test === 'true' || acc.name === 'Sim101';
+                // 1. Broker Logic
+                let brokerId = 'NinjaTrader-Fallback';
+                if (acc.provider && acc.provider !== 'Unknown') {
+                    // Try to find an existing broker by name (case-insensitive)
+                    const existingBroker = existingBrokers.find(b => b.name.toLowerCase() === acc.provider.toLowerCase());
 
-                    // 1. Broker Logic
-                    let brokerId = 'NinjaTrader-Fallback';
-                    if (acc.provider && acc.provider !== 'Unknown') {
-                        // 1. Try to find an existing broker by name (case-insensitive) to get the real UUID
-                        const existingBroker = this.db.prepare('SELECT id FROM brokers WHERE name = ? COLLATE NOCASE LIMIT 1').get(acc.provider);
+                    if (existingBroker) {
+                        brokerId = existingBroker.id;
+                    } else {
+                        // Create a new simple fallback using a proper UUID
+                        const crypto = require('crypto');
+                        brokerId = crypto.randomUUID();
 
-                        if (existingBroker) {
-                            brokerId = existingBroker.id;
-                        } else {
-                            // 2. Only if no broker exists, create a new simple fallback using a proper UUID
-                            const crypto = require('crypto');
-                            brokerId = crypto.randomUUID();
+                        const newBroker = {
+                            id: brokerId,
+                            name: acc.provider,
+                            shorthand: 'NT8',
+                            defaultSymbol: null,
+                            type: 'NT8', // Maps to db 'type' and 'platform'
+                            api: 'Bridge',
+                            environment: isTestAccount ? 'demo' : 'live',
+                            servers: [],
+                            symbolMappings: {}
+                        };
 
-                            // Ensure columns align: id, name, shorthand, type, api, environment
-                            this.db.prepare(`
-                                INSERT OR IGNORE INTO brokers (id, name, shorthand, type, api, environment) 
-                                VALUES (?, ?, ?, ?, ?, ?)
-                            `).run(
-                                brokerId,
-                                acc.provider,
-                                'NT8',
-                                'NT8',
-                                'Bridge',
-                                isTestAccount ? 'demo' : 'live'
-                            );
+                        this.db.saveBroker(newBroker);
+                        // Update our local cache for the next iteration
+                        existingBrokers.push({ ...newBroker, id: brokerId });
 
-                            this._log(`[NT8DiscoveryWorker] Broker ${acc.provider} created internally with id ${brokerId}`);
-                        }
+                        this._log(`[NT8DiscoveryWorker] Broker ${acc.provider} created via DBService with id ${brokerId}`);
                     }
-
-                    // Parse provided balance and equity, calculating account_size dynamically
-                    const providedBalance = acc.balance !== undefined ? parseFloat(acc.balance) : 0;
-                    const accountSize = providedBalance > 0 ? (Math.round(providedBalance / 1000) * 1000) : 0;
-
-                    // 2. Account Logic
-                    upsertAccountStmt.run(
-                        acc.name,           // id
-                        acc.name,           // bot_id
-                        brokerId,           // broker_id
-                        acc.name,           // login
-                        '',                 // password
-                        'NinjaTrader',      // server
-                        acc.accountType || 'Trading', // account_type
-                        isTestAccount ? 1 : 0, // is_test
-                        '',                 // instance_path
-                        acc.isDatafeed ? 1 : 0, // is_datafeed
-                        'NT8',              // platform
-                        'UTC',              // timezone
-                        providedBalance,    // balance
-                        accountSize,        // account_size
-                        now                 // created_at
-                    );
-
-                    this._log(`[NT8DiscoveryWorker] Account ${acc.name} updated. Broker: ${brokerId}`);
-
-                    successCount++;
-                } catch (e) {
-                    this._error(`Failed to save account ${acc.name}: ${e.message}`);
                 }
-            });
-        })();
+
+                // Parse provided balance and equity, calculating account_size dynamically
+                const providedBalance = acc.balance !== undefined ? parseFloat(acc.balance) : 0;
+                const accountSize = providedBalance > 0 ? (Math.round(providedBalance / 1000) * 1000) : 0;
+
+                // 2. Account Logic
+                const newAccount = {
+                    id: acc.name,
+                    botId: acc.name,
+                    brokerId: brokerId,
+                    login: acc.name,
+                    password: '',
+                    server: 'NinjaTrader',
+                    accountType: acc.accountType || 'Trading',
+                    isTest: isTestAccount,
+                    isDatafeed: acc.isDatafeed || false,
+                    platform: 'NT8',
+                    timezone: 'UTC',
+                    balance: providedBalance,
+                    accountSize: accountSize,
+                    createdAt: now
+                };
+
+                this.db.saveAccount(newAccount);
+
+                this._log(`[NT8DiscoveryWorker] Account ${acc.name} updated. Broker: ${brokerId}`);
+
+                successCount++;
+            } catch (e) {
+                this._error(`Failed to save account ${acc.name}: ${e.message}`);
+            }
+        });
 
         this._log(`[NT8DiscoveryWorker] 💾 Persisted ${successCount} accounts.`);
 
@@ -155,7 +131,6 @@ class NT8DiscoveryWorker extends AbstractWorker {
         });
 
         // 4. Notify Hub (Optional - for UI Stream)
-        // If we want UI to update immediately without polling DB.
         this.sendToHub('DISCOVERY_UPDATE', {
             source: 'NT8',
             count: successCount

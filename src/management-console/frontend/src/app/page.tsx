@@ -163,9 +163,9 @@ export default function ManagementConsole() {
             const data = await res.json();
             setUpdateProgress(data);
 
-            if (data.step === 10 || data.step === -1) {
+            if (data.step === data.total || data.step === -1) {
               clearInterval(interval);
-              setSysMesg(data.step === 10 ? "Update erfolgreich abgeschlossen!" : "Update fehlgeschlagen. System-Rollback aktiv.");
+              setSysMesg(data.step === data.total ? "Update erfolgreich abgeschlossen!" : "Update fehlgeschlagen. System-Rollback aktiv.");
               setTimeout(() => {
                 setIsUpdating(false);
                 window.location.reload();

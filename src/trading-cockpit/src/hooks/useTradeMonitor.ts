@@ -91,9 +91,15 @@ export const useTradeMonitor = () => {
     const masterTradesRef = useRef<any[]>([]);
     const livePositionsRef = useRef<TradePosition[]>([]);
 
+    // Guard Reft to prevent stacked network requests
+    const isFetchingMasterRef = useRef<boolean>(false);
+    const isFetchingLiveRef = useRef<boolean>(false);
+
     // 1. Slow Poll: Master Trades (Source of Truth for Metadata) - 1s
     const fetchMasterTrades = async () => {
+        if (isFetchingMasterRef.current) return; // Skip if already fetching
         try {
+            isFetchingMasterRef.current = true;
             const envParam = isTestMode ? 'test' : 'live';
             const tradesRes = await fetchDirect(`/api/active-trades?env=${envParam}`);
             const tradesData = await tradesRes.json();
@@ -101,12 +107,16 @@ export const useTradeMonitor = () => {
             masterTradesRef.current = masterTrades;
         } catch (e) {
             console.error("Master Trade Poll Error", e);
+        } finally {
+            isFetchingMasterRef.current = false;
         }
     };
 
     // 2. Fast Poll: Live Positions (Profit/Loss updates) - 50ms
     const fetchLivePositions = async () => {
+        if (isFetchingLiveRef.current) return; // Skip if already fetching
         try {
+            isFetchingLiveRef.current = true;
             const posRes = await fetchDirect('/api/positions');
             const posData = await posRes.json();
             const livePositions: TradePosition[] = posData.success ? posData.positions : [];
@@ -520,6 +530,8 @@ export const useTradeMonitor = () => {
             aggregatedTradesRef.current = combined;
         } catch (e) {
             console.error("Monitor Poll Error", e);
+        } finally {
+            isFetchingLiveRef.current = false;
         }
     };
 

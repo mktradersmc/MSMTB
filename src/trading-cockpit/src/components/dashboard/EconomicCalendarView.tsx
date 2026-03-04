@@ -33,7 +33,7 @@ export const EconomicCalendarView: React.FC = () => {
         return d;
     });
 
-    const [timezone, setTimezone] = useState<'LOCAL' | 'UTC'>('UTC');
+    const [timezone, setTimezone] = useState<'LOCAL' | 'UTC' | 'NY'>('NY');
     const [selectedImpacts, setSelectedImpacts] = useState<Set<string>>(new Set(['High', 'Medium', 'Low', 'Non-Eco']));
     const [showImpactDropdown, setShowImpactDropdown] = useState(false);
     const [quickFilter, setQuickFilter] = useState<'TODAY' | 'WEEK' | 'MONTH'>('TODAY');
@@ -53,6 +53,31 @@ export const EconomicCalendarView: React.FC = () => {
                 const day = now.getUTCDay(); // 0 is Sunday, 1 is Monday, etc.
                 const start = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() - day, 0, 0, 0, 0);
                 const end = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + (6 - day), 23, 59, 59, 999);
+                return [Math.floor(start / 1000), Math.floor(end / 1000)];
+            }
+        } else if (timezone === 'NY') {
+            // Helper to determine the NY offset in minutes dynamically
+            const getNyOffsetMinutes = (d: Date) => {
+                const utcDate = new Date(d.toLocaleString('en-US', { timeZone: 'UTC', hour12: false }));
+                const tzDate = new Date(d.toLocaleString('en-US', { timeZone: 'America/New_York', hour12: false }));
+                return Math.round((tzDate.getTime() - utcDate.getTime()) / 60000);
+            };
+            const nyOffsetMin = getNyOffsetMinutes(now);
+            const nyNow = new Date(now.getTime() + nyOffsetMin * 60000);
+
+            if (quickFilter === 'TODAY') {
+                const startNy = Date.UTC(nyNow.getUTCFullYear(), nyNow.getUTCMonth(), nyNow.getUTCDate(), 0, 0, 0, 0);
+                const endNy = Date.UTC(nyNow.getUTCFullYear(), nyNow.getUTCMonth(), nyNow.getUTCDate(), 23, 59, 59, 999);
+                const start = startNy - nyOffsetMin * 60000;
+                const end = endNy - nyOffsetMin * 60000;
+                return [Math.floor(start / 1000), Math.floor(end / 1000)];
+            }
+            if (quickFilter === 'WEEK') {
+                const day = nyNow.getUTCDay(); // 0 is Sunday
+                const startNy = Date.UTC(nyNow.getUTCFullYear(), nyNow.getUTCMonth(), nyNow.getUTCDate() - day, 0, 0, 0, 0);
+                const endNy = Date.UTC(nyNow.getUTCFullYear(), nyNow.getUTCMonth(), nyNow.getUTCDate() + (6 - day), 23, 59, 59, 999);
+                const start = startNy - nyOffsetMin * 60000;
+                const end = endNy - nyOffsetMin * 60000;
                 return [Math.floor(start / 1000), Math.floor(end / 1000)];
             }
         } else {
@@ -221,6 +246,12 @@ export const EconomicCalendarView: React.FC = () => {
                                 Local
                             </button>
                             <button
+                                onClick={() => setTimezone('NY')}
+                                className={cn("px-2 py-1 text-xs font-semibold rounded transition-colors flex items-center gap-1", timezone === 'NY' ? "bg-white dark:bg-slate-700 shadow-sm text-indigo-600 dark:text-indigo-400" : "text-slate-500 hover:text-slate-700 dark:hover:text-slate-300")}
+                            >
+                                NY
+                            </button>
+                            <button
                                 onClick={() => setTimezone('UTC')}
                                 className={cn("px-2 py-1 text-xs font-semibold rounded transition-colors flex items-center gap-1", timezone === 'UTC' ? "bg-white dark:bg-slate-700 shadow-sm text-indigo-600 dark:text-indigo-400" : "text-slate-500 hover:text-slate-700 dark:hover:text-slate-300")}
                             >
@@ -297,7 +328,7 @@ export const EconomicCalendarView: React.FC = () => {
             <div className="flex-1 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-800 rounded-2xl flex flex-col shadow-xl overflow-hidden min-w-0">
                 <div className="p-4 border-b border-slate-200 dark:border-slate-800/80 grid grid-cols-12 gap-4 text-xs font-bold text-slate-500 uppercase tracking-widest shrink-0 bg-slate-50 dark:bg-slate-900/50">
                     <div className="col-span-2 pl-2">Datum</div>
-                    <div className="col-span-1">Zeit {timezone === 'UTC' && <span className="text-[10px] bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-400 px-1 rounded ml-1 font-mono">UTC</span>}</div>
+                    <div className="col-span-1">Zeit {timezone === 'UTC' && <span className="text-[10px] bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-400 px-1 rounded ml-1 font-mono">UTC</span>}{timezone === 'NY' && <span className="text-[10px] bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-400 px-1 rounded ml-1 font-mono">NY</span>}</div>
                     <div className="col-span-1">Currency</div>
                     <div className="col-span-1">Impact</div>
                     <div className="col-span-4">Event</div>
@@ -330,13 +361,17 @@ export const EconomicCalendarView: React.FC = () => {
                                 const timeStr = isAllDay ? event.time_label :
                                     (timezone === 'UTC'
                                         ? dt.toISOString().substr(11, 5) + ' Uhr'
-                                        : dt.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' }) + ' Uhr'
+                                        : timezone === 'NY'
+                                            ? dt.toLocaleTimeString('de-DE', { timeZone: 'America/New_York', hour: '2-digit', minute: '2-digit' }) + ' Uhr'
+                                            : dt.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' }) + ' Uhr'
                                     );
 
                                 // German localized date format
                                 const dayStr = timezone === 'UTC'
                                     ? dt.toLocaleDateString('de-DE', { weekday: 'short', day: '2-digit', month: '2-digit', timeZone: 'UTC' })
-                                    : dt.toLocaleDateString('de-DE', { weekday: 'short', day: '2-digit', month: '2-digit' });
+                                    : timezone === 'NY'
+                                        ? dt.toLocaleDateString('de-DE', { weekday: 'short', day: '2-digit', month: '2-digit', timeZone: 'America/New_York' })
+                                        : dt.toLocaleDateString('de-DE', { weekday: 'short', day: '2-digit', month: '2-digit' });
 
                                 // Check if same day as previous event
                                 let isSameDay = false;
@@ -347,7 +382,9 @@ export const EconomicCalendarView: React.FC = () => {
                                     const prevDt = new Date(prevEvent.timestamp * 1000);
                                     const prevDayStr = timezone === 'UTC'
                                         ? prevDt.toLocaleDateString('de-DE', { weekday: 'short', day: '2-digit', month: '2-digit', timeZone: 'UTC' })
-                                        : prevDt.toLocaleDateString('de-DE', { weekday: 'short', day: '2-digit', month: '2-digit' });
+                                        : timezone === 'NY'
+                                            ? prevDt.toLocaleDateString('de-DE', { weekday: 'short', day: '2-digit', month: '2-digit', timeZone: 'America/New_York' })
+                                            : prevDt.toLocaleDateString('de-DE', { weekday: 'short', day: '2-digit', month: '2-digit' });
                                     isSameDay = dayStr === prevDayStr;
 
                                     // Compute prev time string to compare (only if same day)
@@ -356,7 +393,9 @@ export const EconomicCalendarView: React.FC = () => {
                                         const prevTimeStr = prevIsAllDay ? prevEvent.time_label :
                                             (timezone === 'UTC'
                                                 ? prevDt.toISOString().substr(11, 5) + ' Uhr'
-                                                : prevDt.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' }) + ' Uhr'
+                                                : timezone === 'NY'
+                                                    ? prevDt.toLocaleTimeString('de-DE', { timeZone: 'America/New_York', hour: '2-digit', minute: '2-digit' }) + ' Uhr'
+                                                    : prevDt.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' }) + ' Uhr'
                                             );
                                         isSameTimeStr = timeStr === prevTimeStr;
                                     }

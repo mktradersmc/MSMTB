@@ -770,19 +770,13 @@ namespace AwesomeCockpit.NT8.Bridge
 
             if (isMasterSymbol && master != null)
             {
+                DateTime nextExpiry = master.GetNextExpiry(NinjaTrader.Core.Globals.Now);
                 if (master.RolloverCollection != null)
                 {
-                    // Find the most recent explicit rollover mapped before NOW (No aggressive 15 days logic anymore!)
-                    var sortedRollovers = System.Linq.Enumerable.ToList(
-                        System.Linq.Enumerable.OrderByDescending(
-                            System.Linq.Enumerable.Where(master.RolloverCollection, r => r.Date.Date <= NinjaTrader.Core.Globals.Now.Date),
-                        r => r.Date)
-                    );
-
-                    // Grab the FIRST valid active concrete contract that we actually have locally compiled!
-                    foreach (var ro in sortedRollovers)
+                    var activeRollover = System.Linq.Enumerable.FirstOrDefault(master.RolloverCollection, r => r.Date.Year == nextExpiry.Year && r.Date.Month == nextExpiry.Month);
+                    if (activeRollover != null)
                     {
-                        string suffix = " " + ro.ContractMonth.ToString("MM-yy");
+                        string suffix = " " + activeRollover.ContractMonth.ToString("MM-yy");
                         Instrument frontMonthInst = Instrument.GetInstrument(symbol + suffix);
                         if (frontMonthInst != null) return frontMonthInst;
                     }

@@ -246,31 +246,28 @@ namespace AwesomeCockpit.NT8.Bridge
 
             if (isMasterSymbol && master != null)
             {
-                // FORCE dynamic front-month resolution
+                // Find NinjaTrader's officially sanctioned Next Expiry for this Master Instrument
+                DateTime nextExpiry = master.GetNextExpiry(NinjaTrader.Core.Globals.Now);
+
+                // Now find the exact mapped Rollover that corresponds to this official upcoming Expiration Date
                 if (master.RolloverCollection != null)
                 {
-                    // Find the most recent explicit rollover mapped before NOW (No aggressive 15 days logic anymore!)
-                    var sortedRollovers = System.Linq.Enumerable.ToList(
-                        System.Linq.Enumerable.OrderByDescending(
-                            System.Linq.Enumerable.Where(master.RolloverCollection, r => r.Date.Date <= NinjaTrader.Core.Globals.Now.Date),
-                        r => r.Date)
-                    );
+                    var activeRollover = System.Linq.Enumerable.FirstOrDefault(master.RolloverCollection, r => r.Date.Year == nextExpiry.Year && r.Date.Month == nextExpiry.Month);
 
-                    // Grab the FIRST valid active concrete contract that we actually have locally compiled!
-                    foreach (var ro in sortedRollovers)
+                    if (activeRollover != null)
                     {
-                        string suffix = " " + ro.ContractMonth.ToString("MM-yy");
+                        string suffix = " " + activeRollover.ContractMonth.ToString("MM-yy");
                         Instrument frontMonthInst = Instrument.GetInstrument(symbol + suffix);
                         if (frontMonthInst != null)
                         {
-                            NinjaTrader.Code.Output.Process($"AwesomeCockpit: Native Master string '{symbol}' gracefully resolved to officially active contract '{frontMonthInst.FullName}'", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
+                            NinjaTrader.Code.Output.Process($"AwesomeCockpit: Native Master string '{symbol}' gracefully resolved to officially active DB contract '{frontMonthInst.FullName}'", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
                             return frontMonthInst;
                         }
                     }
                 }
 
-                // If we couldn't find ANY compiled valid contract, fallback but loudly warn
-                NinjaTrader.Code.Output.Process($"[Sync] WARNING: Could not find ANY locally compiled contract for Master '{symbol}'. Falling back to Pseudo-Instrument (May return 0 bars in BarsRequest).", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
+                // Fallback loud warning
+                NinjaTrader.Code.Output.Process($"[Sync] WARNING: Could not automatically resolve Front Month for Master '{symbol}'. Falling back to Pseudo-Instrument (May return 0 bars).", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
             }
 
             // It's not a master symbol string (e.g. it's already "ES 03-26" or "EURUSD" or AAPL)

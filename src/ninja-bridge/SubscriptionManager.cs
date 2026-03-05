@@ -244,30 +244,28 @@ namespace AwesomeCockpit.NT8.Bridge
                 }
             }
 
-            if (isMasterSymbol && master != null)
+            if (isMasterSymbol && master != null && master.RolloverCollection != null)
             {
-                // Find NinjaTrader's officially sanctioned Next Expiry for this Master Instrument
-                DateTime nextExpiry = master.GetNextExpiry(NinjaTrader.Core.Globals.Now);
-
-                // Now find the exact mapped Rollover that corresponds to this official upcoming Expiration Date
-                if (master.RolloverCollection != null)
+                // We will use Method 2 (User's Suggestion) identically to ExecutionManager here to ensure 100% parity
+                try
                 {
-                    var activeRollover = System.Linq.Enumerable.FirstOrDefault(master.RolloverCollection, r => r.Date.Year == nextExpiry.Year && r.Date.Month == nextExpiry.Month);
-
-                    if (activeRollover != null)
+                    var r2 = System.Linq.Enumerable.FirstOrDefault(
+                        System.Linq.Enumerable.OrderByDescending(
+                            System.Linq.Enumerable.Where(master.RolloverCollection, r => r.Date <= DateTime.Now),
+                        r => r.Date)
+                    );
+                    if (r2 != null)
                     {
-                        string suffix = " " + activeRollover.ContractMonth.ToString("MM-yy");
-                        Instrument frontMonthInst = Instrument.GetInstrument(symbol + suffix);
+                        string cand2 = symbol + " " + r2.ContractMonth.ToString("MM-yy");
+                        Instrument frontMonthInst = Instrument.GetInstrument(cand2);
                         if (frontMonthInst != null)
                         {
-                            NinjaTrader.Code.Output.Process($"AwesomeCockpit: Native Master string '{symbol}' gracefully resolved to officially active DB contract '{frontMonthInst.FullName}'", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
                             return frontMonthInst;
                         }
                     }
                 }
-
-                // Fallback loud warning
-                NinjaTrader.Code.Output.Process($"[Sync] WARNING: Could not automatically resolve Front Month for Master '{symbol}'. Falling back to Pseudo-Instrument (May return 0 bars).", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
+                catch (Exception ex) { }
+                NinjaTrader.Code.Output.Process($"[Sync] WARNING: Could not automatically resolve Front Month for Master '{symbol}'.", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
             }
 
             // It's not a master symbol string (e.g. it's already "ES 03-26" or "EURUSD" or AAPL)

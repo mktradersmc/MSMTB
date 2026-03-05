@@ -6,6 +6,7 @@ using NinjaTrader.Cbi;
 using NinjaTrader.Core;
 using NinjaTrader.Data;
 using NinjaTrader.NinjaScript;
+using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -40,6 +41,7 @@ namespace AwesomeCockpit.NT8.Bridge
 
         // Maps a UUID (signalName) to its combined TradeMetric state
         private readonly ConcurrentDictionary<string, TradeMetric> _activeTrades = new ConcurrentDictionary<string, TradeMetric>();
+        private readonly ConcurrentDictionary<string, Instrument> _frontContractCache = new ConcurrentDictionary<string, Instrument>();
 
         // Idempotency cache (UUID -> bool) to prevent multi-executions
         private readonly ConcurrentDictionary<string, bool> _processedTradeIds = new ConcurrentDictionary<string, bool>();
@@ -539,6 +541,14 @@ namespace AwesomeCockpit.NT8.Bridge
                 string operation = payload["operation"]?.ToString()?.ToUpper() ?? payload["direction"]?.ToString()?.ToUpper();
                 string orderType = payload["orderType"]?.ToString()?.ToUpper(); // MARKET, LIMIT, STOP
 
+                // 2. Resolve Instrument (Using synchronized Calendar/Rollover mapping identical to SubscriptionManager)
+                Instrument inst = ResolveInstrument(symbol);
+                if (inst == null)
+                {
+                    SendRejectResponse("Symbol not found or continuous contract resolution failed", id, reqId, botId);
+                    return;
+                }
+
                 // Wrap everything in Dispatcher to prevent silent background thread InvalidOperationExceptions
                 if (NinjaTrader.Core.Globals.RandomDispatcher != null)
                 {
@@ -551,14 +561,6 @@ namespace AwesomeCockpit.NT8.Bridge
                             if (_tradingStoppedForDay)
                             {
                                 SendRejectResponse("Trading Stopped: Daily Limit Reached", id, reqId, botId);
-                                return;
-                            }
-
-                            // 2. Resolve Instrument (Using SubscriptionManager logic)
-                            Instrument inst = ResolveInstrument(symbol);
-                            if (inst == null)
-                            {
-                                SendRejectResponse("Symbol not found or continuous contract resolution failed", id, reqId, botId);
                                 return;
                             }
 
@@ -760,6 +762,12 @@ namespace AwesomeCockpit.NT8.Bridge
 
         private Instrument ResolveInstrument(string symbol)
         {
+            if (_frontContractCache.TryGetValue(symbol, out Instrument cached)) return cached;
+            return ResolveInstrumentCalendar(symbol);
+        }
+
+        private Instrument ResolveInstrumentCalendar(string symbol)
+        {
             bool isMasterSymbol = false;
             MasterInstrument master = null;
 
@@ -768,21 +776,165 @@ namespace AwesomeCockpit.NT8.Bridge
                 if (m.Name == symbol) { isMasterSymbol = true; master = m; break; }
             }
 
-            if (isMasterSymbol && master != null)
+            if (isMasterSymbol && master != null && master.RolloverCollection != null)
             {
-                DateTime nextExpiry = master.GetNextExpiry(NinjaTrader.Core.Globals.Now);
-                if (master.RolloverCollection != null)
+                NinjaTrader.Code.Output.Process($"\n--- Front Month Diagnostic for {symbol} ---", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
+
+                // --- Method 1: GetNextExpiry (Our previous attempt) ---
+                try
                 {
-                    var activeRollover = System.Linq.Enumerable.FirstOrDefault(master.RolloverCollection, r => r.Date.Year == nextExpiry.Year && r.Date.Month == nextExpiry.Month);
-                    if (activeRollover != null)
+                    DateTime nextExpiry = master.GetNextExpiry(NinjaTrader.Core.Globals.Now);
+                    var r1 = System.Linq.Enumerable.FirstOrDefault(master.RolloverCollection, r => r.Date.Year == nextExpiry.Year && r.Date.Month == nextExpiry.Month);
+                    if (r1 != null)
                     {
-                        string suffix = " " + activeRollover.ContractMonth.ToString("MM-yy");
-                        Instrument frontMonthInst = Instrument.GetInstrument(symbol + suffix);
-                        if (frontMonthInst != null) return frontMonthInst;
+                        string cand1 = symbol + " " + r1.ContractMonth.ToString("MM-yy");
+                        NinjaTrader.Code.Output.Process($"[Method 1] GetNextExpiry ({nextExpiry:yyyy-MM-dd})  -> {cand1}", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
+                    }
+                }
+                catch (Exception ex) { NinjaTrader.Code.Output.Process($"[Method 1] Failed: {ex.Message}", NinjaTrader.NinjaScript.PrintTo.OutputTab1); }
+
+                // --- Method 2: The User's Suggestion (<= DateTime.Now) ---
+                try
+                {
+                    var r2 = System.Linq.Enumerable.FirstOrDefault(
+                        System.Linq.Enumerable.OrderByDescending(
+                            System.Linq.Enumerable.Where(master.RolloverCollection, r => r.Date <= DateTime.Now),
+                        r => r.Date)
+                    );
+                    if (r2 != null)
+                    {
+                        string cand2 = symbol + " " + r2.ContractMonth.ToString("MM-yy");
+                        NinjaTrader.Code.Output.Process($"[Method 2] <= DateTime.Now ({r2.Date:yyyy-MM-dd})  -> {cand2}", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
+
+                        // Let's actually USE this one as the return value since the user specifically requested to try it!
+                        Instrument frontMonthInst = Instrument.GetInstrument(cand2);
+                        if (frontMonthInst != null)
+                        {
+                            NinjaTrader.Code.Output.Process($"--- Diagnostic Complete. Returning Method 2: {frontMonthInst.FullName} ---\n", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
+                            return frontMonthInst;
+                        }
+                    }
+                }
+                catch (Exception ex) { NinjaTrader.Code.Output.Process($"[Method 2] Failed: {ex.Message}", NinjaTrader.NinjaScript.PrintTo.OutputTab1); }
+
+                // --- Method 3: Strictly > DateTime.Now (Future Rollover) ---
+                try
+                {
+                    var r3 = System.Linq.Enumerable.FirstOrDefault(
+                        System.Linq.Enumerable.OrderBy(
+                            System.Linq.Enumerable.Where(master.RolloverCollection, r => r.Date > DateTime.Now),
+                        r => r.Date)
+                    );
+                    if (r3 != null)
+                    {
+                        string cand3 = symbol + " " + r3.ContractMonth.ToString("MM-yy");
+                        NinjaTrader.Code.Output.Process($"[Method 3] > DateTime.Now  ({r3.Date:yyyy-MM-dd})  -> {cand3}", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
+                    }
+                }
+                catch (Exception ex) { NinjaTrader.Code.Output.Process($"[Method 3] Failed: {ex.Message}", NinjaTrader.NinjaScript.PrintTo.OutputTab1); }
+
+                NinjaTrader.Code.Output.Process($"-------------------------------------------\n", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
+            }
+            return Instrument.GetInstrument(symbol);
+        }
+
+        private async Task<Instrument> ResolveInstrumentByPriceMatchAsync(string targetSymbol)
+        {
+            Instrument direct = Instrument.GetInstrument(targetSymbol);
+            if (direct != null && direct.MasterInstrument.Name != targetSymbol) return direct;
+
+            MasterInstrument master = MasterInstrument.All.FirstOrDefault(m => m.Name == targetSymbol);
+            if (master == null || master.RolloverCollection == null) return direct;
+
+            double masterPrice = _subs.GetCurrentPrice(targetSymbol);
+            if (masterPrice <= 0)
+            {
+                NinjaTrader.Code.Output.Process($"[PriceMatch] No continuous stream active for {targetSymbol}. Falling back to calendar.", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
+                return ResolveInstrumentCalendar(targetSymbol);
+            }
+
+            var candidates = System.Linq.Enumerable.ToList(
+                                 System.Linq.Enumerable.Take(
+                                     System.Linq.Enumerable.OrderBy(master.RolloverCollection, r => Math.Abs((r.Date - NinjaTrader.Core.Globals.Now).TotalDays)),
+                                 3)
+                             );
+
+            Instrument bestMatch = null;
+            double smallestDiff = double.MaxValue;
+
+            foreach (var candidate in candidates)
+            {
+                string suffix = " " + candidate.ContractMonth.ToString("MM-yy");
+                Instrument candInst = Instrument.GetInstrument(targetSymbol + suffix);
+                if (candInst == null) continue;
+
+                double candPrice = await GetLatestCloseAsync(candInst, 3000);
+                if (candPrice > 0)
+                {
+                    double diff = Math.Abs(masterPrice - candPrice);
+                    NinjaTrader.Code.Output.Process($"[PriceMatch] Candidate {candInst.FullName} price: {candPrice} (Master: {masterPrice}, Diff: {diff})", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
+
+                    if (diff < smallestDiff)
+                    {
+                        smallestDiff = diff;
+                        bestMatch = candInst;
                     }
                 }
             }
-            return Instrument.GetInstrument(symbol);
+
+            if (bestMatch != null)
+            {
+                _frontContractCache[targetSymbol] = bestMatch;
+                NinjaTrader.Code.Output.Process($"[PriceMatch] Successfully matched {targetSymbol} to {bestMatch.FullName} via direct Price Validation.", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
+                return bestMatch;
+            }
+
+            return ResolveInstrumentCalendar(targetSymbol);
+        }
+
+        private Task<double> GetLatestCloseAsync(Instrument inst, int timeoutMs)
+        {
+            var tcs = new TaskCompletionSource<double>();
+
+            if (NinjaTrader.Core.Globals.RandomDispatcher != null)
+            {
+                NinjaTrader.Core.Globals.RandomDispatcher.BeginInvoke(new Action(() =>
+                {
+                    try
+                    {
+                        BarsRequest br = new BarsRequest(inst, NinjaTrader.Core.Globals.Now.AddDays(-3), NinjaTrader.Core.Globals.Now.AddDays(1))
+                        {
+                            BarsPeriod = new BarsPeriod { BarsPeriodType = BarsPeriodType.Minute, Value = 1 },
+                            TradingHours = inst.MasterInstrument.TradingHours,
+                            MergePolicy = MergePolicy.DoNotMerge
+                        };
+
+                        br.Request(new Action<BarsRequest, ErrorCode, string>((req, errorCode, msg) =>
+                        {
+                            if (errorCode == ErrorCode.NoError && req.Bars != null && req.Bars.Count > 0)
+                            {
+                                tcs.TrySetResult(req.Bars.GetClose(req.Bars.Count - 1));
+                            }
+                            else
+                            {
+                                tcs.TrySetResult(0.0);
+                            }
+                        }));
+                    }
+                    catch
+                    {
+                        tcs.TrySetResult(0.0);
+                    }
+                }));
+            }
+            else
+            {
+                tcs.TrySetResult(0.0);
+            }
+
+            Task.Delay(timeoutMs).ContinueWith(t => tcs.TrySetResult(0.0));
+
+            return tcs.Task;
         }
 
         private int CalculateLotSize(Instrument inst, double entryPrice, double stopLoss, double riskAmount)

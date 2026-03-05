@@ -21,7 +21,7 @@ function Write-Log {
     param([string]$Message, [string]$Color = "White")
     $Timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
     $LogMsg = "[$Timestamp] [UPDATE] $Message"
-    Add-Content -Path $LogFile -Value $LogMsg
+    Add-Content -Path $LogFile -Value $LogMsg -Encoding utf8
     Write-Host $Message -ForegroundColor $Color
 }
 
@@ -69,7 +69,7 @@ if (-not (Test-Path $GitTarget)) {
         Write-Log "HINWEIS: Kein Github PAT in system.json gefunden. Versuche anonymen Klon..." "Yellow"
     }
 
-    git clone -b main $AuthRepoUrl $GitTarget 2>&1 | Out-File -Append -FilePath $LogFile
+    git clone -b main $AuthRepoUrl $GitTarget 2>&1 | Out-File -Append -FilePath $LogFile -Encoding utf8
 
     if (-not (Test-Path $GitTarget)) {
         Write-Log "FEHLER: Konnte Repository nicht klonen. Update abgebrochen." "Red"
@@ -104,8 +104,8 @@ if (-not [string]::IsNullOrWhiteSpace($GithubPat)) {
     git remote set-url origin $RepoUrl
 }
 
-git fetch origin 2>&1 | Out-File -Append -FilePath $LogFile
-git reset --hard origin/main 2>&1 | Out-File -Append -FilePath $LogFile
+git fetch origin 2>&1 | Out-File -Append -FilePath $LogFile -Encoding utf8
+git reset --hard origin/main 2>&1 | Out-File -Append -FilePath $LogFile -Encoding utf8
 if ($LASTEXITCODE -ne 0) {
     Write-Log "FEHLER beim Git Pull. Breche Update ab." "Red"
     Write-Host "Druecke eine beliebige Taste zum Beenden..." -ForegroundColor DarkGray
@@ -117,7 +117,7 @@ if ($LASTEXITCODE -ne 0) {
 Write-Log "`n[3/6] Kopiere neue Dateiversionen..." "Cyan"
 Set-Progress 4 "Dienste werden gestoppt, um Dateien zu übertragen..."
 Write-Log "  -> Beende PM2 Dienste zur Freigabe exklusiver Dateisperren (Datenbanken)..." "Gray"
-pm2 stop all 2>&1 | Out-File -Append -FilePath $LogFile
+pm2 stop all 2>&1 | Out-File -Append -FilePath $LogFile -Encoding utf8
 
 # STARTE UPDATE REPORTER (Übernimmt temporär Port 3005 für das UI Frontend)
 Write-Log "  -> Starte temporären Update-Reporter auf Port 3005..." "Gray"
@@ -259,17 +259,17 @@ try {
     }
     Write-Log "  -> Rebuild Backend..." "Gray"
     Push-Location $BackendLive
-    npm install --silent 2>&1 | Out-File -Append -FilePath $LogFile
+    npm install --silent 2>&1 | Out-File -Append -FilePath $LogFile -Encoding utf8
     Pop-Location
 
     Write-Log "  -> Rebuild Frontend..." "Gray"
     Push-Location $FrontendLive
-    npm install --silent 2>&1 | Out-File -Append -FilePath $LogFile
+    npm install --silent 2>&1 | Out-File -Append -FilePath $LogFile -Encoding utf8
     
     # We capture build errors correctly to trigger self-healing
     $buildEnv = Get-ChildItem Env: | Out-String
     $buildStatus = npm run build 2>&1
-    $buildStatus | Out-File -Append -FilePath $LogFile
+    $buildStatus | Out-File -Append -FilePath $LogFile -Encoding utf8
     
     if ($LASTEXITCODE -ne 0) {
         throw "Frontend NPM Build fehlgeschlagen. Rollback erforderlich!"
@@ -279,15 +279,15 @@ try {
     Write-Log "  -> Rebuild Management Console..." "Gray"
     if (Test-Path $MCLive) {
         Push-Location $MCLive
-        if (Test-Path "package.json") { npm install --silent 2>&1 | Out-File -Append -FilePath $LogFile }
+        if (Test-Path "package.json") { npm install --silent 2>&1 | Out-File -Append -FilePath $LogFile -Encoding utf8 }
         
         $MCFrontend = Join-Path $MCLive "frontend"
         if (Test-Path $MCFrontend) {
             Push-Location $MCFrontend
             if (Test-Path "package.json") { 
-                npm install --silent 2>&1 | Out-File -Append -FilePath $LogFile 
+                npm install --silent 2>&1 | Out-File -Append -FilePath $LogFile -Encoding utf8 
                 $mcBuildStatus = npm run build 2>&1
-                $mcBuildStatus | Out-File -Append -FilePath $LogFile
+                $mcBuildStatus | Out-File -Append -FilePath $LogFile -Encoding utf8
                 if ($LASTEXITCODE -ne 0) { throw "Management Console NPM Build fehlgeschlagen. Rollback erforderlich!" }
             }
             Pop-Location
@@ -307,17 +307,17 @@ try {
     $HookRunner = Join-Path $TargetDir "scripts\run-update-hooks.js"
     if (Test-Path $HookRunner) {
         $HookDataPath = Join-Path $MCLive "data"
-        node $HookRunner --data-path "$HookDataPath" 2>&1 | Out-File -Append -FilePath $LogFile
+        node $HookRunner --data-path "$HookDataPath" 2>&1 | Out-File -Append -FilePath $LogFile -Encoding utf8
         if ($LASTEXITCODE -ne 0) { throw "Update-Hooks fehlgeschlagen (Exit Code: $LASTEXITCODE). Rollback erforderlich!" }
     }
 
-    pm2 start all 2>&1 | Out-File -Append -FilePath $LogFile
+    pm2 start all 2>&1 | Out-File -Append -FilePath $LogFile -Encoding utf8
     
     if ($RestartInstances -eq "True") {
         Set-Progress 10 "Starte verbundene NinjaTrader & MetaTrader Instanzen..."
         Write-Log "  -> Starte NinjaTrader und MetaTrader Instanzen neu..." "Cyan"
         $AutoStartScript = Join-Path $TargetDir "scripts\autostart-terminals.js"
-        node $AutoStartScript 2>&1 | Out-File -Append -FilePath $LogFile
+        node $AutoStartScript 2>&1 | Out-File -Append -FilePath $LogFile -Encoding utf8
         if ($LASTEXITCODE -ne 0) {
             Write-Log "     WARNUNG: Fehler beim automatischen Starten der Terminals (Exit Code: $LASTEXITCODE)." "Yellow"
         }
@@ -356,7 +356,7 @@ catch {
     $reporters = Get-WmiObject Win32_Process -Filter "name='node.exe'" | Where-Object { $_.CommandLine -match "update-reporter.js" }
     foreach ($r in $reporters) { Stop-Process -Id $r.ProcessId -Force -ErrorAction SilentlyContinue }
 
-    pm2 start all 2>&1 | Out-File -Append -FilePath $LogFile
+    pm2 start all 2>&1 | Out-File -Append -FilePath $LogFile -Encoding utf8
 
     Write-Log "`n[!] Update wurde abgebrochen, aber das System läuft sicher weiter." "Yellow"
 }
@@ -367,3 +367,4 @@ Write-Log "  -> Ein lauffähiges Backup der vorherigen Version wurde sicher in $
 
 Write-Host "Druecke eine beliebige Taste zum Beenden..." -ForegroundColor DarkGray
 $null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
+

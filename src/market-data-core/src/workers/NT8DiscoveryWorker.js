@@ -1,5 +1,6 @@
 const AbstractWorker = require('./AbstractWorker');
 const path = require('path');
+const fs = require('fs');
 const db = require('../services/DatabaseService'); // Singleton
 
 class NT8DiscoveryWorker extends AbstractWorker {
@@ -16,10 +17,25 @@ class NT8DiscoveryWorker extends AbstractWorker {
         this._log(`[NT8DiscoveryWorker] 🟢 Bridge Connected. Sending Handshake (CMD_INIT)...`);
 
         try {
+            // Load project root to resolve log directory
+            let logDir = '';
+            try {
+                const sysConfigPath = path.join(__dirname, '../../data/system.json');
+                if (fs.existsSync(sysConfigPath)) {
+                    const sysConfig = JSON.parse(fs.readFileSync(sysConfigPath, 'utf8'));
+                    if (sysConfig.projectRoot) {
+                        logDir = path.join(sysConfig.projectRoot, 'logs');
+                    }
+                }
+            } catch (err) {
+                this._error(`[NT8DiscoveryWorker] Failed to resolve logDir: ${err.message}`);
+            }
+
             // 1. Send Handshake to Bridge via RPC (NT8 Bridge waits 10 seconds artificially)
             const response = await this.sendRpc('CMD_INIT', {
                 version: '2.0',
-                mode: 'STRICT_SYNC'
+                mode: 'STRICT_SYNC',
+                logDir: logDir
             }, 30000);
 
             this.handleReportAccounts(response);

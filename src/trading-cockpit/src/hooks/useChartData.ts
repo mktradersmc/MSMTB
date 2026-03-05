@@ -28,6 +28,7 @@ export function useChartData({ symbol, timeframe, botId, isActivePane, onTick }:
     const symbolRef = useRef(symbol);
     const tfRef = useRef(timeframe);
     const isLoadingRef = useRef(false);
+    const historyLoadedRef = useRef(false);
 
     // Sync Refs & Clear Data for Instant Feedback
     useEffect(() => {
@@ -39,6 +40,7 @@ export function useChartData({ symbol, timeframe, botId, isActivePane, onTick }:
         // RESET LOADING: Allow new fetch to proceed even if previous one was running
         setIsLoading(false);
         isLoadingRef.current = false;
+        historyLoadedRef.current = false;
 
         // RESET LAST CANDLE: Prevent ghost candles from previous timeframe/symbol
         lastCandleRef.current = null;
@@ -143,6 +145,7 @@ export function useChartData({ symbol, timeframe, botId, isActivePane, onTick }:
                     // Stop loop if merging
                     setIsLoading(false);
                     isLoadingRef.current = false;
+                    historyLoadedRef.current = true;
                     return;
                 } else {
                     // FRESH LOAD
@@ -152,16 +155,19 @@ export function useChartData({ symbol, timeframe, botId, isActivePane, onTick }:
                         setHorizonData(generatePhantomBars(gatheredBars[gatheredBars.length - 1].time, gatheredBars[gatheredBars.length - 1].close, timeframe));
 
                         setIsLoading(false);
+                        historyLoadedRef.current = true;
                     }
                 }
             }
 
             setIsLoading(false);
             isLoadingRef.current = false;
+            historyLoadedRef.current = true;
         } catch (e) {
             console.error(`[useChartData] Error fetching history for ${symbol}:`, e);
             setIsLoading(false);
             isLoadingRef.current = false;
+            historyLoadedRef.current = true; // Unblock ticks if fetch fails completely
         }
     };
 
@@ -268,6 +274,11 @@ export function useChartData({ symbol, timeframe, botId, isActivePane, onTick }:
                 (bar: any) => {
                     // Realtime Logic (copied from LiveChartPage and simplified)
                     if (bar.symbol !== symbol || bar.timeframe !== timeframe) return;
+
+                    if (!historyLoadedRef.current) {
+                        console.log(`[useChartData] Ignoring early tick for ${symbol} ${timeframe} because history is not loaded yet.`);
+                        return;
+                    }
 
                     const tfSeconds = getTimeframeSeconds(timeframe);
                     let tickTime = Number(bar.time);

@@ -455,7 +455,7 @@ export const ChartPane: React.FC<ChartPaneProps> = ({ workspaceId, pane, botId =
                     dataB={[]}
                     timeframe={pane.timeframe}
                     height="100%"
-                    isLoading={isLoading && data.length === 0}
+                    isLoading={isLoading && !isChartReady}
                     precision={precision}
                     horizonData={horizonData}
                     accounts={accounts}

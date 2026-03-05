@@ -136,7 +136,8 @@ app.get('/api/system/config', authenticateToken, (req, res) => {
             projectRoot: config.projectRoot || '',
             systemUsername: config.systemUsername || '',
             systemPassword: config.systemPassword || '',
-            ntUsername: config.ntUsername || ''
+            ntUsername: config.ntUsername || '',
+            ntPassword: config.ntPassword || ''
         }
     });
 });

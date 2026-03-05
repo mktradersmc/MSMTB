@@ -1332,13 +1332,14 @@ export const ChartContainer = React.forwardRef<ChartContainerHandle, ChartContai
         setIsAtRealtime(true);
     };
 
-    // Reset fit flags when symbol changes
+    // Reset fit flags when symbol or timeframe changes
     useEffect(() => {
         hasFittedARef.current = false;
         if (chartWidgetRef.current) {
             chartWidgetRef.current.setSymbol(symbol);
+            chartWidgetRef.current.setTimeframe(timeframe);
         }
-    }, [symbol]);
+    }, [symbol, timeframe]);
 
     // --- HORIZON DATA SYNC ---
     // ROLLBACK: Feed the phantom bars to the invisible series
@@ -1570,6 +1571,7 @@ export const ChartContainer = React.forwardRef<ChartContainerHandle, ChartContai
             if (processedData.length > 0 && !appliedIncremental) { // Update logic preserves state, so only restore on setData
                 // console.log(`[ChartContainer:Diagnose] Restore State Triggered. Type: ${viewStateRef.current.type}`);
                 if (!hasFittedARef.current) {
+                    isProgrammaticUpdate.current = true; // LOCK BROADCAST
                     // Start with explicit "Last 150 Bars" view instead of fitContent (which zooms out too much/erratically with large offsets)
                     if (chartARef.current && processedData.length > 0) {
                         const lastIdx = processedData.length - 1;
@@ -1586,11 +1588,13 @@ export const ChartContainer = React.forwardRef<ChartContainerHandle, ChartContai
                     } else {
                         chartARef.current?.timeScale().fitContent();
                     }
+                    setTimeout(() => isProgrammaticUpdate.current = false, 50); // UNLOCK
                     hasFittedARef.current = true;
                 } else if (chartARef.current) {
                     // Apply captured view state
                     try {
                         const state = viewStateRef.current;
+                        isProgrammaticUpdate.current = true; // LOCK BROADCAST
 
                         if (state.type === 'TIME' && state.savedRange && state.savedRange.from && state.savedRange.to) {
                             chartARef.current.timeScale().setVisibleRange(state.savedRange);
@@ -1634,7 +1638,10 @@ export const ChartContainer = React.forwardRef<ChartContainerHandle, ChartContai
                             } as any);
                             console.log(`[ChartContainer] Restored HISTORY. RightTime: ${state.savedRightTime} -> Idx: ${idx}`);
                         }
+
+                        setTimeout(() => isProgrammaticUpdate.current = false, 50); // UNLOCK
                     } catch (e) {
+                        isProgrammaticUpdate.current = false; // UNLOCK ON ERROR
                         console.error("[ChartContainer] Error restoring view state:", e);
                     }
                 }

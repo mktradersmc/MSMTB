@@ -1,0 +1,14 @@
+{
+    "projectRoot":  "C:\\awesome-cockpit",
+    "systemUsername":  "admin",
+    "systemPassword":  "",
+    "backend":  {
+                    "useSSL":  true,
+                    "port":  3005,
+                    "pfxPassword":  "cockpit"
+                },
+    "frontend":  {
+                     "apiUrl":  "https://",
+                     "port":  443
+                 }
+}

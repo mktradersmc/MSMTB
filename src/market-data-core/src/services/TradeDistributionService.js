@@ -263,7 +263,7 @@ class TradeDistributionService {
                 console.log(`[TradeDist] 🔍 Checking isBotOnline('${routingKey}')...`);
                 const isOnline = systemOrchestrator.isBotOnline(routingKey);
                 console.log(`[TradeDist] 🔍 Result for '${routingKey}': ${isOnline}`);
-                let executionStatus = 'OFFLINE';
+                let executionStatus = 'ERROR';
 
                 // Tunnel via Worker if Online
                 if (isOnline) {
@@ -316,7 +316,7 @@ class TradeDistributionService {
                         botId: acc.botId.trim(),
                         brokerId: acc.brokerId,
                         accountId: acc.accountId || acc.id,
-                        status: 'OFFLINE',
+                        status: 'ERROR',
                         magic: magic,
                         error_message: 'Bot Offline or Disconnected'
                     });
@@ -327,6 +327,11 @@ class TradeDistributionService {
                 console.warn("[TradeDist] Account missing botId. ID:", acc.id, "Login:", acc.login);
             }
         });
+
+        // Update Master Trade Status
+        const hasRunning = results.some(r => r.status === 'SENT' || r.status === 'RUNNING' || r.status === 'DISPATCHED');
+        const finalStatus = hasRunning ? 'RUNNING' : 'ERROR';
+        db.updateMasterTradeStatus(tradeId, finalStatus);
 
         // SIGNAL FRONTEND IMMEDIATE UPDATE (Task: Instant "SENT" Visibility)
         const socketServer = require('./SocketServer');

@@ -134,6 +134,13 @@ namespace AwesomeCockpit.NT8.Bridge
             var payload = new { id = "NT8", func = "DISCOVERY", symbol = "ALL" };
             SendProtocolMessage("REGISTER", payload, "NT8", "DISCOVERY", "ALL");
             RegisterBot("NT8", "DISCOVERY", "ALL");
+
+            // 2. Re-register Account Bots if this is a reconnection
+            if (ExecutionManager.IsDiscoveryComplete)
+            {
+                NinjaTrader.Code.Output.Process($"AwesomeCockpit: Reconnection detected. Re-registering existing account bots...", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
+                _discoveryService.RegisterAccountBots();
+            }
         }
 
         private void SendHeartbeat(object state)

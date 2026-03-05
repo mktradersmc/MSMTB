@@ -262,49 +262,57 @@ class AssetMappingService extends EventEmitter {
     }
 
     /**
-     * Resolve a Generic Symbol (e.g. "EURUSD") to Broker Specific Symbol (e.g. "EURUSD.pro").
-     * Uses fuzzy matching if exact match not found.
+     * Resolve an internal Generic Symbol (e.g. "EURUSD") to Broker Specific Symbol (e.g. "6E" or "EURUSD.pro").
+     * STRICT 1:1 LOOKUP ALGORITHM:
+     * 1. Check Explicit User Mappings in Database (via cache).
+     * 2. If mapping exists for this broker, return it exactly.
+     * 3. Do NOT use fuzzy logic during execution; fallback to generic symbol only if unmapped.
      */
     getBrokerSymbol(botId, genericSymbol) {
-        const brokerSymbols = this.getBrokerSymbols(botId);
-        if (!brokerSymbols || brokerSymbols.length === 0) {
-            console.warn(`[AssetMapping] ⚠️ No broker symbols found for ${botId}. Returning raw '${genericSymbol}'.`);
-            return genericSymbol;
+        // 1. Resolve to actual Broker ID
+        const cleanBotId = botId.replace('_DATAFEED', '');
+        let brokerId = db.getBrokerIdForBotId(cleanBotId);
+
+        // If we still can't find a brokerId, perhaps botId IS the brokerId. Let's assume so.
+        if (!brokerId) {
+            brokerId = cleanBotId;
         }
 
-        // 1. Exact Match
-        const exact = brokerSymbols.find(s => (typeof s === 'string' ? s : s.name) === genericSymbol);
-        if (exact) return genericSymbol;
+        // 2. Lookup Explicit Mapping
+        const mappingObj = this.cache.get(genericSymbol);
 
-        // 2. Suffix Match (e.g. "EURUSD" -> "EURUSD.pro")
-        // Robust check handling both Strings and Objects { name: "..." }
-        const match = brokerSymbols.find(s => {
-            if (!s) return false;
-            const sName = (typeof s === 'string') ? s : s.name;
-            return sName && sName.startsWith(genericSymbol) && (sName.length > genericSymbol.length && sName[genericSymbol.length] === '.');
-        });
+        if (mappingObj && mappingObj.mappings) {
+            const explicitSymbol = mappingObj.mappings[brokerId];
 
-        // 3. Fallback: Contains?
-        if (!match) {
-            const fuzzy = brokerSymbols.find(s => {
-                const sName = (typeof s === 'string') ? s : s.name;
-                return sName && sName.includes(genericSymbol);
-            });
-            if (fuzzy) {
-                const found = (typeof fuzzy === 'string') ? fuzzy : fuzzy.name;
-                console.log(`[AssetMapping] ⚠️ Fuzzy Match: ${genericSymbol} -> ${found}`);
-                return found;
+            if (explicitSymbol) {
+                if (explicitSymbol === this.IGNORE_SENTINEL) {
+                    console.log(`[AssetMapping] 🛑 Symbol ${genericSymbol} is explicitly IGNORED for ${brokerId}`);
+                    return this.IGNORE_SENTINEL;
+                }
+
+                console.log(`[AssetMapping] ✅ STRICT MATCH: ${genericSymbol} -> ${explicitSymbol} for Broker ${brokerId}`);
+                return explicitSymbol;
             }
+
+            // Try fallback to shorthand if mapping was saved using shorthand
+            try {
+                const brokerData = db.marketDb.prepare('SELECT shorthand FROM brokers WHERE id = ?').get(brokerId);
+                if (brokerData && brokerData.shorthand) {
+                    const fallbackSymbol = mappingObj.mappings[brokerData.shorthand];
+                    if (fallbackSymbol) {
+                        if (fallbackSymbol === this.IGNORE_SENTINEL) {
+                            console.log(`[AssetMapping] 🛑 Symbol ${genericSymbol} is explicitly IGNORED for ${brokerId} (via shorthand ${brokerData.shorthand})`);
+                            return this.IGNORE_SENTINEL;
+                        }
+                        console.log(`[AssetMapping] ✅ STRICT MATCH (Fallback Shorthand): ${genericSymbol} -> ${fallbackSymbol} for Broker ${brokerId}`);
+                        return fallbackSymbol;
+                    }
+                }
+            } catch (e) { /* ignore db error on shorthand lookup */ }
         }
 
-        if (match) {
-            const found = (typeof match === 'string') ? match : match.name;
-            console.log(`[AssetMapping] ✅ Mapped ${genericSymbol} -> ${found} for ${botId}`);
-            return found;
-        }
-
-        console.warn(`[AssetMapping] ❌ Mapping Failed for ${genericSymbol} on ${botId}. Available Sample: ${JSON.stringify(brokerSymbols.slice(0, 5))}`);
-        return genericSymbol; // Fallback
+        console.warn(`[AssetMapping] ⚠️ NO EXPLICIT MAPPING found for ${genericSymbol} on Broker ${brokerId}. Falling back to internal symbol.`);
+        return genericSymbol;
     }
 
     /**

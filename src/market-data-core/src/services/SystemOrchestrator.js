@@ -512,7 +512,7 @@ class SystemOrchestrator {
     startHeartbeatMonitor() {
         setInterval(() => {
             const now = Date.now();
-            const staleThreshold = 3000; // USER REQUEST: 3 Seconds (Aggressive)
+            const staleThreshold = 10000; // Increased: 3s was too aggressive and caused false disconnects
 
             Object.entries(this.botStatus).forEach(([key, status]) => {
                 // Skip if no lastSeen (Just connected)

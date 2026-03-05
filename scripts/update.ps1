@@ -25,7 +25,7 @@ function Write-Log {
     Write-Host $Message -ForegroundColor $Color
 }
 
-$TotalSteps = 10
+$TotalSteps = 11
 function Set-Progress {
     param([int]$Step, [string]$Message)
     $obj = @{ step = $Step; total = $TotalSteps; text = $Message }
@@ -313,7 +313,17 @@ try {
 
     pm2 start all 2>&1 | Out-File -Append -FilePath $LogFile
     
-    Set-Progress 10 "Fertig"
+    if ($RestartInstances -eq "True") {
+        Set-Progress 10 "Starte verbundene NinjaTrader & MetaTrader Instanzen..."
+        Write-Log "  -> Starte NinjaTrader und MetaTrader Instanzen neu..." "Cyan"
+        $AutoStartScript = Join-Path $TargetDir "scripts\autostart-terminals.js"
+        node $AutoStartScript 2>&1 | Out-File -Append -FilePath $LogFile
+        if ($LASTEXITCODE -ne 0) {
+            Write-Log "     WARNUNG: Fehler beim automatischen Starten der Terminals (Exit Code: $LASTEXITCODE)." "Yellow"
+        }
+    }
+
+    Set-Progress 11 "Fertig"
 
     Write-Log "`n[OK] UPDATE ERFOLGREICH ABGESCHLOSSEN!" "Green"
 }

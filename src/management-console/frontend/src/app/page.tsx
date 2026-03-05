@@ -345,7 +345,7 @@ export default function ManagementConsole() {
                         .filter(([_, isAffected]) => isAffected)
                         .map(([comp, _]) => (
                           <span key={comp} className="bg-gray-800 border border-gray-700 px-3 py-1.5 rounded-lg text-sm font-medium text-gray-300 shadow-sm capitalize">
-                            {comp}
+                            {comp === 'ninjatrader' ? 'NinjaTrader' : comp === 'metatrader' ? 'MetaTrader' : comp}
                           </span>
                         ))}
                       {(!updateStatus.components || !Object.values(updateStatus.components).some(v => v)) && (

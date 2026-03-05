@@ -19,7 +19,8 @@ class AutoUpdateService {
             components: {
                 frontend: false,
                 backend: false,
-                metatrader: false
+                metatrader: false,
+                ninjatrader: false
             }
         };
 
@@ -97,7 +98,8 @@ class AutoUpdateService {
             components: {
                 frontend: false,
                 backend: false,
-                metatrader: false
+                metatrader: false,
+                ninjatrader: false
             }
         };
 
@@ -126,6 +128,7 @@ class AutoUpdateService {
                 if (filePath.startsWith('src/trading-cockpit')) result.components.frontend = true;
                 if (filePath.startsWith('src/market-data-core')) result.components.backend = true;
                 if (filePath.startsWith('ressources/metatrader')) result.components.metatrader = true;
+                if (filePath.startsWith('ressources/ninjatrader')) result.components.ninjatrader = true;
             }
         }
 

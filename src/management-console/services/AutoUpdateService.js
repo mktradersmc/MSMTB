@@ -79,7 +79,7 @@ class AutoUpdateService {
 
             console.log('[AutoUpdateService] On-Demand fetch triggered by UI. Fetching objects from GitHub...');
             // 2. Heavy Check: Fetch objects since structural changes exist
-            await this.execCommand('git fetch origin main', gitRepoPath);
+            await this.execCommand('git fetch origin', gitRepoPath);
 
             // Get log of commits that are on origin/main but not on local main
             const logOutput = await this.execCommand('git log HEAD..origin/main --pretty=format:"%h|%s" --name-only', gitRepoPath);

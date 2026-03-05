@@ -104,7 +104,7 @@ if (-not [string]::IsNullOrWhiteSpace($GithubPat)) {
     git remote set-url origin $RepoUrl
 }
 
-git fetch origin main 2>&1 | Out-File -Append -FilePath $LogFile
+git fetch origin 2>&1 | Out-File -Append -FilePath $LogFile
 git reset --hard origin/main 2>&1 | Out-File -Append -FilePath $LogFile
 if ($LASTEXITCODE -ne 0) {
     Write-Log "FEHLER beim Git Pull. Breche Update ab." "Red"

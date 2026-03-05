@@ -11,7 +11,7 @@ export function AccountsView() {
     const [accounts, setAccounts] = useState<TradingAccount[]>([]);
     const [brokers, setBrokers] = useState<Broker[]>([]);
     const [isAddOpen, setIsAddOpen] = useState(false);
-    const [configAccount, setConfigAccount] = useState<{ botId: string, id: string, size?: number } | null>(null);
+    const [configAccount, setConfigAccount] = useState<{ botId: string, id: string, size?: number, isTest?: boolean } | null>(null);
     const [loadingAction, setLoadingAction] = useState<string | null>(null);
     const [statuses, setStatuses] = useState<Record<string, StatusData>>({});
     const [serverTime, setServerTime] = useState<number>(Date.now());
@@ -185,7 +185,7 @@ export function AccountsView() {
                             isDatafeedSection={false}
                             isUpdating={isUpdating}
                             updateScope={updateScope}
-                            onConfig={(botId) => setConfigAccount({ botId, id: acc.id, size: acc.accountSize })}
+                            onConfig={(botId) => setConfigAccount({ botId, id: acc.id, size: acc.accountSize, isTest: acc.isTest })}
                         />
                     ))}
                 </div>
@@ -200,7 +200,7 @@ export function AccountsView() {
             </div>
 
             {isAddOpen && <AddAccountModal onClose={() => setIsAddOpen(false)} onSuccess={loadData} existingAccounts={accounts} isTestMode={isTestMode} />}
-            {configAccount && <AccountConfigModal botId={configAccount.botId} accountId={configAccount.id} accountSize={configAccount.size} onClose={() => { setConfigAccount(null); loadData(); }} onSuccess={loadData} />}
+            {configAccount && <AccountConfigModal botId={configAccount.botId} accountId={configAccount.id} accountSize={configAccount.size} isTest={configAccount.isTest} onClose={() => { setConfigAccount(null); loadData(); }} onSuccess={loadData} />}
         </div>
     );
 }

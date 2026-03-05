@@ -124,6 +124,72 @@ app.post('/api/system/update/execute', authenticateToken, (req, res) => {
     res.json(result);
 });
 
+// --- SSL Config Routes ---
+app.get('/api/system/ssl/progress', (req, res) => {
+    try {
+        const config = getSystemConfig();
+        const root = config?.projectRoot || path.resolve(__dirname, '../../');
+        const logPath = path.join(root, 'logs', 'ssl-progress.json');
+
+        if (fs.existsSync(logPath)) {
+            let data = fs.readFileSync(logPath, 'utf8');
+            if (data.charCodeAt(0) === 0xFEFF) data = data.slice(1);
+            if (data.includes('\u0000')) data = fs.readFileSync(logPath, 'utf16le');
+
+            res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+            res.end(data);
+        } else {
+            res.json({ step: 0, text: "Initialisiere Let's Encrypt Client..." });
+        }
+    } catch (e) {
+        console.error('[SSL API] Progress read error:', e);
+        res.status(500).json({ error: e.message });
+    }
+});
+
+app.post('/api/system/ssl/generate', authenticateToken, (req, res) => {
+    const { domain, email } = req.body || {};
+    if (!domain || !email) {
+        return res.status(400).json({ success: false, error: "Domain und Email sind erforderlich." });
+    }
+
+    const config = getSystemConfig();
+    const root = config?.projectRoot || path.resolve(__dirname, '../../');
+    const scriptPath = path.join(root, 'scripts', 'request_letsencrypt.ps1');
+
+    const logPath = path.join(root, 'logs', 'ssl-progress.json');
+    try {
+        if (fs.existsSync(logPath)) fs.unlinkSync(logPath);
+    } catch (e) { }
+
+    const { spawn } = require('child_process');
+    try {
+        const vbsPath = path.join(root, 'scripts', 'temp_ssl_launcher.vbs');
+        const psPath = scriptPath.replace(/\\/g, '\\\\');
+
+        // Escape arguments for PowerShell execution via VBS
+        const vbsCode = `
+Set WshShell = CreateObject("WScript.Shell")
+WshShell.Run "powershell.exe -NoProfile -ExecutionPolicy Bypass -File ""${psPath}"" -Domain ""${domain}"" -Email ""${email}""", 0, False
+`;
+        fs.writeFileSync(vbsPath, vbsCode);
+
+        const child = spawn('cscript.exe', ['//nologo', vbsPath], {
+            detached: true,
+            stdio: 'ignore',
+            cwd: root,
+            windowsHide: true
+        });
+        child.unref();
+
+        console.log(`[Management Console] Spawned Let's Encrypt generation script for ${domain}`);
+        res.json({ success: true, message: "SSL Prozess gestartet." });
+    } catch (error) {
+        console.error('[SSL API] Error launching script:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
 // --- System Config Routes ---
 app.get('/api/system/config', authenticateToken, (req, res) => {
     const config = getSystemConfig();

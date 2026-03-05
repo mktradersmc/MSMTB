@@ -2386,7 +2386,7 @@ export const ChartContainer = React.forwardRef<ChartContainerHandle, ChartContai
                                                             )}
                                                         </div>
                                                         <div className="px-4 py-3 font-semibold text-slate-700 dark:text-slate-300 truncate">
-                                                            {brokers.find(b => b.id === batch.brokerId)?.name || batch.brokerId}
+                                                            {brokers.find(b => b.id === (batch.brokerId === 'MULTIPLE' ? acc.brokerId : batch.brokerId))?.name || acc.brokerId || batch.brokerId}
                                                         </div>
                                                         <div className="px-4 py-3 font-mono text-slate-600 dark:text-slate-400 truncate">
                                                             {acc.login || acc.name || acc.id}

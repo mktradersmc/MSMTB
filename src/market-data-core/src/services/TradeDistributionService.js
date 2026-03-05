@@ -1,5 +1,6 @@
 const systemOrchestrator = require('./SystemOrchestrator');
 const db = require('./DatabaseService');
+const mappingService = require('./AssetMappingService');
 
 class TradeDistributionService {
     constructor() {
@@ -279,12 +280,18 @@ class TradeDistributionService {
                         environment: trade.environment || 'test' // Fix: propagate environment to child execs
                     });
 
+                    const botSpecificTrade = { ...trade };
+                    const mappedSymbol = mappingService.getBrokerSymbol(acc.botId.trim(), trade.symbol);
+                    if (mappedSymbol) {
+                        botSpecificTrade.symbol = mappedSymbol;
+                    }
+
                     const workerPayload = {
                         masterId: tradeId,
                         brokerId: acc.brokerId,
                         accountId: acc.id,
                         magic: magic,
-                        trade: trade
+                        trade: botSpecificTrade
                     };
 
                     systemOrchestrator.sendToWorkerByKey(routingKey, {

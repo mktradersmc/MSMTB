@@ -65,6 +65,8 @@ export class TradeDistributionManager {
         }
         console.log(`======================================================\n`);
 
+        const allValidAccounts: TradingAccount[] = [];
+
         // 1. Group Accounts by Broker (FILTERED by Mode)
         const accountsByBroker: Record<string, TradingAccount[]> = {};
 
@@ -110,32 +112,25 @@ export class TradeDistributionManager {
             console.log(`\n[TradeDistribution] --- Processing Broker: ${brokerNode.name} (${brokerId}) ---`);
             console.log(`[TradeDistribution] Accounts surviving Stage 1 for this broker:`, brokerAccounts.map(a => `${a.login} (ID: ${a.id})`));
 
-            // --- Symbol Mapping ---
-            // Clone the trade to avoid mutating the original
-            const mappedTrade = { ...baseTrade };
-
-            // STRICT MAPPING ENFORCEMENT
-            let mappedSym;
+            // --- Symbol Verification (MAPPING CHECK) ---
+            // If the broker does NOT have a mapping for this symbol, we MUST exclude its accounts.
+            let hasValidMapping = false;
             if (brokerNode.symbolMappings) {
-                // Perform case-insensitive search
                 const targetKey = baseTrade.symbol.toUpperCase().trim();
                 const matchedKey = Object.keys(brokerNode.symbolMappings).find(k => k.toUpperCase().trim() === targetKey);
 
                 if (matchedKey) {
-                    mappedSym = brokerNode.symbolMappings[matchedKey];
+                    const mappedSym = brokerNode.symbolMappings[matchedKey];
+                    if (mappedSym !== '__IGNORE__') {
+                        hasValidMapping = true;
+                    } else {
+                        console.log(`[TradeDistribution] 🛑 Broker ${brokerNode.name}: Symbol ${baseTrade.symbol} explicitly ignored (__IGNORE__). EXCLUDING BROKER.`);
+                    }
                 }
             }
 
-            if (mappedSym) {
-                if (mappedSym === '__IGNORE__') {
-                    console.log(`[TradeDistribution] 🛑 Broker ${brokerNode.name}: Symbol ${baseTrade.symbol} explicitly ignored (__IGNORE__). EXCLUDING BROKER.`);
-                    return; // Skip this broker
-                }
-
-                mappedTrade.symbol = mappedSym;
-                console.log(`[TradeDistribution] Mapped ${baseTrade.symbol} -> ${mappedTrade.symbol} for ${brokerNode.name}`);
-            } else {
-                console.log(`[TradeDistribution] ❌ Broker ${brokerNode.name} has no mapping for ${baseTrade.symbol}. STRICT EXCLUDE.`);
+            if (!hasValidMapping) {
+                console.log(`[TradeDistribution] ❌ Broker ${brokerNode.name} has no mapping for ${baseTrade.symbol}. EXCLUDING BROKER.`);
                 return; // Skip this broker entirely
             }
 
@@ -196,9 +191,8 @@ export class TradeDistributionManager {
             } else {
                 // FALLBACK LOGIC
                 if (isTestMode) {
-                    // Test Mode: Default to ALL available accounts if no config exists
-                    // This ensures "Test Environment" switch works out-of-the-box for mapped accounts
-                    console.log(`[TradeDistribution] No explicit Test Config for ${brokerNode.name}. Defaulting to ALL available test accounts.`);
+                    // Test Mode: Default to ALL available mapped accounts if no config exists
+                    console.log(`[TradeDistribution] No explicit Test Config for ${brokerNode.name}. Defaulting to ALL available test accounts (Since mapping was valid).`);
                     targetAccountIds = brokerAccounts.map(a => a.id);
                 } else {
                     // Live Mode: STRICT. If no config exists, we do NOT distribute.
@@ -217,21 +211,25 @@ export class TradeDistributionManager {
 
             if (validAccounts.length > 0) {
                 console.log(`[TradeDistribution] ✅ SUCCESS: Broker ${brokerNode.name} final execution accounts:`, validAccounts.map(a => a.login));
-
-                // Explicitly tag the environment so the backend saves it correctly in the database
-                mappedTrade.environment = isTestMode ? 'test' : 'live';
-
-                batches.push({
-                    brokerId: brokerId,
-                    trade: mappedTrade,
-                    accounts: validAccounts // Send full objects for backend routing
-                });
+                allValidAccounts.push(...validAccounts);
             } else {
                 console.log(`[TradeDistribution] ❌ FAIL: Broker ${brokerNode.name} has no valid accounts left after final matrix filtering.`);
             }
         });
 
-        console.log(`[TradeDistribution] 🏁 FINAL RESULT: Returning ${batches.length} execution batches.\n`);
+        if (allValidAccounts.length > 0) {
+            // Explicitly tag the environment so the backend saves it correctly in the database
+            const finalTrade = { ...baseTrade };
+            finalTrade.environment = isTestMode ? 'test' : 'live';
+
+            batches.push({
+                brokerId: 'MULTIPLE',
+                trade: finalTrade,
+                accounts: allValidAccounts
+            });
+        }
+
+        console.log(`[TradeDistribution] 🏁 FINAL RESULT: Returning ${batches.length} execution batches (Unified).\n`);
         return batches;
     }
 }

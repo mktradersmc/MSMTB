@@ -234,9 +234,13 @@ export const ChartOverlay = React.forwardRef<ChartOverlayHandle, ChartOverlayPro
                 {/* Middle Group: Timeframe (Restored Full List) */}
                 <div className="relative flex-1 min-w-0 flex items-center group/tf overflow-hidden h-full">
                     {canScrollLeft && (
-                        <div className="absolute left-0 top-0 bottom-0 z-10 flex items-center">
-                            <div className="absolute inset-0 bg-gradient-to-r from-white dark:from-slate-900 to-transparent w-6" />
-                            <button onClick={(e) => { e.stopPropagation(); scrollTf('left'); }} className="relative z-20 p-0.5 text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors"><ChevronLeft size={14} /></button>
+                        <div className="absolute left-0 top-0 bottom-0 z-30 flex items-center pr-6 bg-gradient-to-r from-white via-white to-transparent dark:from-slate-900 dark:via-slate-900">
+                            <button
+                                onClick={(e) => { e.stopPropagation(); scrollTf('left'); }}
+                                className="relative z-40 px-0.5 py-1 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition-all bg-white dark:bg-slate-800 shadow-sm border border-slate-200 dark:border-slate-700 rounded-sm flex items-center justify-center hover:shadow-md h-7"
+                            >
+                                <ChevronLeft size={14} strokeWidth={2.5} />
+                            </button>
                         </div>
                     )}
 
@@ -261,9 +265,13 @@ export const ChartOverlay = React.forwardRef<ChartOverlayHandle, ChartOverlayPro
                     </div>
 
                     {canScrollRight && (
-                        <div className="absolute right-0 top-0 bottom-0 z-10 flex items-center justify-end">
-                            <div className="absolute inset-0 bg-gradient-to-l from-white dark:from-slate-900 to-transparent w-6" />
-                            <button onClick={(e) => { e.stopPropagation(); scrollTf('right'); }} className="relative z-20 p-0.5 text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors"><ChevronRight size={14} /></button>
+                        <div className="absolute right-0 top-0 bottom-0 z-30 flex items-center justify-end pl-6 bg-gradient-to-l from-white via-white to-transparent dark:from-slate-900 dark:via-slate-900">
+                            <button
+                                onClick={(e) => { e.stopPropagation(); scrollTf('right'); }}
+                                className="relative z-40 px-0.5 py-1 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition-all bg-white dark:bg-slate-800 shadow-sm border border-slate-200 dark:border-slate-700 rounded-sm flex items-center justify-center hover:shadow-md h-7"
+                            >
+                                <ChevronRight size={14} strokeWidth={2.5} />
+                            </button>
                         </div>
                     )}
                 </div>

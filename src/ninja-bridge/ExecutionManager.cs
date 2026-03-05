@@ -631,13 +631,22 @@ namespace AwesomeCockpit.NT8.Bridge
                             }
 
                             // 4. Calculate Risk / Quantity
-                            double riskPercent = 1.0;
-                            if (payload["risk"] != null && payload["risk"].Type != JTokenType.Null)
+                            if (payload["risk"] == null || payload["risk"].Type == JTokenType.Null)
                             {
-                                if (payload["risk"].Type == JTokenType.Object && payload["risk"]["value"] != null)
-                                    riskPercent = Convert.ToDouble(payload["risk"]["value"]);
-                                else if (payload["risk"].Type != JTokenType.Object)
-                                    riskPercent = Convert.ToDouble(payload["risk"]);
+                                SendRejectResponse("Missing required 'risk' parameter in execution payload", id, reqId, botId);
+                                return;
+                            }
+
+                            double riskPercent = 0.0;
+                            if (payload["risk"].Type == JTokenType.Object && payload["risk"]["value"] != null)
+                                riskPercent = Convert.ToDouble(payload["risk"]["value"]);
+                            else if (payload["risk"].Type != JTokenType.Object)
+                                riskPercent = Convert.ToDouble(payload["risk"]);
+
+                            if (riskPercent <= 0)
+                            {
+                                SendRejectResponse("Invalid 'risk' parameter (must be > 0)", id, reqId, botId);
+                                return;
                             }
 
                             string safeName = botId.Replace("_DATAFEED", "");

@@ -10,7 +10,7 @@ import { LoadingOverlay } from './LoadingOverlay';
 import { SymbolBrowser } from '../live/SymbolBrowser';
 import { MagnetControl } from './MagnetControl';
 import { MagnetService } from './widgets/MagnetService';
-import { ChevronLeft, ChevronRight, Settings, Clock, ChevronsRight, CheckCircle2 } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Settings, Clock, ChevronsRight, CheckCircle2, X } from 'lucide-react';
 import { useContextMenu } from '../../hooks/useContextMenu';
 import { ContextMenu, ContextMenuItem } from './contextmenu/ContextMenu';
 import { SettingsModal } from './settings/SettingsModal';
@@ -229,6 +229,41 @@ export const ChartContainer = React.forwardRef<ChartContainerHandle, ChartContai
 
     // State for Widget Removal
     const [executionSourceId, setExecutionSourceId] = useState<string | null>(null);
+    const [riskOverrides, setRiskOverrides] = useState<Record<string, number>>({});
+
+    const resolveAccountRisk = (primaryAcc: any, fallbackAcc?: any): number => {
+        const id = primaryAcc?.id ?? primaryAcc?.accountId ?? fallbackAcc?.id ?? fallbackAcc?.accountId;
+        if (id && riskOverrides[id] !== undefined) return riskOverrides[id];
+
+        const r1 = primaryAcc?.config?.risk?.percent ?? primaryAcc?.riskPercent;
+        if (r1 !== undefined && r1 !== null) return Number(r1);
+        if (fallbackAcc) {
+            const r2 = fallbackAcc?.config?.risk?.percent ?? fallbackAcc?.riskPercent;
+            if (r2 !== undefined && r2 !== null) return Number(r2);
+        }
+        return 0.25;
+    };
+
+    const handleRiskKeyDown = (e: React.KeyboardEvent<HTMLInputElement>, accId: string, currentRisk: number) => {
+        if (e.key === 'Backspace') {
+            e.preventDefault();
+            const currentCents = Math.round(currentRisk * 100);
+            const newCents = Math.floor(currentCents / 10);
+            setRiskOverrides(prev => ({ ...prev, [accId]: newCents / 100 }));
+        } else if (/^[0-9]$/.test(e.key)) {
+            e.preventDefault();
+            const currentCents = Math.round(currentRisk * 100);
+            const digit = parseInt(e.key, 10);
+            let newCents = currentCents * 10 + digit;
+            if (newCents > 999) newCents = 999; // Cap at 9.99
+            setRiskOverrides(prev => ({ ...prev, [accId]: newCents / 100 }));
+        } else if (e.key === 'Delete') {
+            e.preventDefault();
+            setRiskOverrides(prev => ({ ...prev, [accId]: 0 }));
+        } else if (e.key === '.' || e.key === ',') {
+            e.preventDefault(); // Block manual decimal insertion
+        }
+    };
 
     useEffect(() => {
         // Sync Active Trades to Chart
@@ -240,8 +275,8 @@ export const ChartContainer = React.forwardRef<ChartContainerHandle, ChartContai
             (t.status === 'RUNNING' || t.status === 'PENDING' || t.status === 'CREATED')
         );
 
-        const activeIds = new Set<string>();
         const logs = TradeLogService.getLogs();
+        const activeIds = new Set<string>(); // Use a new set for current active trades
 
         activeForSymbol.forEach(trade => {
             activeIds.add(trade.tradeId);
@@ -485,6 +520,9 @@ export const ChartContainer = React.forwardRef<ChartContainerHandle, ChartContai
     const [isAutoScale, setIsAutoScale] = useState(true);
     const [pendingTrade, setPendingTrade] = useState<any | null>(null);
     const [executionPlan, setExecutionPlan] = useState<ExecutionBatch[] | null>(null);
+    const [distributionMode, setDistributionMode] = useState<'automatic' | 'manual'>('automatic');
+    const [mappedManualAccounts, setMappedManualAccounts] = useState<any[]>([]);
+    const [selectedManualAccountIds, setSelectedManualAccountIds] = useState<string[]>([]);
     const [isExecutingTrade, setIsExecutingTrade] = useState(false);
     const [executionSummary, setExecutionSummary] = useState<any[] | null>(null);
     const [actionFeedback, setActionFeedback] = useState<string | null>(null);
@@ -500,6 +538,7 @@ export const ChartContainer = React.forwardRef<ChartContainerHandle, ChartContai
     useEffect(() => {
         if (!pendingTrade) {
             setExecutionPlan(null);
+            setMappedManualAccounts([]);
             return;
         }
 
@@ -507,6 +546,17 @@ export const ChartContainer = React.forwardRef<ChartContainerHandle, ChartContai
         const fetchPlan = async () => {
             console.log(`[ChartContainer] EFFECT TRIGGERED: fetchPlan initiated for trade ID ${pendingTrade?.id}`);
             try {
+                // Fetch mapped accounts for the Manual Mode base
+                const mappedAccounts = TradeDistributionManager.getMappedAccounts(pendingTrade, accounts, brokers, isTestMode);
+                if (isMounted) {
+                    setMappedManualAccounts(mappedAccounts);
+                }
+
+                if (distributionMode === 'manual') {
+                    if (isMounted) setExecutionPlan(null);
+                    return;
+                }
+
                 const config = await TradeDistributionManager.getDistributionConfig();
                 console.log(`[ChartContainer] Config fetched:`, config ? 'SUCCESS' : 'NULL');
                 if (!isMounted) return;
@@ -531,7 +581,7 @@ export const ChartContainer = React.forwardRef<ChartContainerHandle, ChartContai
 
         fetchPlan();
         return () => { isMounted = false; };
-    }, [pendingTrade, accounts, brokers, isTestMode]);
+    }, [pendingTrade, accounts, brokers, isTestMode, distributionMode]);
 
     // --- SCROLL TO REALTIME BUTTON STATE ---
     const [isAtRealtime, setIsAtRealtime] = useState(true);
@@ -2051,18 +2101,27 @@ export const ChartContainer = React.forwardRef<ChartContainerHandle, ChartContai
         try {
             console.log("[Chart] Preparing Final Execution for:", tradeToExecute);
 
-            // 2. Get Distribution Config again (to be safe)
-            const config = await TradeDistributionManager.getDistributionConfig();
+            // 2. Determine Batches based on Mode
+            let batches: ExecutionBatch[] = [];
 
-            // 3. Calculate Batches (Not Preview Mode -> Commits Rotation Counter)
-            const batches = TradeDistributionManager.distributeTrade(
-                tradeToExecute,
-                accounts,
-                brokers,
-                config,
-                isTestMode,
-                false // Commit Mode
-            );
+            if (distributionMode === 'automatic') {
+                const config = await TradeDistributionManager.getDistributionConfig();
+                batches = TradeDistributionManager.distributeTrade(
+                    tradeToExecute,
+                    accounts,
+                    brokers,
+                    config,
+                    isTestMode,
+                    false // Commit Mode
+                );
+            } else {
+                // Manual Mode Batches
+                const selectedAccounts = mappedManualAccounts.filter(a => selectedManualAccountIds.includes(a.id));
+                if (selectedAccounts.length > 0) {
+                    const finalTrade = { ...tradeToExecute, environment: isTestMode ? 'test' : 'live' };
+                    batches = [{ brokerId: 'MULTIPLE', trade: finalTrade, accounts: selectedAccounts }];
+                }
+            }
 
             console.log("--- DEBUG: FINAL DISTRIBUTION PLAN ---");
             console.log(batches);
@@ -2071,6 +2130,16 @@ export const ChartContainer = React.forwardRef<ChartContainerHandle, ChartContai
                 alert("No target accounts found for distribution!");
                 return;
             }
+
+            // --- INJECT RISK OVERRIDES ---
+            batches.forEach(batch => {
+                batch.accounts.forEach(acc => {
+                    const id = acc.id || acc.accountId;
+                    if (id && riskOverrides[id] !== undefined) {
+                        acc.manualRisk = riskOverrides[id];
+                    }
+                });
+            });
 
             // 4. EXECUTE TRADES (Send to Backend)
             await Promise.all(batches.map(async (batch) => {
@@ -2341,67 +2410,161 @@ export const ChartContainer = React.forwardRef<ChartContainerHandle, ChartContai
             {pendingTrade && (
                 <div className="absolute inset-0 z-[100] flex items-center justify-center bg-slate-950/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
                     <div className="bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl shadow-2xl w-full max-w-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
-                        <div className="px-6 py-4 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center bg-slate-50 dark:bg-slate-900/50">
-                            <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                                <span className={pendingTrade.direction === 'LONG' ? "text-emerald-600 dark:text-emerald-500" : "text-rose-600 dark:text-rose-500"}>
-                                    {pendingTrade.direction === 'LONG' ? "Long" : "Short"} {pendingTrade.orderType}
+                        <div className={`px-5 py-3 flex justify-between items-center shadow-md ${isTestMode ? 'bg-amber-600 text-white' : 'bg-indigo-600 text-white'}`}>
+                            <h3 className="flex items-baseline gap-2.5">
+                                <span className="font-mono bg-white/10 dark:bg-black/20 border border-white/20 dark:border-white/10 px-2.5 py-0.5 rounded shadow-sm text-white font-medium tracking-wide text-sm">
+                                    {pendingTrade.symbol}
                                 </span>
-                                <span className="text-slate-500 font-normal text-sm">Execution Plan</span>
+                                <span className="text-sm font-semibold tracking-wide text-white">
+                                    {pendingTrade.direction === 'LONG' ? "Long" : "Short"} {pendingTrade.orderType.charAt(0).toUpperCase() + pendingTrade.orderType.slice(1).toLowerCase()}
+                                </span>
                             </h3>
-                            <button onClick={() => setPendingTrade(null)} className="text-slate-400 hover:text-slate-600 dark:hover:text-white transition-colors">
-                                <ChevronRight className="rotate-90" size={20} />
+                            <button onClick={() => setPendingTrade(null)} className="text-white/70 hover:text-white transition-colors">
+                                <X size={18} />
                             </button>
+                        </div>
+
+                        {/* Mode Toggles */}
+                        <div className="px-6 pt-5 pb-3 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800">
+                            <div className="flex gap-3 w-full mb-1">
+                                <button
+                                    onClick={() => setDistributionMode('automatic')}
+                                    className={`flex-1 py-2 px-3 rounded-lg border text-xs font-bold flex items-center justify-center gap-2 transition-all ${distributionMode === 'automatic'
+                                        ? (isTestMode ? 'border-amber-500 bg-amber-500/10 text-amber-600 dark:text-amber-500' : 'border-indigo-600 bg-indigo-600/10 text-indigo-600 dark:text-indigo-500')
+                                        : 'border-slate-200 dark:border-slate-800 text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800'
+                                        }`}
+                                >
+                                    <div className={`w-2 h-2 rounded-full ${distributionMode === 'automatic' ? (isTestMode ? 'bg-amber-500' : 'bg-indigo-600 dark:bg-indigo-500') : 'bg-slate-300 dark:bg-slate-700'}`}></div>
+                                    <span>AUTOMATIC DISTRIBUTION</span>
+                                </button>
+                                <button
+                                    onClick={() => setDistributionMode('manual')}
+                                    className={`flex-1 py-2 px-3 rounded-lg border text-xs font-bold flex items-center justify-center gap-2 transition-all ${distributionMode === 'manual'
+                                        ? (isTestMode ? 'border-amber-500 bg-amber-500/10 text-amber-600 dark:text-amber-500' : 'border-indigo-600 bg-indigo-600/10 text-indigo-600 dark:text-indigo-500')
+                                        : 'border-slate-200 dark:border-slate-800 text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800'
+                                        }`}
+                                >
+                                    <div className={`w-2 h-2 rounded-full ${distributionMode === 'manual' ? (isTestMode ? 'bg-amber-500' : 'bg-indigo-600 dark:bg-indigo-500') : 'bg-slate-300 dark:bg-slate-700'}`}></div>
+                                    <span>MANUAL SELECTION</span>
+                                </button>
+                            </div>
                         </div>
 
                         <div className="p-0 overflow-hidden">
                             {/* Execution Plan Table */}
-                            <div className="w-full text-sm text-left border-b border-slate-200 dark:border-slate-800">
-                                <div className="grid grid-cols-[100px_1fr_1fr_80px] border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50 text-slate-500 font-bold text-[10px] uppercase tracking-wider">
-                                    <div className="px-6 py-2">Status</div>
-                                    <div className="px-4 py-2">Broker</div>
-                                    <div className="px-4 py-2">Account</div>
-                                    <div className="px-6 py-2 text-right">Risk %</div>
+                            <div className="w-full text-xs text-left border-b border-slate-200 dark:border-slate-800">
+                                <div className={`grid ${distributionMode === 'manual' ? 'grid-cols-[40px_100px_1fr_1fr_80px]' : 'grid-cols-[100px_1fr_1fr_80px]'} border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50 text-slate-500 font-bold text-[10px] uppercase tracking-wider`}>
+                                    {distributionMode === 'manual' && <div className="px-3 py-1.5 text-center">Sel</div>}
+                                    <div className="px-4 py-1.5">Status</div>
+                                    <div className="px-3 py-1.5">Broker</div>
+                                    <div className="px-3 py-1.5">Account</div>
+                                    <div className="px-4 py-1.5 text-right whitespace-nowrap">Risk %</div>
                                 </div>
                                 <div className="max-h-[300px] overflow-y-auto">
-                                    {!executionPlan ? (
-                                        <div className="px-6 py-8 text-center text-slate-500 dark:text-slate-400 text-sm italic">
-                                            Calculating execution plan...
-                                        </div>
-                                    ) : executionPlan.length === 0 ? (
-                                        <div className="px-6 py-8 text-center text-rose-500 dark:text-rose-400 text-sm font-bold">
-                                            No target accounts available. Check your distribution settings.
-                                        </div>
+                                    {distributionMode === 'automatic' ? (
+                                        !executionPlan ? (
+                                            <div className="px-6 py-8 text-center text-slate-500 dark:text-slate-400 text-sm italic">
+                                                Calculating execution plan...
+                                            </div>
+                                        ) : executionPlan.length === 0 ? (
+                                            <div className="px-6 py-8 text-center text-rose-500 dark:text-rose-400 text-sm font-bold">
+                                                No target accounts available. Check your distribution settings.
+                                            </div>
+                                        ) : (
+                                            executionPlan.flatMap((batch, batchIndex) =>
+                                                batch.accounts.map((acc, accIndex) => {
+                                                    const isOnline = acc.status === 'RUNNING' || acc.isConnected;
+                                                    const fullAccount = accounts?.find(a => a.id === (acc.id || acc.accountId) || a.accountId === (acc.accountId || acc.id));
+                                                    const riskPercent = resolveAccountRisk(fullAccount, acc);
+
+                                                    return (
+                                                        <div key={`${batch.brokerId}-${acc.id}`} className="grid grid-cols-[100px_1fr_1fr_80px] border-b border-slate-100 dark:border-slate-800/50 items-center hover:bg-slate-50 dark:hover:bg-slate-900/30 transition-colors last:border-0">
+                                                            <div className="px-4 py-1.5">
+                                                                <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[9px] font-bold ${isOnline ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400' : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400'}`}>
+                                                                    <div className={`w-1.5 h-1.5 rounded-full ${isOnline ? 'bg-emerald-500' : 'bg-slate-400'}`} />
+                                                                    {isOnline ? 'ON' : 'OFF'}
+                                                                </span>
+                                                            </div>
+                                                            <div className="px-3 py-1.5 text-xs font-medium text-slate-700 dark:text-slate-300 truncate">
+                                                                {brokers.find(b => b.id === (batch.brokerId === 'MULTIPLE' ? acc.brokerId : batch.brokerId))?.name || acc.brokerId || batch.brokerId}
+                                                            </div>
+                                                            <div className="px-3 py-1.5 font-mono text-slate-600 dark:text-slate-400 text-[11px] truncate">
+                                                                {acc.login || acc.name || acc.id}
+                                                            </div>
+                                                            <div className="px-4 py-1.5 text-right font-mono font-bold text-slate-900 dark:text-white text-xs flex justify-end items-center">
+                                                                <input
+                                                                    type="text"
+                                                                    inputMode="numeric"
+                                                                    className="w-14 bg-transparent text-right outline-none ring-slate-300 focus:ring-1 focus:ring-indigo-500 rounded px-1"
+                                                                    value={Number(riskPercent).toFixed(2)}
+                                                                    onChange={() => { }} // Controlled purely via keydown
+                                                                    onKeyDown={(e) => handleRiskKeyDown(e, acc.id || acc.accountId, riskPercent)}
+                                                                    onClick={(e) => e.stopPropagation()}
+                                                                />
+                                                                <span className="text-[10px] ml-0.5 text-slate-400">%</span>
+                                                            </div>
+                                                        </div>
+                                                    );
+                                                })
+                                            )
+                                        )
                                     ) : (
-                                        executionPlan.flatMap((batch, batchIndex) =>
-                                            batch.accounts.map((acc, accIndex) => {
-                                                const isOnline = acc.status === 'RUNNING' || acc.isConnected;
-                                                const riskPercent = acc.config?.risk?.percent || acc.riskPercent; // depending on structure
+                                        // Manual Mode User Interface
+                                        mappedManualAccounts.length === 0 ? (
+                                            <div className="px-6 py-8 text-center text-slate-500 dark:text-slate-400 text-sm italic">
+                                                No relevant mapped accounts found for this symbol.
+                                            </div>
+                                        ) : (
+                                            mappedManualAccounts.map((b) => {
+                                                const isOnline = b.status === 'RUNNING' || b.isConnected;
+                                                const riskPercent = resolveAccountRisk(b);
+                                                const isSelected = selectedManualAccountIds.includes(b.id);
+                                                const broker = brokers.find(br => br.id === b.brokerId);
+                                                const account = b; // Assuming 'b' itself is the account object
+                                                const distRatio = b.distRatio || 0; // Assuming distRatio is available on 'b'
 
                                                 return (
-                                                    <div key={`${batch.brokerId}-${acc.id}`} className="grid grid-cols-[100px_1fr_1fr_80px] border-b border-slate-100 dark:border-slate-800/50 items-center hover:bg-slate-50 dark:hover:bg-slate-900/30 transition-colors last:border-0">
-                                                        <div className="px-6 py-3 shrink-0 flex items-center">
-                                                            {isOnline ? (
-                                                                <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-100/50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 text-[10px] font-bold border border-emerald-200 dark:border-emerald-500/20">
-                                                                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_4px_rgba(16,185,129,0.5)]"></span>
-                                                                    ONLINE
-                                                                </span>
-                                                            ) : (
-                                                                <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 text-[10px] font-bold border border-slate-200 dark:border-slate-700">
-                                                                    <span className="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
-                                                                    OFFLINE
-                                                                </span>
-                                                            )}
-                                                        </div>
-                                                        <div className="px-4 py-3 font-semibold text-slate-700 dark:text-slate-300 truncate">
-                                                            {brokers.find(b => b.id === (batch.brokerId === 'MULTIPLE' ? acc.brokerId : batch.brokerId))?.name || acc.brokerId || batch.brokerId}
-                                                        </div>
-                                                        <div className="px-4 py-3 font-mono text-slate-600 dark:text-slate-400 truncate">
-                                                            {acc.login || acc.name || acc.id}
-                                                        </div>
-                                                        <div className="px-6 py-3 text-right">
-                                                            <span className="font-mono font-bold text-indigo-600 dark:text-indigo-400 text-sm">
-                                                                {riskPercent !== undefined ? `${riskPercent.toFixed(1)}%` : '-'}
+                                                    <div key={b.id} className={`grid ${distributionMode === 'manual' ? 'grid-cols-[40px_100px_1fr_1fr_80px]' : 'grid-cols-[100px_1fr_1fr_80px]'} border-b border-slate-100 dark:border-slate-800/50 items-center hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors last:border-0`}>
+                                                        {distributionMode === 'manual' && (
+                                                            <div className="px-3 py-1.5 flex justify-center">
+                                                                <input
+                                                                    type="checkbox"
+                                                                    checked={selectedManualAccountIds.includes(b.id)}
+                                                                    disabled={!isOnline}
+                                                                    onChange={(e) => {
+                                                                        if (e.target.checked) {
+                                                                            setSelectedManualAccountIds(prev => [...prev, b.id]);
+                                                                        } else {
+                                                                            setSelectedManualAccountIds(prev => prev.filter(id => id !== b.id));
+                                                                        }
+                                                                    }}
+                                                                    className="w-3.5 h-3.5 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 disabled:opacity-30 disabled:cursor-not-allowed"
+                                                                />
+                                                            </div>
+                                                        )}
+                                                        <div className="px-4 py-1.5">
+                                                            <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[9px] font-bold ${isOnline ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400' : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400'}`}>
+                                                                <div className={`w-1.5 h-1.5 rounded-full ${isOnline ? 'bg-emerald-500' : 'bg-slate-400'}`} />
+                                                                {isOnline ? 'ON' : 'OFF'}
                                                             </span>
+                                                        </div>
+                                                        <div className="px-3 py-1.5 text-xs font-medium text-slate-700 dark:text-slate-300 truncate">
+                                                            {broker?.name || 'Unknown'}
+                                                        </div>
+                                                        <div className="px-3 py-1.5 font-mono text-slate-600 dark:text-slate-400 text-[11px] truncate">
+                                                            {account?.login || b.id}
+                                                        </div>
+                                                        <div className="px-4 py-1.5 text-right font-mono font-bold text-slate-900 dark:text-white text-xs flex justify-end items-center">
+                                                            <input
+                                                                type="text"
+                                                                inputMode="numeric"
+                                                                className="w-14 bg-transparent text-right outline-none ring-slate-300 focus:ring-1 focus:ring-indigo-500 rounded px-1"
+                                                                value={Number(riskPercent).toFixed(2)}
+                                                                onChange={() => { }} // Controlled purely via keydown
+                                                                onKeyDown={(e) => handleRiskKeyDown(e, b.id, riskPercent)}
+                                                                onClick={(e) => e.stopPropagation()}
+                                                            />
+                                                            <span className="text-[10px] ml-0.5 text-slate-400">%</span>
                                                         </div>
                                                     </div>
                                                 );
@@ -2411,57 +2574,32 @@ export const ChartContainer = React.forwardRef<ChartContainerHandle, ChartContai
                                 </div>
                             </div>
 
-                            {/* Expandable Advanced Details */}
-                            <div className="border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
-                                <details className="group">
-                                    <summary className="px-6 py-3 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider hover:bg-slate-50 dark:hover:bg-slate-900/30 cursor-pointer list-none flex items-center gap-2">
-                                        <ChevronRight size={14} className="transition-transform group-open:rotate-90" />
-                                        Advanced Details
-                                    </summary>
-                                    <div className="bg-slate-50 dark:bg-slate-900/40 p-4 border-t border-slate-200 dark:border-slate-800 space-y-3 shadow-inner">
-                                        <div className="grid grid-cols-[100px_1fr_80px] text-xs items-center">
-                                            <div className="font-bold text-rose-600 dark:text-rose-500">Stop Loss</div>
-                                            <div className="font-mono text-slate-700 dark:text-slate-300">
-                                                {pendingTrade.sl.anchor ? `${pendingTrade.sl.anchor.type.toUpperCase()}` : <span className="italic opacity-50">Price-based</span>}
-                                            </div>
-                                            <div className="text-right">{pendingTrade.sl.fixed ? <span className="text-[10px] font-bold text-slate-100 dark:text-slate-950 bg-slate-500 px-1.5 py-0.5 rounded">FIX</span> : <span className="text-[10px] text-slate-500">Dyn</span>}</div>
-                                        </div>
-                                        <div className="grid grid-cols-[100px_1fr_80px] text-xs items-center">
-                                            <div className="font-bold text-slate-800 dark:text-slate-200">Entry</div>
-                                            <div className="font-mono text-slate-700 dark:text-slate-300">{pendingTrade.entry.type}</div>
-                                            <div className="text-right">{pendingTrade.entry.fixed ? <span className="text-[10px] font-bold text-slate-100 dark:text-slate-950 bg-slate-500 px-1.5 py-0.5 rounded">FIX</span> : <span className="text-[10px] text-slate-500">Dyn</span>}</div>
-                                        </div>
-                                        <div className="grid grid-cols-[100px_1fr_80px] text-xs items-center">
-                                            <div className="font-bold text-emerald-600 dark:text-emerald-500">Take Profit</div>
-                                            <div className="font-mono text-slate-700 dark:text-slate-300">
-                                                {pendingTrade.tp.anchor ? `${pendingTrade.tp.anchor.type.toUpperCase()}` : <span className="italic opacity-50">Price-based</span>}
-                                            </div>
-                                            <div className="text-right">{pendingTrade.tp.fixed ? <span className="text-[10px] font-bold text-slate-100 dark:text-slate-950 bg-slate-500 px-1.5 py-0.5 rounded">FIX</span> : <span className="text-[10px] text-slate-500">Dyn</span>}</div>
-                                        </div>
-                                        <div className="grid grid-cols-[100px_1fr_80px] text-xs items-center border-t border-slate-200 dark:border-slate-700 pt-3 mt-3">
-                                            <div className="font-bold text-slate-800 dark:text-slate-200">Risk Reward</div>
-                                            <div className="font-mono font-bold text-emerald-600 dark:text-emerald-400">{pendingTrade.riskReward.value.toFixed(2)} R</div>
-                                            <div className="text-right">{pendingTrade.riskReward.fixed ? <span className="text-[10px] font-bold text-slate-100 dark:text-slate-950 bg-emerald-500 px-1.5 py-0.5 rounded">FIX</span> : <span className="text-[10px] text-slate-500">Dyn</span>}</div>
-                                        </div>
-                                    </div>
-                                </details>
-                            </div>
+                            {/* Hidden Expandable Advanced Details 
+                             <div className="border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hidden">
+                                 ...
+                             </div> */}
                         </div>
 
-                        <div className="px-6 py-4 bg-slate-50 dark:bg-slate-900/80 border-t border-slate-200 dark:border-slate-800 flex gap-3">
+                        <div className="px-6 py-5 bg-slate-50 dark:bg-slate-900/80 border-t border-slate-200 dark:border-slate-800 flex gap-3 w-full">
                             <button
                                 onClick={() => setPendingTrade(null)}
-                                className="flex-1 px-4 py-3 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-white rounded-lg font-bold transition-colors border border-slate-300 dark:border-slate-700 shadow-sm"
+                                className="flex-1 py-2 px-3 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-lg text-xs font-bold transition-colors border border-slate-300 dark:border-slate-700 shadow-sm"
                             >
                                 Cancel
                             </button>
                             <button
                                 onClick={handleConfirmExecution}
-                                disabled={!executionPlan || executionPlan.length === 0}
-                                className="flex-[2] px-4 py-3 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 disabled:hover:bg-emerald-600 text-white rounded-lg font-bold transition-all shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-2"
+                                disabled={
+                                    (distributionMode === 'automatic' && (!executionPlan || executionPlan.length === 0)) ||
+                                    (distributionMode === 'manual' && selectedManualAccountIds.length === 0)
+                                }
+                                className={`flex-1 py-2 px-3 rounded-lg text-xs font-bold transition-all shadow-md flex items-center justify-center gap-2 disabled:opacity-50 disabled:hover:scale-100 ${isTestMode
+                                    ? 'bg-amber-600 hover:bg-amber-500 text-white shadow-amber-600/20'
+                                    : 'bg-indigo-600 hover:bg-indigo-500 text-white shadow-indigo-600/20'
+                                    }`}
                             >
-                                Execute Setups
-                                <ChevronRight size={18} />
+                                Execute
+                                <ChevronRight size={14} strokeWidth={3} />
                             </button>
                         </div>
                     </div>

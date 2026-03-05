@@ -45,6 +45,56 @@ export class TradeDistributionManager {
     }
 
     // --- Core Logic ---
+    static getMappedAccounts(
+        baseTrade: any,
+        accounts: TradingAccount[],
+        brokers: Broker[],
+        isTestMode: boolean = false
+    ): TradingAccount[] {
+        const allValidAccounts: TradingAccount[] = [];
+        const accountsByBroker: Record<string, TradingAccount[]> = {};
+
+        // 1. Group Accounts by Broker (FILTERED by Mode)
+        accounts.forEach(acc => {
+            const typeUpper = (acc.accountType || '').toUpperCase();
+            if (typeUpper !== 'TRADING' || acc.isDatafeed) return;
+
+            if (isTestMode && !acc.isTest) return;
+            if (!isTestMode && acc.isTest) return;
+
+            if (!accountsByBroker[acc.brokerId]) accountsByBroker[acc.brokerId] = [];
+            accountsByBroker[acc.brokerId].push(acc);
+        });
+
+        // 2. Iterate Brokers and Check Symbol Mapping
+        Object.keys(accountsByBroker).forEach(brokerId => {
+            const brokerAccounts = accountsByBroker[brokerId];
+            const brokerNode = brokers.find(b => b.id === brokerId);
+
+            if (!brokerNode) return;
+
+            let hasValidMapping = false;
+            if (brokerNode.symbolMappings) {
+                const targetKey = baseTrade.symbol.toUpperCase().trim();
+                const matchedKey = Object.keys(brokerNode.symbolMappings).find(k => k.toUpperCase().trim() === targetKey);
+
+                if (matchedKey) {
+                    const mappedSym = brokerNode.symbolMappings[matchedKey];
+                    if (mappedSym !== '__IGNORE__') {
+                        hasValidMapping = true;
+                    }
+                }
+            }
+
+            // Only add accounts if the broker has a valid mapping for this symbol
+            if (hasValidMapping) {
+                allValidAccounts.push(...brokerAccounts);
+            }
+        });
+
+        return allValidAccounts;
+    }
+
     static distributeTrade(
         baseTrade: any,
         accounts: TradingAccount[],

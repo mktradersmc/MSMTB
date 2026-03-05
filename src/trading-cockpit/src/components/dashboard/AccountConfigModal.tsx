@@ -16,10 +16,9 @@ export function AccountConfigModal({ botId, accountId, accountSize, onClose, onS
     const [config, setConfig] = useState<any>({});
     const [localAccountSize, setLocalAccountSize] = useState<number | ''>(accountSize || '');
 
-    // Default structure matching CTradingConfig
     const DEFAULT_CONFIG = {
         risk: {
-            percent: 0.5,
+            percent: 0.25,
             slippage: 3,
             commissions: true,
             lotSplitSize: 20
@@ -148,12 +147,12 @@ export function AccountConfigModal({ botId, accountId, accountSize, onClose, onS
                                 <div className="flex items-center gap-3">
                                     <input
                                         type="range"
-                                        min="0.1" max="5.0" step="0.1"
-                                        value={config.risk?.percent || 0.5}
+                                        min="0.1" max="5.0" step="0.05"
+                                        value={config.risk?.percent || 0.25}
                                         onChange={(e) => updateField('risk', 'percent', parseFloat(e.target.value))}
                                         className="flex-1 accent-indigo-600"
                                     />
-                                    <span className="font-mono text-lg font-bold text-indigo-600 w-16 text-right">{config.risk?.percent || 0.5}%</span>
+                                    <span className="font-mono text-lg font-bold text-indigo-600 w-16 text-right">{config.risk?.percent || 0.25}%</span>
                                 </div>
                                 <p className="text-xs text-slate-500 mt-2">Percentage of account balance risked per trade.</p>
                             </div>

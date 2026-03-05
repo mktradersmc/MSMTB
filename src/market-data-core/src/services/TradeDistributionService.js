@@ -286,6 +286,15 @@ class TradeDistributionService {
                         botSpecificTrade.symbol = mappedSymbol;
                     }
 
+                    // --- RISK RESOLUTION ---
+                    const accountConfig = acc.config || {};
+                    let resolvedRisk = acc.manualRisk ?? accountConfig.risk?.percent ?? acc.riskPercent;
+
+                    if (resolvedRisk === undefined || resolvedRisk === null) {
+                        resolvedRisk = 0.25;
+                    }
+                    botSpecificTrade.risk = Number(resolvedRisk);
+
                     const workerPayload = {
                         masterId: tradeId,
                         brokerId: acc.brokerId,

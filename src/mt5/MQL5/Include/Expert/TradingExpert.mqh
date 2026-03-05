@@ -250,7 +250,7 @@ private:
    
    // --- Trade Execution Helpers ---
 
-   double            CalculatePositionSize(string symbol, double riskPercent, int slPoints);
+   double            CalculatePositionSize(string symbol, double riskPercent, double entryPrice, double stopLoss, int direction);
    string            GenerateTradeId();
    string            GenerateOrderComment(string strategy, string tradeId, double risk);
    bool              ExecutePositionModification(ulong ticket, string action, CJAVal &data);
@@ -1212,11 +1212,17 @@ void CTradingExpert::ExecuteTrade(CJAVal &data, CJAVal &response)
        else assignedTP = t.ToDbl();
    }
    
-   // Risk: Custom or Default
-   double customRisk = 0;
+   // --- RISK RESOLUTION (ENFORCED) ---
    CJAVal* riskVal = data.HasKey("risk");
-   if(riskVal != NULL) customRisk = riskVal.ToDbl();
-   double riskPercent = (customRisk > 0) ? customRisk : m_config.Risk_Percent;
+   if(riskVal == NULL || riskVal.ToDbl() <= 0)
+   {
+       Print("[TradingExpert] 🛑 REJECTED Execution. Missing or invalid 'risk' parameter.");
+       Print("[TradingExpert] 🔍 Received Payload: ", data.Serialize());
+       response["status"] = "REJECTED"; 
+       response["message"] = "Missing required 'risk' parameter in execution payload (must be > 0)";
+       return;
+   }
+   double riskPercent = riskVal.ToDbl();
    
    // Risk Reward
    double rr = 0;
@@ -1304,8 +1310,7 @@ void CTradingExpert::ExecuteTrade(CJAVal &data, CJAVal &response)
    }
 
    double slCalcPrice = (entryPrice > 0) ? entryPrice : calcEntry;
-   int slPoints = (int)(MathAbs(slCalcPrice - stopLoss) / SymbolInfoDouble(symbol, SYMBOL_POINT));
-   double totalVolume = CalculatePositionSize(symbol, riskPercent, slPoints);
+   double totalVolume = CalculatePositionSize(symbol, riskPercent, slCalcPrice, stopLoss, direction);
    
    if (totalVolume <= 0) {
        response["status"] = "ERROR";
@@ -1520,24 +1525,41 @@ void CTradingExpert::ExecuteTrade(CJAVal &data, CJAVal &response)
  }
 
 
-double CTradingExpert::CalculatePositionSize(string symbol, double riskPercent, int slPoints)
+double CTradingExpert::CalculatePositionSize(string symbol, double riskPercent, double entryPrice, double stopLoss, int direction)
 {
     double balance = AccountInfoDouble(ACCOUNT_BALANCE);
     double riskAmount = balance * (riskPercent / 100.0);
     
-    double tickValue = SymbolInfoDouble(symbol, SYMBOL_TRADE_TICK_VALUE);
-    double tickSize = SymbolInfoDouble(symbol, SYMBOL_TRADE_TICK_SIZE);
+    if(entryPrice <= 0 || stopLoss <= 0 || entryPrice == stopLoss) return m_config.Limit_MinLot;
     
-    if(slPoints == 0 || tickSize == 0) return m_config.Limit_MinLot;
+    ENUM_ORDER_TYPE orderType = (direction == 1) ? ORDER_TYPE_BUY : ORDER_TYPE_SELL;
+    double lossForOneLot = 0.0;
+    double lotSize = m_config.Limit_MinLot;
     
-    double lossValue = slPoints * SymbolInfoDouble(symbol, SYMBOL_POINT);
-    double lotSize = riskAmount / ( (lossValue / tickSize) * tickValue );
+    // Server-side perfect calculation of exactly 1 standard lot
+    if(!OrderCalcProfit(orderType, symbol, 1.0, entryPrice, stopLoss, lossForOneLot))
+    {
+        Print("[TradingExpert] ⚠️ OrderCalcProfit failed! Falling back to raw tick math.");
+        int slPoints = (int)(MathAbs(entryPrice - stopLoss) / SymbolInfoDouble(symbol, SYMBOL_POINT));
+        double tickValue = SymbolInfoDouble(symbol, SYMBOL_TRADE_TICK_VALUE);
+        double tickSize = SymbolInfoDouble(symbol, SYMBOL_TRADE_TICK_SIZE);
+        if(slPoints == 0 || tickSize == 0) return m_config.Limit_MinLot;
+        double lossValue = slPoints * SymbolInfoDouble(symbol, SYMBOL_POINT);
+        lotSize = riskAmount / ( (lossValue / tickSize) * tickValue );
+    }
+    else
+    {
+        double absLoss = MathAbs(lossForOneLot);
+        Print("[TradingExpert] Risk Engine - 1.0 Lot = $", absLoss, " Loss. Target RiskAmount = $", riskAmount);
+        if(absLoss == 0) return m_config.Limit_MinLot;
+        lotSize = riskAmount / absLoss;
+    }
     
     double step = SymbolInfoDouble(symbol, SYMBOL_VOLUME_STEP);
-    lotSize = MathFloor((lotSize + step * 0.00001) / step) * step;
+    if(step > 0) lotSize = MathFloor((lotSize + step * 0.00001) / step) * step;
     
     if(lotSize < m_config.Limit_MinLot) lotSize = m_config.Limit_MinLot;
-    if(lotSize > m_config.Limit_MaxLot) lotSize = m_config.Limit_MaxLot; 
+    if(lotSize > m_config.Limit_MaxLot && m_config.Limit_MaxLot > 0) lotSize = m_config.Limit_MaxLot; 
     
     return lotSize;
 }

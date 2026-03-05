@@ -14,6 +14,31 @@ export const HistoryPanel: React.FC<{
     const [isLoading, setIsLoading] = useState(false);
     const [activeFilters, setActiveFilters] = useState<Set<string>>(new Set(['CLOSED']));
 
+    const [accounts, setAccounts] = useState<any[]>([]);
+    const [brokers, setBrokers] = useState<any[]>([]);
+    const [mappings, setMappings] = useState<any[]>([]);
+
+    useEffect(() => {
+        const loadReferenceData = async () => {
+            try {
+                const [accRes, brokerRes, mapRes] = await Promise.all([
+                    fetchDirect('/accounts'),
+                    fetchDirect('/brokers'),
+                    fetchDirect('/api/mappings')
+                ]);
+                const accData = await accRes.json();
+                const brokerData = await brokerRes.json();
+                const mapData = await mapRes.json();
+                setAccounts(Array.isArray(accData) ? accData : (accData.accounts || []));
+                setBrokers(brokerData || []);
+                setMappings(mapData || []);
+            } catch (e) {
+                console.error("Failed to load reference data", e);
+            }
+        };
+        loadReferenceData();
+    }, []);
+
     const toggleExpand = (id: string) => {
         const newSet = new Set(expandedIds);
         if (newSet.has(id)) newSet.delete(id);
@@ -246,29 +271,56 @@ export const HistoryPanel: React.FC<{
                                             </td>
                                         </tr>
                                         {/* Child Rows */}
-                                        {expandedIds.has(trade.tradeId) && trade.positions.map(child => (
-                                            <tr key={child.id} className={`bg-slate-100 dark:bg-slate-900/80 border-b border-slate-300 dark:border-slate-800/30 text-[10px] text-slate-700 dark:text-slate-400 ${child.status === 'OFFLINE' ? 'opacity-40 grayscale' : ''}`}>
-                                                <td className="p-1"></td>
-                                                <td className="p-1 pl-4 flex items-center gap-1">
-                                                    <span className="w-1.5 h-1.5 rounded-full bg-slate-600"></span>
-                                                    {child.botId}
-                                                </td>
-                                                <td className="p-1 text-left">{child.brokerId}</td>
-                                                <td className="p-1 text-right">{trade.direction}</td>
-                                                <td className="p-1 text-right">{child.entryPrice?.toFixed(5)}</td>
-                                                <td className="p-1 text-right">{child.currentPrice?.toFixed(5)}</td>
-                                                <td className="p-1 text-right">{(child.commission || 0).toFixed(2)}</td>
-                                                <td className="p-1 text-right">{(child.swap || 0).toFixed(2)}</td>
-                                                <td className="p-1 text-right text-slate-600 dark:text-slate-400">{(child.realizedPl || 0).toFixed(2)}</td>
-                                                <td className="p-1 text-center text-[9px]">
-                                                    {child.status === 'OFFLINE' ? (
-                                                        <span className="text-slate-500 border border-slate-300 dark:border-slate-700 px-1 rounded-[2px]">OFFLINE</span>
-                                                    ) : (
-                                                        child.status
-                                                    )}
-                                                </td>
-                                            </tr>
-                                        ))}
+                                        {expandedIds.has(trade.tradeId) && trade.positions.map(child => {
+                                            // Resolve Broker Name and Symbol
+                                            const account = accounts.find(a => {
+                                                const short = brokers.find(b => b.id === a.brokerId)?.shorthand || 'UNK';
+                                                const expectedBotId = `${short.replace(/\s+/g, '')}_${a.login}`;
+                                                return expectedBotId === child.botId || a.id === child.botId || a.name === child.botId || a.botId === child.botId;
+                                            });
+
+                                            let brokerName = child.botId;
+                                            let brokerSymbol = child.brokerId;
+                                            if (account) {
+                                                const broker = brokers.find(b => b.id === account.brokerId);
+                                                if (broker) {
+                                                    brokerName = `${broker.name} (${account.login})`;
+                                                    if (trade.symbol) {
+                                                        const mapping = mappings.find(m => m.originalSymbol === trade.symbol);
+                                                        if (mapping && mapping.brokerMappings && mapping.brokerMappings[broker.id]) {
+                                                            const mappedVal = mapping.brokerMappings[broker.id];
+                                                            if (mappedVal !== '__IGNORE__') {
+                                                                brokerSymbol = mappedVal;
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+
+                                            return (
+                                                <tr key={child.id} className={`bg-slate-100 dark:bg-slate-900/80 border-b border-slate-300 dark:border-slate-800/30 text-[10px] text-slate-700 dark:text-slate-400 ${child.status === 'OFFLINE' ? 'opacity-40 grayscale' : ''}`}>
+                                                    <td className="p-1"></td>
+                                                    <td className="p-1 pl-4 flex items-center gap-1">
+                                                        <span className="w-1.5 h-1.5 rounded-full bg-slate-600"></span>
+                                                        {brokerName}
+                                                    </td>
+                                                    <td className="p-1 text-left">{brokerSymbol}</td>
+                                                    <td className="p-1"></td>
+                                                    <td className="p-1 text-right">{child.entryPrice?.toFixed(5)}</td>
+                                                    <td className="p-1 text-right">{child.currentPrice?.toFixed(5)}</td>
+                                                    <td className="p-1 text-right">{(child.commission || 0).toFixed(2)}</td>
+                                                    <td className="p-1 text-right">{(child.swap || 0).toFixed(2)}</td>
+                                                    <td className="p-1 text-right text-slate-600 dark:text-slate-400">{(child.realizedPl || 0).toFixed(2)}</td>
+                                                    <td className="p-1 text-center text-[9px]">
+                                                        {child.status === 'OFFLINE' ? (
+                                                            <span className="text-slate-500 border border-slate-300 dark:border-slate-700 px-1 rounded-[2px]">OFFLINE</span>
+                                                        ) : (
+                                                            child.status
+                                                        )}
+                                                    </td>
+                                                </tr>
+                                            );
+                                        })}
                                     </React.Fragment>
                                 ))}
                             </React.Fragment>

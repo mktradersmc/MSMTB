@@ -46,7 +46,15 @@ else {
     Write-Progress 3 "win-acme ist bereits installiert."
 }
 
-Write-Progress 4 "Starte Zertifikatsgenerierung für $Domain ..."
+Write-Progress 4 "Konfiguriere temporäre Firewall-Freigabe für Port 80..."
+$FirewallRuleName = "AwesomeCockpit_LetsEncrypt_Temp"
+$RuleExists = Get-NetFirewallRule -DisplayName $FirewallRuleName -ErrorAction SilentlyContinue
+
+if (-not $RuleExists) {
+    New-NetFirewallRule -DisplayName $FirewallRuleName -Direction Inbound -LocalPort 80 -Protocol TCP -Action Allow | Out-Null
+}
+
+Write-Progress 5 "Starte Zertifikatsgenerierung für $Domain ..."
 
 $WacsArgs = @(
     "--source", "manual",
@@ -68,9 +76,13 @@ try {
     }
 }
 catch {
+    Remove-NetFirewallRule -DisplayName $FirewallRuleName -ErrorAction SilentlyContinue
     Write-Progress -1 "Zertifikatsgenerierung fehlgeschlagen: $_"
     exit 1
 }
+
+Write-Progress 6 "Räume Firewall auf..."
+Remove-NetFirewallRule -DisplayName $FirewallRuleName -ErrorAction SilentlyContinue
 
 Write-Progress 5 "Zertifikate erfolgreich generiert. Schließe Setup ab..."
 
@@ -96,7 +108,7 @@ if ($KeyFiles.Count -gt 0) {
 $ChainFiles = Get-ChildItem -Path $CertsDir -Filter "*$Domain*-chain.pem"
 if ($ChainFiles.Count -gt 0) { Remove-Item $ChainFiles[0].FullName -Force }
 
-Write-Progress 6 "Zertifikat aktiv. Starte Systemkomponenten neu..."
+Write-Progress 7 "Zertifikat aktiv. Starte Systemkomponenten neu..."
 Start-Sleep -Seconds 2
 pm2 stop all
 Start-Sleep -Seconds 2

@@ -641,9 +641,11 @@ class SocketServer {
                         : null;
 
                     const isRunningInOs = activePid !== null && activePid !== undefined;
+                    const botConfig = botConfigService.getConfig(acc.botId) || {};
 
                     return {
                         ...acc,
+                        config: botConfig,
                         status: isRunningInOs ? 'RUNNING' : 'STOPPED', // Reconstructed ephemeral status
                         pid: activePid || 0,                           // Real-time OS PID
                         brokerConnectionStatus: isConnected ? 'CONNECTED' : 'DISCONNECTED',

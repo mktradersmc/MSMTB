@@ -772,7 +772,14 @@ namespace AwesomeCockpit.NT8.Bridge
             {
                 if (master.RolloverCollection != null)
                 {
-                    var sortedRollovers = master.RolloverCollection.Where(r => r.Date.Date <= NinjaTrader.Core.Globals.Now.Date.AddDays(15)).OrderByDescending(r => r.Date).ToList();
+                    // Find the most recent explicit rollover mapped before NOW (No aggressive 15 days logic anymore!)
+                    var sortedRollovers = System.Linq.Enumerable.ToList(
+                        System.Linq.Enumerable.OrderByDescending(
+                            System.Linq.Enumerable.Where(master.RolloverCollection, r => r.Date.Date <= NinjaTrader.Core.Globals.Now.Date),
+                        r => r.Date)
+                    );
+
+                    // Grab the FIRST valid active concrete contract that we actually have locally compiled!
                     foreach (var ro in sortedRollovers)
                     {
                         string suffix = " " + ro.ContractMonth.ToString("MM-yy");

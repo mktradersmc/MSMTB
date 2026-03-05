@@ -76,6 +76,12 @@ async function waitForBackend() {
 async function startNinjaTrader() {
     console.log("[AutoStart] 🚀 Step 1: Triggering NinjaTrader UI Automation Startup...");
     try {
+        const sysConfRes = await makeRequest('/api/system/config');
+        if (!sysConfRes.config?.ntUsername || !sysConfRes.config?.ntPassword) {
+            console.log("[AutoStart] ⏩ Skipping NinjaTrader start: No credentials found in system configuration.");
+            return;
+        }
+
         await makeRequest('/api/admin/ninjatrader/start', 'POST', {});
         console.log("[AutoStart] ✅ NinjaTrader Start Command Sent.");
         console.log("[AutoStart] ⏳ Waiting 20 seconds for NinjaTrader to fully boot up and login before starting MT5 instances...");

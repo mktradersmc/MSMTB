@@ -287,6 +287,14 @@ namespace AwesomeCockpit.NT8.Bridge
                     if (cmd == "CMD_INIT")
                     {
                         string requestId = msg["header"]?["requestId"]?.ToString() ?? msg["header"]?["request_id"]?.ToString() ?? "";
+
+                        string logDir = msg["payload"]?["logDir"]?.ToString();
+                        if (!string.IsNullOrEmpty(logDir))
+                        {
+                            BridgeLogger.LogDirectory = logDir;
+                            NinjaTrader.Code.Output.Process($"AwesomeCockpit: Initialized BridgeLogger to {logDir}", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
+                        }
+
                         NinjaTrader.Code.Output.Process($"AwesomeCockpit: Received CMD_INIT. Waiting 10s for Datafeeds to connect...", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
 
                         Task.Run(async () =>

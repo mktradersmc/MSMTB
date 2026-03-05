@@ -105,7 +105,7 @@ namespace AwesomeCockpit.NT8.Bridge
                             volume = Volumes[ntIdx][1]
                         };
 
-                        // NinjaTrader.Code.Output.Process($"[HeadlessStrategy] EV_BAR_CLOSED -> {tf} | NT8 CloseTime: {BarsArray[ntIdx].GetTime(1):yyyy-MM-dd HH:mm:ss} | Mapped OpenTime Local: {openTimeClosed:yyyy-MM-dd HH:mm:ss}", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
+                        BridgeLogger.Log($"[HeadlessStrategy] EV_BAR_CLOSED -> {tf} | NT8 CloseTime: {BarsArray[ntIdx].GetTime(1):yyyy-MM-dd HH:mm:ss} | Mapped OpenTime Local: {openTimeClosed:yyyy-MM-dd HH:mm:ss} | O:{Opens[ntIdx][1]} H:{Highs[ntIdx][1]} L:{Lows[ntIdx][1]} C:{Closes[ntIdx][1]} V:{Volumes[ntIdx][1]} | Unix:{offsetTimeClosed.ToUnixTimeMilliseconds()}");
                         _onBarUpdateCallback?.Invoke(_symbolName, tf, closedPayload, true);
                     }
                     catch (Exception ex)
@@ -132,6 +132,7 @@ namespace AwesomeCockpit.NT8.Bridge
                     volume = Volumes[ntIdx][0]
                 };
 
+                BridgeLogger.Log($"[HeadlessStrategy] EV_BAR_UPDATE -> {tf} | Active NT8 Time: {BarsArray[ntIdx].GetTime(0):yyyy-MM-dd HH:mm:ss} | Mapped OpenTime: {openTimeAct:yyyy-MM-dd HH:mm:ss} | O:{Opens[ntIdx][0]} H:{Highs[ntIdx][0]} L:{Lows[ntIdx][0]} C:{Closes[ntIdx][0]} V:{Volumes[ntIdx][0]} | Unix:{offsetTimeAct.ToUnixTimeMilliseconds()}");
                 _onBarUpdateCallback?.Invoke(_symbolName, tf, updatePayload, false);
             }
             catch (Exception ex)

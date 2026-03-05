@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using NinjaTrader.Core;
 using NinjaTrader.Cbi;
@@ -28,7 +29,7 @@ namespace AwesomeCockpit.NT8.Bridge
     {
         private readonly BridgeWebSocket _socket;
         private readonly ConcurrentDictionary<string, SymbolSubscription> _activeSubscriptions;
-        private System.Threading.Timer _barMonitorTimer;
+        private System.Threading.Timer _rolloverTimer;
 
         // We need a way to hook OnMarketData. 
         // In NT8 AddOns, we don't have a direct "OnMarketData" override like Strategies.
@@ -38,6 +39,9 @@ namespace AwesomeCockpit.NT8.Bridge
         {
             _socket = socket;
             _activeSubscriptions = new ConcurrentDictionary<string, SymbolSubscription>();
+
+            // Schedule nightly checks
+            ScheduleNightlyRolloverCheck();
         }
 
         private void InstantiateBarsStream(SymbolSubscription sub, string symbol, string timeframe)
@@ -159,7 +163,7 @@ namespace AwesomeCockpit.NT8.Bridge
                     };
 
                     var closedEventPayload = new { symbol = symbol, timeframe = timeframe, candle = closedBarPayload };
-                    // NinjaTrader.Code.Output.Process($"[Stream] EV_BAR_CLOSED -> {symbol} {timeframe} Time: {e.BarsSeries.GetTime(ctx.LastIndex):yyyy-MM-dd HH:mm:ss} C: {e.BarsSeries.GetClose(ctx.LastIndex)}", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
+                    BridgeLogger.Log($"[Stream] EV_BAR_CLOSED -> {symbol} {timeframe} Time: {e.BarsSeries.GetTime(ctx.LastIndex):yyyy-MM-dd HH:mm:ss} C: {e.BarsSeries.GetClose(ctx.LastIndex)} | Unix: {unixTimeMsClosed}");
                     _socket.SendProtocolMessage("EV_BAR_CLOSED", closedEventPayload, currentBotId, "TICK_SPY", symbol);
                 }
                 ctx.LastIndex = currentIdx;
@@ -180,6 +184,7 @@ namespace AwesomeCockpit.NT8.Bridge
             };
 
             var updateEventPayload = new { symbol = symbol, timeframe = timeframe, candle = updateBarPayload };
+            BridgeLogger.Log($"[Stream] EV_BAR_UPDATE -> {symbol} {timeframe} Time: {e.BarsSeries.GetTime(currentIdx):yyyy-MM-dd HH:mm:ss} C: {e.BarsSeries.GetClose(currentIdx)} | Unix: {unixTimeMsAct}");
             _socket.SendProtocolMessage("EV_BAR_UPDATE", updateEventPayload, currentBotId, "TICK_SPY", symbol);
         }
 
@@ -244,21 +249,21 @@ namespace AwesomeCockpit.NT8.Bridge
                 // FORCE dynamic front-month resolution
                 if (master.RolloverCollection != null)
                 {
-                    // Sort rollovers backwards from Now, so we check nearest first
+                    // Find the most recent explicit rollover mapped before NOW (No aggressive 15 days logic anymore!)
                     var sortedRollovers = System.Linq.Enumerable.ToList(
                         System.Linq.Enumerable.OrderByDescending(
-                            System.Linq.Enumerable.Where(master.RolloverCollection, r => r.Date.Date <= NinjaTrader.Core.Globals.Now.Date.AddDays(15)), // Add 15 days margin for impending rolls
+                            System.Linq.Enumerable.Where(master.RolloverCollection, r => r.Date.Date <= NinjaTrader.Core.Globals.Now.Date),
                         r => r.Date)
                     );
 
-                    // Aggressively scan backwards to find ANY locally cached concrete contract!
+                    // Grab the FIRST valid active concrete contract that we actually have locally compiled!
                     foreach (var ro in sortedRollovers)
                     {
                         string suffix = " " + ro.ContractMonth.ToString("MM-yy");
                         Instrument frontMonthInst = Instrument.GetInstrument(symbol + suffix);
                         if (frontMonthInst != null)
                         {
-                            NinjaTrader.Code.Output.Process($"AwesomeCockpit: Force-resolved Master '{symbol}' to active front-month '{frontMonthInst.FullName}'", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
+                            NinjaTrader.Code.Output.Process($"AwesomeCockpit: Native Master string '{symbol}' gracefully resolved to officially active contract '{frontMonthInst.FullName}'", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
                             return frontMonthInst;
                         }
                     }
@@ -449,6 +454,138 @@ namespace AwesomeCockpit.NT8.Bridge
         }
 
         // checkNewBarsTimer and OnMarketDataUpdate are DELETED. Strategy OnBarUpdate handles it natively.
+
+        // --- NIGHTLY SCHEDULED ROLLOVER CHECK ---
+
+        private void ScheduleNightlyRolloverCheck()
+        {
+            DateTime now = NinjaTrader.Core.Globals.Now;
+            // Target 23:30 local time tonight
+            DateTime targetTime = new DateTime(now.Year, now.Month, now.Day, 23, 30, 0);
+
+            if (now > targetTime)
+            {
+                // If it's already past 23:30 today, schedule for tomorrow
+                targetTime = targetTime.AddDays(1);
+            }
+
+            TimeSpan timeToWait = targetTime - now;
+
+            _rolloverTimer = new System.Threading.Timer(x =>
+            {
+                if (NinjaTrader.Core.Globals.RandomDispatcher != null)
+                {
+                    NinjaTrader.Core.Globals.RandomDispatcher.BeginInvoke(new Action(CheckForRollovers));
+                }
+                else
+                {
+                    CheckForRollovers();
+                }
+
+                ScheduleNightlyRolloverCheck(); // Reschedule for next day
+
+            }, null, timeToWait, Timeout.InfiniteTimeSpan);
+
+            NinjaTrader.Code.Output.Process($"[Rollover] Scheduled volume-based rollover flush check for {targetTime:yyyy-MM-dd HH:mm:ss} local.", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
+        }
+
+        private void CheckForRollovers()
+        {
+            NinjaTrader.Code.Output.Process($"[Rollover] Running Nightly Rollover/Volume verification...", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
+
+            foreach (var kvp in _activeSubscriptions)
+            {
+                string masterSymbolRaw = kvp.Key;
+                SymbolSubscription sub = kvp.Value;
+
+                if (sub.Inst == null || sub.Inst.MasterInstrument == null) continue;
+                if (sub.Inst.MasterInstrument.Name != masterSymbolRaw) continue; // Only process Master instruments (e.g. "MNQ")
+
+                // 'sub.Inst' refers to the currently locked, bound contract that we stream (e.g. "MNQ 03-26").
+                // 'ResolveInstrument("MNQ")' returns the TRUE calendar contract as of TODAY (which might be "MNQ 06-26").
+
+                Instrument candidateInst = ResolveInstrument(masterSymbolRaw);
+
+                if (candidateInst != null && candidateInst.FullName != sub.Inst.FullName)
+                {
+                    BridgeLogger.Log($"[Rollover] NinjaTrader officially rolled {masterSymbolRaw}: {sub.Inst.FullName} -> {candidateInst.FullName}. Initiating Volume check...");
+
+                    // Volume Verification
+                    // Get total volume from PREVIOUS trading day for both. Since it's 23:30, "today" might still be forming, yesterday is safe.
+                    DateTime refTime = NinjaTrader.Core.Globals.Now;
+
+                    Task.Run(() => PerformVolumeCheckAndRoll(masterSymbolRaw, sub.Inst, candidateInst, refTime));
+                }
+            }
+        }
+
+        private void PerformVolumeCheckAndRoll(string masterSymbolRaw, Instrument currentLockedInst, Instrument candidateInst, DateTime requestTime)
+        {
+            // Because we do nested BarsRequest, we must execute them carefully.
+            long oldVolume = GetDailyVolume(currentLockedInst, requestTime);
+            long newVolume = GetDailyVolume(candidateInst, requestTime);
+
+            BridgeLogger.Log($"[Rollover] Volume Verification for {masterSymbolRaw}: {currentLockedInst.FullName} (Vol: {oldVolume}) vs {candidateInst.FullName} (Vol: {newVolume})");
+
+            if (newVolume > oldVolume)
+            {
+                NinjaTrader.Code.Output.Process($"[Rollover] Volume check passed! Requesting flush and resync for {masterSymbolRaw}.", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
+
+                // 1. Alert Backend to Wipe and Resync (Self-Healing)
+                var payload = new
+                {
+                    symbol = masterSymbolRaw,
+                    old_contract = currentLockedInst.FullName,
+                    new_contract = candidateInst.FullName
+                };
+
+                // By emitting EV_SYMBOL_ROLLOVER, the SymbolWorker.js will completely drop SQLite and immediately fire CMD_START_SYNCHRONIZED_UPDATE
+                _socket.SendProtocolMessage("EV_SYMBOL_ROLLOVER", payload, "NT8", "TICK_SPY", masterSymbolRaw);
+
+                // 2. Erase the internal bridge cache so that when the Backend requests the new INITIAL_FILL, we cleanly rebuild the new streams!
+                // Native Subscribe logic will automatically lock the new 'candidateInst' because ResolveInstrument now points to it.
+                Unsubscribe(masterSymbolRaw, null); // Wipe Streams completely. The Resync request will cleanly rebuild them.
+            }
+            else
+            {
+                NinjaTrader.Code.Output.Process($"[Rollover] Volume check failed. {currentLockedInst.FullName} still holds more volume. Delaying Roll to next night.", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
+            }
+        }
+
+        private long GetDailyVolume(Instrument inst, DateTime refTime)
+        {
+            long volume = 0;
+            ManualResetEvent waitHandle = new ManualResetEvent(false);
+
+            if (NinjaTrader.Core.Globals.RandomDispatcher != null)
+            {
+                NinjaTrader.Core.Globals.RandomDispatcher.BeginInvoke(new Action(() =>
+                {
+                    BarsRequest req = new BarsRequest(inst, refTime.AddDays(-5), refTime)
+                    {
+                        BarsPeriod = new BarsPeriod { BarsPeriodType = BarsPeriodType.Day, Value = 1 },
+                        TradingHours = inst.MasterInstrument.TradingHours,
+                        MergePolicy = MergePolicy.DoNotMerge
+                    };
+
+                    req.Request(new Action<BarsRequest, ErrorCode, string>((barsReq, errorCode, errorMsg) =>
+                    {
+                        if (errorCode == ErrorCode.NoError && barsReq.Bars != null && barsReq.Bars.Count >= 2)
+                        {
+                            // Get the previous fully closed trading day (index Count - 2, assuming last bar might be "today")
+                            // NT8 D1 bars often close at 17:00 EST.
+                            int targetIdx = barsReq.Bars.Count - 2;
+                            volume = barsReq.Bars.GetVolume(targetIdx);
+                        }
+                        waitHandle.Set();
+                    }));
+                }));
+            }
+
+            // Timeout gracefully
+            waitHandle.WaitOne(8000);
+            return volume;
+        }
 
         // --- SYNCHRONIZED UPDATE (HISTORY) ---
 

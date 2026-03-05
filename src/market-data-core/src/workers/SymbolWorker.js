@@ -75,6 +75,49 @@ class SymbolWorker extends AbstractWorker {
         } else if (msg.type === 'EV_BAR_CLOSED') {
             // PROTOCOL V3: Closed Bar (Persist)
             this.handleBarEvent(msg, true);
+        } else if (msg.type === 'EV_SYMBOL_ROLLOVER') {
+            // ROLOVER EVENT: Secure DB Flush and Re-Sync
+            this.handleSymbolRollover(msg.content || msg.payload || msg);
+        }
+    }
+
+    /**
+     * Nightly Rollover Flush Process
+     * Triggered securely by C# Bridge when Volume confirmation flips to a new future contract 
+     */
+    async handleSymbolRollover(payload) {
+        this.log(`[Rollover] 🚨 NATIVE ROLLOVER DETECTED: ${payload.old_contract} -> ${payload.new_contract}`);
+
+        try {
+            // 1. Physically drop historical tables for this symbol's timeframes
+            this.log(`[Rollover] Wiping SQLite Historical Tables to prepare for MergeBackAdjusted Sync...`);
+
+            // Need to drop all timeframe tables for this symbol
+            const tables = this.db.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name LIKE 'candles_%'").all();
+
+            if (tables.length > 0) {
+                const dropMany = this.db.transaction((tbls) => {
+                    for (const t of tbls) {
+                        this.db.prepare(`DROP TABLE IF EXISTS ${t.name}`).run();
+                    }
+                });
+                dropMany(tables);
+                this.log(`[Rollover] 🗑️ Successfully dropped ${tables.length} tables.`);
+            }
+
+            // 2. Pause queue temporarily while we rebuild
+            this.queue.pause();
+
+            // 3. Re-init table schema for active timeframe(s) via subscribe/checkForGaps implicitly
+            this.log(`[Rollover] ♻️ Re-initiating GAP_FILL Resync via Protocol...`);
+
+            // This will securely request INITIAL_FILL using the newly bound active contract on the C# side
+            this.checkForGaps();
+
+            this.queue.resume();
+
+        } catch (e) {
+            this.error(`[Rollover] ❌ DB Flush failed during Rollover! ${e.message}`);
         }
     }
 

@@ -13,6 +13,15 @@ if (-not (Test-Path -Path $CertDir)) {
     Write-Host "[+] Verzeichnis erstellt: $CertDir" -ForegroundColor Green
 }
 
+# WICHTIG: Wenn wir ein selbstsigniertes PFX erstellen, müssen wir eventuelle Let's Encrypt PEM
+# Überbleibsel löschen. Andernfalls ignoriert das Node.js Backend unser neues PFX und lädt die alten PEMs!
+$CrtPath = Join-Path $CertDir "server.crt"
+$KeyPath = Join-Path $CertDir "server.key"
+$ChainPath = Join-Path $CertDir "server-chain.pem"
+if (Test-Path $CrtPath) { Remove-Item $CrtPath -Force }
+if (Test-Path $KeyPath) { Remove-Item $KeyPath -Force }
+if (Test-Path $ChainPath) { Remove-Item $ChainPath -Force }
+
 $PfxPath = Join-Path $CertDir "server.pfx"
 
 # 1. Altes Zertifikat aus dem lokalen Speicher entfernen, falls vorhanden (Optional, für sauberen Neu-Lauf)
@@ -28,11 +37,11 @@ foreach ($domain in $DomainName) {
 }
 
 $cert = New-SelfSignedCertificate -DnsName $DnsNames `
-                                  -CertStoreLocation "cert:\CurrentUser\My" `
-                                  -FriendlyName "Cockpit Self-Signed Cert" `
-                                  -NotAfter (Get-Date).AddYears(10) `
-                                  -KeyAlgorithm RSA `
-                                  -KeyLength 2048
+    -CertStoreLocation "cert:\CurrentUser\My" `
+    -FriendlyName "Cockpit Self-Signed Cert" `
+    -NotAfter (Get-Date).AddYears(10) `
+    -KeyAlgorithm RSA `
+    -KeyLength 2048
 
 # 3. Exportieren als PFX Datei
 Write-Host "[*] Exportiere PFX nach: $PfxPath..." -ForegroundColor Cyan
@@ -43,12 +52,13 @@ Export-PfxCertificate -Cert $cert -FilePath $PfxPath -Password $SecurePassword |
 # ACHTUNG: Benötigt Admin-Rechte!
 try {
     Write-Host "[*] Versuche das Zertifikat den Vertrauenswürdigen Stammzertifizierungsstellen hinzuzufügen (erfordert Administratorrechte)..." -ForegroundColor Yellow
-    $store = New-Object System.Security.Cryptography.X509Certificates.X509Store "Root","LocalMachine"
+    $store = New-Object System.Security.Cryptography.X509Certificates.X509Store "Root", "LocalMachine"
     $store.Open("ReadWrite")
     $store.Add($cert)
     $store.Close()
     Write-Host "[+] Zertifikat erfolgreich vertraut!" -ForegroundColor Green
-} catch {
+}
+catch {
     Write-Host "[-] Zertifikat konnte nicht zu den vertrauenswürdigen Wurzeln hinzugefügt werden (Keine Admin-Rechte?). Das ist nicht schlimm, Sie müssen im Browser beim ersten Aufruf lediglich die 'Sicherheitswarnung' akzeptieren." -ForegroundColor Gray
 }
 
@@ -85,7 +95,8 @@ if (Test-Path $SystemJsonPath) {
 
     $json | ConvertTo-Json -Depth 5 | Set-Content -Path $SystemJsonPath
     Write-Host "[+] system.json erfolgreich um SSL und Network konfiguriert!" -ForegroundColor Green
-} else {
+}
+else {
     Write-Host "[-] Konnte system.json unter $SystemJsonPath nicht finden." -ForegroundColor Red
 }
 

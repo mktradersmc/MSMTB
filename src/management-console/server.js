@@ -279,11 +279,8 @@ if (useSSL) {
             };
             if (fs.existsSync(chainPath)) {
                 console.log(`[Management Console] Loading explicit trust CA chain...`);
-                // The most robust way to serve a full chain in Node.js is to append the intermediate CA 
-                // directly to the leaf certificate string, rather than using the 'ca:' array property.
-                const caString = fs.readFileSync(chainPath, 'utf8');
-                const certString = fs.readFileSync(certPath, 'utf8');
-                sslOptions.cert = certString + '\n' + caString;
+                // Injecting the raw chain buffer directly into the 'ca' property as requested
+                sslOptions.ca = fs.readFileSync(chainPath);
             }
             console.log(`[Management Console] Starting with SSL (CRT/KEY/CHAIN)`);
         } else if (fs.existsSync(pfxPath)) {

@@ -47,9 +47,7 @@ class SocketServer {
                     };
                     if (fs.existsSync(chainPath)) {
                         console.log(`[SocketServer] Loading explicit trust CA chain...`);
-                        const caString = fs.readFileSync(chainPath, 'utf8');
-                        const certString = fs.readFileSync(certPath, 'utf8');
-                        sslOptions.cert = certString + '\n' + caString;
+                        sslOptions.ca = fs.readFileSync(chainPath);
                     }
                     console.log(`[SocketServer] Starting with SSL (CRT/KEY/CHAIN)`);
                 } else if (fs.existsSync(pfxPath)) {

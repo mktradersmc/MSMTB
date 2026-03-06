@@ -124,9 +124,9 @@ if ($CrtFiles.Count -gt 0 -and $KeyFiles.Count -gt 0) {
         $store.Open("ReadWrite")
         $store.Add($cert)
 
-        # Re-export it using the exact same robust function from generate_ssl.ps1
+        # Re-export it using the exact same robust function from generate_ssl.ps1, but include the whole chain!
         $SecurePassword = ConvertTo-SecureString -String "cockpit" -Force -AsPlainText
-        Export-PfxCertificate -Cert $cert -FilePath $ServerPfx -Password $SecurePassword -Force | Out-Null
+        Export-PfxCertificate -Cert $cert -FilePath $ServerPfx -Password $SecurePassword -Force -IncludeOption WholeChain | Out-Null
         
         # Cleanup from store
         $store.Remove($cert)

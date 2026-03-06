@@ -170,7 +170,7 @@ app.post('/api/system/ssl/generate', authenticateToken, (req, res) => {
         // Escape arguments for PowerShell execution via VBS
         const vbsCode = `
 Set WshShell = CreateObject("WScript.Shell")
-WshShell.Run "powershell.exe -NoProfile -ExecutionPolicy Bypass -File ""${psPath}"" -Domain ""${domain}"" -Email ""${email}""", 0, True
+WshShell.Run "powershell.exe -NoProfile -ExecutionPolicy Bypass -File ""${psPath}"" -Domain ""${domain}"" -Email ""${email}""", 0, False
 `;
         fs.writeFileSync(vbsPath, vbsCode);
 
@@ -269,18 +269,18 @@ if (useSSL) {
 
         let sslOptions = {};
 
-        if (fs.existsSync(pfxPath)) {
-            sslOptions = {
-                pfx: fs.readFileSync(pfxPath),
-                passphrase: config.backend.pfxPassword || 'cockpit'
-            };
-            console.log(`[Management Console] Starting with SSL (PFX)`);
-        } else if (fs.existsSync(certPath) && fs.existsSync(keyPath)) {
+        if (fs.existsSync(certPath) && fs.existsSync(keyPath)) {
             sslOptions = {
                 key: fs.readFileSync(keyPath),
                 cert: fs.readFileSync(certPath)
             };
             console.log(`[Management Console] Starting with SSL (CRT/KEY)`);
+        } else if (fs.existsSync(pfxPath)) {
+            sslOptions = {
+                pfx: fs.readFileSync(pfxPath),
+                passphrase: config.backend.pfxPassword || 'cockpit'
+            };
+            console.log(`[Management Console] Starting with SSL (PFX)`);
         } else {
             throw new Error('Certificates not found in ' + CERTS_DIR);
         }

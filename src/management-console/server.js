@@ -269,18 +269,18 @@ if (useSSL) {
 
         let sslOptions = {};
 
-        if (fs.existsSync(certPath) && fs.existsSync(keyPath)) {
-            sslOptions = {
-                key: fs.readFileSync(keyPath),
-                cert: fs.readFileSync(certPath)
-            };
-            console.log(`[Management Console] Starting with SSL (CRT/KEY)`);
-        } else if (fs.existsSync(pfxPath)) {
+        if (fs.existsSync(pfxPath)) {
             sslOptions = {
                 pfx: fs.readFileSync(pfxPath),
                 passphrase: config.backend.pfxPassword || 'cockpit'
             };
             console.log(`[Management Console] Starting with SSL (PFX)`);
+        } else if (fs.existsSync(certPath) && fs.existsSync(keyPath)) {
+            sslOptions = {
+                key: fs.readFileSync(keyPath),
+                cert: fs.readFileSync(certPath)
+            };
+            console.log(`[Management Console] Starting with SSL (CRT/KEY)`);
         } else {
             throw new Error('Certificates not found in ' + CERTS_DIR);
         }

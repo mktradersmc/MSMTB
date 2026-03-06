@@ -92,25 +92,53 @@ Remove-NetFirewallRule -DisplayName $FirewallRuleName -ErrorAction SilentlyConti
 
 Write-Progress 5 "Zertifikate erfolgreich generiert. Schließe Setup ab..."
 
-# Rename the generated files to standard server.crt/server.key/server.pfx
-$PfxFiles = @(Get-ChildItem -Path $CertsDir -Filter "*.pfx" | Where-Object { $_.Name -ne "server.pfx" })
-if ($PfxFiles.Count -gt 0) {
-    $NewestPfx = $PfxFiles | Sort-Object LastWriteTime -Descending | Select-Object -First 1
-    Copy-Item -Path $NewestPfx.FullName -Destination (Join-Path $CertsDir "server.pfx") -Force
-    $PfxFiles | ForEach-Object { Remove-Item $_.FullName -Force -ErrorAction SilentlyContinue }
-}
-
+# 1. Locate the fresh PEM files exported by WACS
 $CrtFiles = @(Get-ChildItem -Path $CertsDir -Filter "*-crt.pem")
-if ($CrtFiles.Count -gt 0) {
-    $NewestCrt = $CrtFiles | Sort-Object LastWriteTime -Descending | Select-Object -First 1
-    Copy-Item -Path $NewestCrt.FullName -Destination (Join-Path $CertsDir "server.crt") -Force
-    $CrtFiles | ForEach-Object { Remove-Item $_.FullName -Force -ErrorAction SilentlyContinue }
-}
-
 $KeyFiles = @(Get-ChildItem -Path $CertsDir -Filter "*-key.pem")
-if ($KeyFiles.Count -gt 0) {
+
+if ($CrtFiles.Count -gt 0 -and $KeyFiles.Count -gt 0) {
+    $NewestCrt = $CrtFiles | Sort-Object LastWriteTime -Descending | Select-Object -First 1
     $NewestKey = $KeyFiles | Sort-Object LastWriteTime -Descending | Select-Object -First 1
+
+    Copy-Item -Path $NewestCrt.FullName -Destination (Join-Path $CertsDir "server.crt") -Force
     Copy-Item -Path $NewestKey.FullName -Destination (Join-Path $CertsDir "server.key") -Force
+
+    # 2. Convert PEM to PFX via OpenSSL natively to bypass PBES2 OpenSSL 3.0 incompatibility
+    # Since OpenSSL might not be in PATH on Windows, we utilize the Windows Crypto API equivalent
+    # to import the PEM pair and export a legacy compatible PFX.
+    Write-Progress 6 "Konvertiere Zertifikat in kompatibles Node.js PFX Format..."
+
+    # Create an intermediate PFX using certutil
+    $IntermediatePfx = Join-Path $CertsDir "temp_intermediate.pfx"
+    $ServerPfx = Join-Path $CertsDir "server.pfx"
+
+    # WACS already exported a PFX, but it's PBES2. We grab it, install it, and re-export it as legacy.
+    $WacsPfxFiles = @(Get-ChildItem -Path $CertsDir -Filter "*.pfx" | Where-Object { $_.Name -ne "server.pfx" })
+    if ($WacsPfxFiles.Count -gt 0) {
+        $NewestWacsPfx = $WacsPfxFiles | Sort-Object LastWriteTime -Descending | Select-Object -First 1
+        
+        # Import to My store silently
+        $cert = New-Object System.Security.Cryptography.X509Certificates.X509Certificate2
+        $cert.Import($NewestWacsPfx.FullName, "cockpit", [System.Security.Cryptography.X509Certificates.X509KeyStorageFlags]::Exportable)
+        
+        $store = New-Object System.Security.Cryptography.X509Certificates.X509Store "My", "CurrentUser"
+        $store.Open("ReadWrite")
+        $store.Add($cert)
+
+        # Re-export it using the exact same robust function from generate_ssl.ps1
+        $SecurePassword = ConvertTo-SecureString -String "cockpit" -Force -AsPlainText
+        Export-PfxCertificate -Cert $cert -FilePath $ServerPfx -Password $SecurePassword -Force | Out-Null
+        
+        # Cleanup from store
+        $store.Remove($cert)
+        $store.Close()
+        
+        # Delete original WACS files
+        $WacsPfxFiles | ForEach-Object { Remove-Item $_.FullName -Force -ErrorAction SilentlyContinue }
+    }
+
+    # Cleanup remaining WACS files
+    $CrtFiles | ForEach-Object { Remove-Item $_.FullName -Force -ErrorAction SilentlyContinue }
     $KeyFiles | ForEach-Object { Remove-Item $_.FullName -Force -ErrorAction SilentlyContinue }
 }
 

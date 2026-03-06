@@ -170,7 +170,7 @@ app.post('/api/system/ssl/generate', authenticateToken, (req, res) => {
         // Escape arguments for PowerShell execution via VBS
         const vbsCode = `
 Set WshShell = CreateObject("WScript.Shell")
-WshShell.Run "powershell.exe -NoProfile -ExecutionPolicy Bypass -File ""${psPath}"" -Domain ""${domain}"" -Email ""${email}""", 0, False
+WshShell.Run "powershell.exe -NoProfile -ExecutionPolicy Bypass -File ""${psPath}"" -Domain ""${domain}"" -Email ""${email}""", 0, True
 `;
         fs.writeFileSync(vbsPath, vbsCode);
 

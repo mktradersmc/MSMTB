@@ -177,7 +177,7 @@ class AutoUpdateService {
 
             const vbsCode = `
 Set WshShell = CreateObject("WScript.Shell")
-WshShell.Run "powershell.exe -NoProfile -ExecutionPolicy Bypass -File ""${psPath}"" -RestartInstances ${psRestartFlag}", 0, False
+WshShell.Run "powershell.exe -NoProfile -ExecutionPolicy Bypass -File ""${psPath}"" -RestartInstances ${psRestartFlag}", 0, True
 `;
 
             fs.writeFileSync(vbsPath, vbsCode);

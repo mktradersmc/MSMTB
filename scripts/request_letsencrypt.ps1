@@ -119,22 +119,6 @@ if ($ChainFiles.Count -gt 0) {
     $ChainFiles | ForEach-Object { Remove-Item $_.FullName -Force -ErrorAction SilentlyContinue } 
 }
 
-# Auto-Enable SSL in configuration
-if (Test-Path $SystemConfigPath) {
-    try {
-        $ConfigData = Get-Content -Path $SystemConfigPath -Raw | ConvertFrom-Json
-        if ($null -eq $ConfigData.backend) {
-            $ConfigData | Add-Member -MemberType NoteProperty -Name "backend" -Value @{}
-        }
-        $ConfigData.backend.useSSL = $true
-        $ConfigData | ConvertTo-Json -Depth 10 | Set-Content -Path $SystemConfigPath -Encoding UTF8
-        Write-Progress 6 "Systemkonfiguration auf SSL umgeschaltet."
-    }
-    catch {
-        Write-Warning "Konnte system.json nicht automatisch auf SSL umstellen."
-    }
-}
-
 Stop-Transcript
 Write-Progress 7 "Zertifikat aktiv. Starte Systemkomponenten neu..."
 Start-Sleep -Seconds 2

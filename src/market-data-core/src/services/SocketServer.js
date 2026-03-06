@@ -35,19 +35,27 @@ class SocketServer {
                 // Support PFX alternative
                 const pfxPath = path.join(projectRoot, 'certs', 'server.pfx');
 
+                const chainPath = path.join(projectRoot, 'certs', 'server-chain.pem');
+
                 let sslOptions = {};
 
-                if (fs.existsSync(pfxPath)) {
-                    console.log(`[SocketServer] Starting with SSL (PFX) from: ${pfxPath}`);
-                    sslOptions = {
-                        pfx: fs.readFileSync(pfxPath),
-                        passphrase: sysConfig.backend.pfxPassword || 'cockpit'
-                    };
-                } else if (fs.existsSync(certPath) && fs.existsSync(keyPath)) {
+                if (fs.existsSync(certPath) && fs.existsSync(keyPath)) {
                     console.log(`[SocketServer] Starting with SSL (CRT/KEY) from: ${certPath}`);
                     sslOptions = {
                         key: fs.readFileSync(keyPath),
                         cert: fs.readFileSync(certPath)
+                    };
+                    if (fs.existsSync(chainPath)) {
+                        console.log(`[SocketServer] Loading explicit trust CA chain...`);
+                        const caString = fs.readFileSync(chainPath, 'utf8');
+                        sslOptions.ca = caString.split(/(?=-----BEGIN CERTIFICATE-----)/g);
+                    }
+                    console.log(`[SocketServer] Starting with SSL (CRT/KEY/CHAIN)`);
+                } else if (fs.existsSync(pfxPath)) {
+                    console.log(`[SocketServer] Starting with SSL (PFX Fallback) from: ${pfxPath}`);
+                    sslOptions = {
+                        pfx: fs.readFileSync(pfxPath),
+                        passphrase: sysConfig.backend.pfxPassword || 'cockpit'
                     };
                 } else {
                     console.warn(`[SocketServer] SSL enabled but no certificates found in ${path.join(projectRoot, 'certs')}. Initializing without SSL.`);

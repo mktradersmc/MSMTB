@@ -269,18 +269,27 @@ if (useSSL) {
 
         let sslOptions = {};
 
-        if (fs.existsSync(pfxPath)) {
-            sslOptions = {
-                pfx: fs.readFileSync(pfxPath),
-                passphrase: config.backend.pfxPassword || 'cockpit'
-            };
-            console.log(`[Management Console] Starting with SSL (PFX)`);
-        } else if (fs.existsSync(certPath) && fs.existsSync(keyPath)) {
+        const chainPath = path.join(CERTS_DIR, 'server-chain.pem');
+
+        // Always prefer raw CRT/KEY + CHAIN over PFX because it evades the Node 18 PBES2 PFX decryption bug
+        if (fs.existsSync(certPath) && fs.existsSync(keyPath)) {
             sslOptions = {
                 key: fs.readFileSync(keyPath),
                 cert: fs.readFileSync(certPath)
             };
-            console.log(`[Management Console] Starting with SSL (CRT/KEY)`);
+            if (fs.existsSync(chainPath)) {
+                console.log(`[Management Console] Loading explicit trust CA chain...`);
+                // Split multiple certs in the CA chain properly if there are multiple roots
+                const caString = fs.readFileSync(chainPath, 'utf8');
+                sslOptions.ca = caString.split(/(?=-----BEGIN CERTIFICATE-----)/g);
+            }
+            console.log(`[Management Console] Starting with SSL (CRT/KEY/CHAIN)`);
+        } else if (fs.existsSync(pfxPath)) {
+            sslOptions = {
+                pfx: fs.readFileSync(pfxPath),
+                passphrase: config.backend.pfxPassword || 'cockpit'
+            };
+            console.log(`[Management Console] Starting with SSL (PFX Fallback)`);
         } else {
             throw new Error('Certificates not found in ' + CERTS_DIR);
         }

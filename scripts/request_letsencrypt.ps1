@@ -93,26 +93,31 @@ Remove-NetFirewallRule -DisplayName $FirewallRuleName -ErrorAction SilentlyConti
 Write-Progress 5 "Zertifikate erfolgreich generiert. Schließe Setup ab..."
 
 # Rename the generated files to standard server.crt/server.key/server.pfx
-$PfxFiles = @(Get-ChildItem -Path $CertsDir -Filter "*$Domain*.pfx" -Exclude "server.pfx")
+$PfxFiles = @(Get-ChildItem -Path $CertsDir -Filter "*.pfx" | Where-Object { $_.Name -ne "server.pfx" })
 if ($PfxFiles.Count -gt 0) {
-    Copy-Item -Path $PfxFiles[0].FullName -Destination (Join-Path $CertsDir "server.pfx") -Force
-    Remove-Item $PfxFiles[0].FullName -Force
+    $NewestPfx = $PfxFiles | Sort-Object LastWriteTime -Descending | Select-Object -First 1
+    Copy-Item -Path $NewestPfx.FullName -Destination (Join-Path $CertsDir "server.pfx") -Force
+    $PfxFiles | ForEach-Object { Remove-Item $_.FullName -Force -ErrorAction SilentlyContinue }
 }
 
-$CrtFiles = @(Get-ChildItem -Path $CertsDir -Filter "*$Domain*-crt.pem")
+$CrtFiles = @(Get-ChildItem -Path $CertsDir -Filter "*-crt.pem")
 if ($CrtFiles.Count -gt 0) {
-    Copy-Item -Path $CrtFiles[0].FullName -Destination (Join-Path $CertsDir "server.crt") -Force
-    Remove-Item $CrtFiles[0].FullName -Force
+    $NewestCrt = $CrtFiles | Sort-Object LastWriteTime -Descending | Select-Object -First 1
+    Copy-Item -Path $NewestCrt.FullName -Destination (Join-Path $CertsDir "server.crt") -Force
+    $CrtFiles | ForEach-Object { Remove-Item $_.FullName -Force -ErrorAction SilentlyContinue }
 }
 
-$KeyFiles = @(Get-ChildItem -Path $CertsDir -Filter "*$Domain*-key.pem")
+$KeyFiles = @(Get-ChildItem -Path $CertsDir -Filter "*-key.pem")
 if ($KeyFiles.Count -gt 0) {
-    Copy-Item -Path $KeyFiles[0].FullName -Destination (Join-Path $CertsDir "server.key") -Force
-    Remove-Item $KeyFiles[0].FullName -Force
+    $NewestKey = $KeyFiles | Sort-Object LastWriteTime -Descending | Select-Object -First 1
+    Copy-Item -Path $NewestKey.FullName -Destination (Join-Path $CertsDir "server.key") -Force
+    $KeyFiles | ForEach-Object { Remove-Item $_.FullName -Force -ErrorAction SilentlyContinue }
 }
 
-$ChainFiles = @(Get-ChildItem -Path $CertsDir -Filter "*$Domain*-chain.pem")
-if ($ChainFiles.Count -gt 0) { Remove-Item $ChainFiles[0].FullName -Force }
+$ChainFiles = @(Get-ChildItem -Path $CertsDir -Filter "*-chain.pem")
+if ($ChainFiles.Count -gt 0) { 
+    $ChainFiles | ForEach-Object { Remove-Item $_.FullName -Force -ErrorAction SilentlyContinue } 
+}
 
 Stop-Transcript
 Write-Progress 7 "Zertifikat aktiv. Starte Systemkomponenten neu..."

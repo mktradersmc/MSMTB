@@ -26,7 +26,7 @@ function Write-Progress {
     [System.IO.File]::WriteAllText($OutputLog, $json, $utf8NoBom)
 }
 
-Write-Progress 1 "Prüfe Voraussetzungen für win-acme..."
+Write-Progress 1 "Pruefe Voraussetzungen fuer win-acme..."
 
 $UtilsPath = Join-Path $ProjectRoot "utils"
 $WacsDir = Join-Path $UtilsPath "win-acme"
@@ -50,7 +50,7 @@ else {
     Write-Progress 3 "win-acme ist bereits installiert."
 }
 
-Write-Progress 4 "Konfiguriere temporäre Firewall-Freigabe für Port 80..."
+Write-Progress 4 "Konfiguriere temporaere Firewall-Freigabe fuer Port 80..."
 $FirewallRuleName = "AwesomeCockpit_LetsEncrypt_Temp"
 $RuleExists = Get-NetFirewallRule -DisplayName $FirewallRuleName -ErrorAction SilentlyContinue
 
@@ -58,7 +58,7 @@ if (-not $RuleExists) {
     New-NetFirewallRule -DisplayName $FirewallRuleName -Direction Inbound -LocalPort 80 -Protocol TCP -Action Allow | Out-Null
 }
 
-Write-Progress 5 "Starte Zertifikatsgenerierung für $Domain ..."
+Write-Progress 5 "Starte Zertifikatsgenerierung fuer $Domain ..."
 
 $WacsArgs = @(
     "--source", "manual",
@@ -87,10 +87,10 @@ catch {
     exit 1
 }
 
-Write-Progress 6 "Räume Firewall auf..."
+Write-Progress 6 "Raeume Firewall auf..."
 Remove-NetFirewallRule -DisplayName $FirewallRuleName -ErrorAction SilentlyContinue
 
-Write-Progress 5 "Zertifikate erfolgreich generiert. Schließe Setup ab..."
+Write-Progress 5 "Zertifikate erfolgreich generiert. Schliesse Setup ab..."
 
 # 1. Locate the fresh PEM files exported by WACS
 $CrtFiles = @(Get-ChildItem -Path $CertsDir -Filter "*-crt.pem")
@@ -109,7 +109,6 @@ if ($CrtFiles.Count -gt 0 -and $KeyFiles.Count -gt 0) {
     Write-Progress 6 "Konvertiere Zertifikat in kompatibles Node.js PFX Format..."
 
     # Create an intermediate PFX using certutil
-    $IntermediatePfx = Join-Path $CertsDir "temp_intermediate.pfx"
     $ServerPfx = Join-Path $CertsDir "server.pfx"
 
     # WACS already exported a PFX, but it's PBES2. We grab it, install it, and re-export it as legacy.

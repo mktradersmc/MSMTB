@@ -21,8 +21,9 @@ function Write-Progress {
     param([int]$Step, [string]$Text, [int]$Total = 6)
     $data = @{ step = $Step; text = $Text; total = $Total }
     $json = $data | ConvertTo-Json -Compress
-    # Ensure UTF8 without BOM
-    [System.IO.File]::WriteAllText($OutputLog, $json, [System.Text.Encoding]::UTF8)
+    # Write UTF-8 encoding specifically without BOM
+    $utf8NoBom = New-Object System.Text.UTF8Encoding($False)
+    [System.IO.File]::WriteAllText($OutputLog, $json, $utf8NoBom)
 }
 
 Write-Progress 1 "Prüfe Voraussetzungen für win-acme..."

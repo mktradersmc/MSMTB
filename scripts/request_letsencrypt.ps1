@@ -9,10 +9,13 @@ $ErrorActionPreference = "Stop"
 $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 $ProjectRoot = (Resolve-Path (Join-Path $ScriptDir "..")).Path
 $OutputLog = Join-Path $ProjectRoot "logs\ssl-progress.json"
+$TranscriptLog = Join-Path $ProjectRoot "logs\ssl-transcript.log"
 
 if (-not (Test-Path (Join-Path $ProjectRoot "logs"))) {
     New-Item -ItemType Directory -Path (Join-Path $ProjectRoot "logs") | Out-Null
 }
+
+Start-Transcript -Path $TranscriptLog -Force
 
 function Write-Progress {
     param([int]$Step, [string]$Text, [int]$Total = 6)
@@ -108,6 +111,7 @@ if ($KeyFiles.Count -gt 0) {
 $ChainFiles = Get-ChildItem -Path $CertsDir -Filter "*$Domain*-chain.pem"
 if ($ChainFiles.Count -gt 0) { Remove-Item $ChainFiles[0].FullName -Force }
 
+Stop-Transcript
 Write-Progress 7 "Zertifikat aktiv. Starte Systemkomponenten neu..."
 Start-Sleep -Seconds 2
 pm2 stop all

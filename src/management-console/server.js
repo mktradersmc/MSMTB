@@ -180,11 +180,17 @@ WshShell.Run "powershell.exe -NoProfile -ExecutionPolicy Bypass -File ""${psPath
             cwd: root,
             windowsHide: true
         });
+
+        child.on('error', (err) => {
+            fs.appendFileSync(path.join(root, 'logs', 'ssl-launcher-debug.log'), `[${new Date().toISOString()}] Spawn Error: ${err.message}\n`);
+        });
+
         child.unref();
 
         console.log(`[Management Console] Spawned Let's Encrypt generation script for ${domain}`);
         res.json({ success: true, message: "SSL Prozess gestartet." });
     } catch (error) {
+        fs.appendFileSync(path.join(root, 'logs', 'ssl-launcher-debug.log'), `[${new Date().toISOString()}] Catch Error: ${error.message}\n`);
         console.error('[SSL API] Error launching script:', error);
         res.status(500).json({ success: false, error: error.message });
     }

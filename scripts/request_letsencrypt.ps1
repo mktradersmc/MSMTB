@@ -111,26 +111,18 @@ if ($CrtFiles.Count -gt 0 -and $KeyFiles.Count -gt 0) {
     # Create an intermediate PFX using certutil
     $ServerPfx = Join-Path $CertsDir "server.pfx"
 
-    # WACS already exported a PFX, but it's PBES2. We grab it, install it, and re-export it as legacy.
+    # WACS already exported a PFX, but it's PBES2. We grab it, load it in memory, and re-export it as legacy.
     $WacsPfxFiles = @(Get-ChildItem -Path $CertsDir -Filter "*.pfx" | Where-Object { $_.Name -ne "server.pfx" })
     if ($WacsPfxFiles.Count -gt 0) {
         $NewestWacsPfx = $WacsPfxFiles | Sort-Object LastWriteTime -Descending | Select-Object -First 1
         
-        # Import to My store silently
-        $cert = New-Object System.Security.Cryptography.X509Certificates.X509Certificate2
-        $cert.Import($NewestWacsPfx.FullName, "cockpit", [System.Security.Cryptography.X509Certificates.X509KeyStorageFlags]::Exportable)
+        # Load the PBES2 PFX into a .NET Collection to preserve the entire Let's Encrypt CA chain natively
+        $collection = New-Object System.Security.Cryptography.X509Certificates.X509Certificate2Collection
+        $collection.Import($NewestWacsPfx.FullName, "cockpit", [System.Security.Cryptography.X509Certificates.X509KeyStorageFlags]::Exportable)
         
-        $store = New-Object System.Security.Cryptography.X509Certificates.X509Store "My", "CurrentUser"
-        $store.Open("ReadWrite")
-        $store.Add($cert)
-
-        # Re-export it using the exact same robust function from generate_ssl.ps1, but include the whole chain!
-        $SecurePassword = ConvertTo-SecureString -String "cockpit" -Force -AsPlainText
-        Export-PfxCertificate -Cert $cert -FilePath $ServerPfx -Password $SecurePassword -Force -IncludeOption WholeChain | Out-Null
-        
-        # Cleanup from store
-        $store.Remove($cert)
-        $store.Close()
+        # Export the Collection back to raw bytes using the older .NET Framework legacy algorithm
+        $pfxBytes = $collection.Export([System.Security.Cryptography.X509Certificates.X509ContentType]::Pfx, "cockpit")
+        [System.IO.File]::WriteAllBytes($ServerPfx, $pfxBytes)
         
         # Delete original WACS files
         $WacsPfxFiles | ForEach-Object { Remove-Item $_.FullName -Force -ErrorAction SilentlyContinue }

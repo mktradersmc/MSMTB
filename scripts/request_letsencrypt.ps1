@@ -70,7 +70,9 @@ $WacsArgs = @(
     "--pfxpassword", "cockpit",
     "--installation", "none",
     "--accepttos",
-    "--emailaddress", $Email
+    "--emailaddress", $Email,
+    "--force",
+    "--nocache"
 )
 
 try {
@@ -91,25 +93,25 @@ Remove-NetFirewallRule -DisplayName $FirewallRuleName -ErrorAction SilentlyConti
 Write-Progress 5 "Zertifikate erfolgreich generiert. Schließe Setup ab..."
 
 # Rename the generated files to standard server.crt/server.key/server.pfx
-$PfxFiles = Get-ChildItem -Path $CertsDir -Filter "*$Domain*.pfx" -Exclude "server.pfx"
+$PfxFiles = @(Get-ChildItem -Path $CertsDir -Filter "*$Domain*.pfx" -Exclude "server.pfx")
 if ($PfxFiles.Count -gt 0) {
     Copy-Item -Path $PfxFiles[0].FullName -Destination (Join-Path $CertsDir "server.pfx") -Force
     Remove-Item $PfxFiles[0].FullName -Force
 }
 
-$CrtFiles = Get-ChildItem -Path $CertsDir -Filter "*$Domain*-crt.pem"
+$CrtFiles = @(Get-ChildItem -Path $CertsDir -Filter "*$Domain*-crt.pem")
 if ($CrtFiles.Count -gt 0) {
     Copy-Item -Path $CrtFiles[0].FullName -Destination (Join-Path $CertsDir "server.crt") -Force
     Remove-Item $CrtFiles[0].FullName -Force
 }
 
-$KeyFiles = Get-ChildItem -Path $CertsDir -Filter "*$Domain*-key.pem"
+$KeyFiles = @(Get-ChildItem -Path $CertsDir -Filter "*$Domain*-key.pem")
 if ($KeyFiles.Count -gt 0) {
     Copy-Item -Path $KeyFiles[0].FullName -Destination (Join-Path $CertsDir "server.key") -Force
     Remove-Item $KeyFiles[0].FullName -Force
 }
 
-$ChainFiles = Get-ChildItem -Path $CertsDir -Filter "*$Domain*-chain.pem"
+$ChainFiles = @(Get-ChildItem -Path $CertsDir -Filter "*$Domain*-chain.pem")
 if ($ChainFiles.Count -gt 0) { Remove-Item $ChainFiles[0].FullName -Force }
 
 Stop-Transcript

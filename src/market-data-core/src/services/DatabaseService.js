@@ -1710,7 +1710,9 @@ class DatabaseService {
             const rows = this.marketDb.prepare("SELECT * FROM backtest_sessions ORDER BY created_at DESC").all();
             return rows.map(r => ({
                 ...r,
-                workspace_state: r.workspace_state ? JSON.parse(r.workspace_state) : null
+                workspace_state: r.workspace_state ? JSON.parse(r.workspace_state) : null,
+                start_time: r.start_time && r.start_time < 20000000000 ? r.start_time * 1000 : r.start_time,
+                simulation_time: r.simulation_time && r.simulation_time < 20000000000 ? r.simulation_time * 1000 : r.simulation_time
             }));
         } catch (e) { return []; }
     }
@@ -1720,6 +1722,8 @@ class DatabaseService {
             const row = this.marketDb.prepare("SELECT * FROM backtest_sessions WHERE id = ?").get(id);
             if (row) {
                 row.workspace_state = row.workspace_state ? JSON.parse(row.workspace_state) : null;
+                if (row.start_time && row.start_time < 20000000000) row.start_time *= 1000;
+                if (row.simulation_time && row.simulation_time < 20000000000) row.simulation_time *= 1000;
             }
             return row;
         } catch (e) { return null; }

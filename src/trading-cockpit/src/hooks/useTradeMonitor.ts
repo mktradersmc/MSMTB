@@ -79,9 +79,11 @@ export interface AggregatedTrade {
 
 import { socketService } from '../services/socket';
 import { useWorkspaceStore } from '../stores/useWorkspaceStore'; // Import Store
+import { useBacktest } from '../contexts/BacktestContext';
 
 export const useTradeMonitor = () => {
     const isTestMode = useWorkspaceStore(state => state.isTestMode); // React to Global Switch
+    const { activeSession } = useBacktest();
 
     const [positions, setPositions] = useState<TradePosition[]>([]);
     const [aggregatedTradesState, setAggregatedTradesState] = useState<AggregatedTrade[]>([]);
@@ -101,7 +103,8 @@ export const useTradeMonitor = () => {
         try {
             isFetchingMasterRef.current = true;
             const envParam = isTestMode ? 'test' : 'live';
-            const tradesRes = await fetchDirect(`/api/active-trades?env=${envParam}`);
+            const url = activeSession ? `/api/active-trades?backtestId=${activeSession.id}` : `/api/active-trades?env=${envParam}`;
+            const tradesRes = await fetchDirect(url);
             const tradesData = await tradesRes.json();
             const masterTrades = tradesData.success ? tradesData.trades : [];
             masterTradesRef.current = masterTrades;
@@ -117,7 +120,8 @@ export const useTradeMonitor = () => {
         if (isFetchingLiveRef.current) return; // Skip if already fetching
         try {
             isFetchingLiveRef.current = true;
-            const posRes = await fetchDirect('/api/positions');
+            const url = activeSession ? `/api/positions?backtestId=${activeSession.id}` : `/api/positions`;
+            const posRes = await fetchDirect(url);
             const posData = await posRes.json();
             const livePositions: TradePosition[] = posData.success ? posData.positions : [];
 
@@ -593,7 +597,7 @@ export const useTradeMonitor = () => {
             socket.off('trades_update_signal', onSignal);
             socket.off('execution_result', onExecution);
         };
-    }, [isTestMode]); // Re-run when Environment Switches
+    }, [isTestMode, activeSession?.id]); // Re-run when Environment Switches
 
     const modifyTrade = async (modification: { action: string, tradeId: string, percent?: number }): Promise<boolean> => {
         // Find relevant accounts for this tradeID using the Ref to avoid stale closures
@@ -615,6 +619,11 @@ export const useTradeMonitor = () => {
         console.log(`[modifyTrade] 🚀 Sending POST to /api/trade/modify...`);
 
         const socket = socketService.getSocket();
+
+        const payload = { modification, accounts };
+        if (activeSession) {
+            (payload.modification as any).backtestId = activeSession.id;
+        }
 
         try {
             // If action is CANCEL, we wrap it in a Promise to wait for the websocket confirmation
@@ -641,7 +650,7 @@ export const useTradeMonitor = () => {
                     const res = await fetchDirect('/api/trade/modify', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ modification, accounts })
+                        body: JSON.stringify(payload)
                     });
 
                     const body = await res.json();
@@ -655,12 +664,9 @@ export const useTradeMonitor = () => {
 
             // Normal flow for non-CANCEL actions
             const res = await fetchDirect('/api/trade/modify', {
-                method: 'POST',
+                method: 'POST', // Changed from PUT in history but is post
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    modification,
-                    accounts
-                })
+                body: JSON.stringify(payload)
             });
             console.log(`[modifyTrade] Response Status: ${res.status}`);
             const body = await res.json();

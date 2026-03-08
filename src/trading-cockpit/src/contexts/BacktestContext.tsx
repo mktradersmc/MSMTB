@@ -85,8 +85,12 @@ export const BacktestProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         } catch (e) {
             console.error(e);
         } finally {
+            const sid = activeSession.id;
             setActiveSession(null);
             localStorage.removeItem('activeBacktestId');
+            import('../stores/useWorkspaceStore').then(({ useWorkspaceStore }) => {
+                useWorkspaceStore.getState().removeWorkspace(sid);
+            });
         }
     };
 

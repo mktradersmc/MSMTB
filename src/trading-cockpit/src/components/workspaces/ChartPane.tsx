@@ -14,6 +14,7 @@ import { indicatorRegistry } from '../charts/indicators/IndicatorRegistry';
 import { registerIndicators } from '../charts/indicators';
 import { IndicatorSettingsDialog } from '../charts/settings/IndicatorSettingsDialog';
 import { useChartTheme } from '../../context/ChartThemeContext';
+import { useBacktest } from '../../contexts/BacktestContext';
 
 interface ChartPaneProps {
     workspaceId: string;
@@ -25,6 +26,7 @@ interface ChartPaneProps {
 
 export const ChartPane: React.FC<ChartPaneProps> = ({ workspaceId, pane, botId = 'MT5_Bot', accounts, isDatafeedOnline = true }) => {
     const { setActivePane, updatePane, toggleMaximizePane, workspaces } = useWorkspaceStore();
+    const { activeSession } = useBacktest();
     const activeWorkspace = workspaces.find(w => w.id === workspaceId);
     const isMaximized = activeWorkspace?.maximizedPaneId === pane.id;
     const maximizeId = activeWorkspace?.maximizedPaneId;
@@ -184,6 +186,7 @@ export const ChartPane: React.FC<ChartPaneProps> = ({ workspaceId, pane, botId =
         timeframe: pane.timeframe,
         botId: botId,
         isActivePane: pane.isActive,
+        backtestId: activeSession?.id,
         onTick: handleTick
     });
 
@@ -429,6 +432,7 @@ export const ChartPane: React.FC<ChartPaneProps> = ({ workspaceId, pane, botId =
             {/* --- IN-CHART HUD OVERLAY --- */}
             <ChartOverlay
                 ref={overlayRef}
+                backtestId={activeSession?.id}
                 symbol={pane.symbol}
                 timeframe={pane.timeframe}
                 timezone={timezone}

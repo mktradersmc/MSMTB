@@ -9,6 +9,7 @@ import { Settings, Maximize, Minimize, Calendar, FlaskConical, X } from 'lucide-
 import { ChartSettingsDialog } from '../live/ChartSettingsDialog';
 import { GoToDateModal } from '../charts/modals/GoToDateModal';
 import { useWorkspaceStore } from '../../stores/useWorkspaceStore';
+import { useBacktest } from '../../contexts/BacktestContext';
 // ... imports ...
 import { TradesPanel } from '../trades/TradesPanel';
 import { HistoryPanel } from '../trades/HistoryPanel';
@@ -33,6 +34,7 @@ export const WorkspaceShell: React.FC<WorkspaceShellProps> = ({
     const containerRef = React.useRef<HTMLDivElement>(null);
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
     const [isGoToDateOpen, setIsGoToDateOpen] = useState(false);
+    const { stopSession } = useBacktest();
 
     // Panel States
     const [showTrades, setShowTrades] = useState(false);
@@ -97,38 +99,51 @@ export const WorkspaceShell: React.FC<WorkspaceShellProps> = ({
             {/* Header Row 1: Workspace Tabs + Global Settings + Layout + Sync */}
             <header className="h-10 border-b border-slate-200 dark:border-slate-800 flex items-center px-4 pl-[3.5rem] justify-between flex-shrink-0 z-[100] gap-4">
                 {/* Workspace Tabs (Left) */}
-                <div className="flex-1 min-w-0">
-                    {!isBacktestContext && <WorkspaceTabs />}
+                <div className="flex-1 min-w-0 flex items-center">
+                    {!isBacktestContext ? (
+                        <WorkspaceTabs />
+                    ) : (
+                        <div className="flex items-center gap-2">
+                            <span className="text-sm font-semibold text-slate-700 dark:text-slate-300">
+                                BACKTEST WORKSPACE
+                            </span>
+                            <span className="text-xs text-slate-500 bg-slate-200 dark:bg-slate-800 px-2 py-0.5 rounded-full uppercase tracking-wider font-mono">
+                                Isolated Mode
+                            </span>
+                        </div>
+                    )}
                 </div>
 
                 {/* Global Controls (Right) */}
                 <div className="flex items-center gap-3 shrink-0">
 
                     {/* Segmented Mode Toggle */}
-                    <div className="flex bg-slate-100 dark:bg-slate-800 p-0.5 rounded-md border border-slate-200 dark:border-slate-700 mr-2">
-                        <button
-                            onClick={() => useWorkspaceStore.getState().setIsTestMode(false)}
-                            className={`
-                            px-3 py-1 rounded-sm text-[10px] font-bold transition-all
-                            ${!useWorkspaceStore(state => state.isTestMode)
-                                    ? "bg-indigo-600 text-white shadow"
-                                    : "text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"}
-                            `}
-                        >
-                            LIVE
-                        </button>
-                        <button
-                            onClick={() => useWorkspaceStore.getState().setIsTestMode(true)}
-                            className={`
-                            px-3 py-1 rounded-sm text-[10px] font-bold transition-all
-                            ${useWorkspaceStore(state => state.isTestMode)
-                                    ? "bg-amber-500 text-black shadow"
-                                    : "text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"}
-                            `}
-                        >
-                            TEST
-                        </button>
-                    </div>
+                    {!isBacktestContext && (
+                        <div className="flex bg-slate-100 dark:bg-slate-800 p-0.5 rounded-md border border-slate-200 dark:border-slate-700 mr-2">
+                            <button
+                                onClick={() => useWorkspaceStore.getState().setIsTestMode(false)}
+                                className={`
+                                px-3 py-1 rounded-sm text-[10px] font-bold transition-all
+                                ${!useWorkspaceStore(state => state.isTestMode)
+                                        ? "bg-indigo-600 text-white shadow"
+                                        : "text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"}
+                                `}
+                            >
+                                LIVE
+                            </button>
+                            <button
+                                onClick={() => useWorkspaceStore.getState().setIsTestMode(true)}
+                                className={`
+                                px-3 py-1 rounded-sm text-[10px] font-bold transition-all
+                                ${useWorkspaceStore(state => state.isTestMode)
+                                        ? "bg-amber-500 text-black shadow"
+                                        : "text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"}
+                                `}
+                            >
+                                TEST
+                            </button>
+                        </div>
+                    )}
 
                     <div className="w-px h-4 bg-slate-200 dark:bg-slate-700" />
 
@@ -171,6 +186,18 @@ export const WorkspaceShell: React.FC<WorkspaceShellProps> = ({
                     >
                         <Settings size={18} />
                     </button>
+
+                    {isBacktestContext && (
+                        <>
+                            <div className="w-px h-4 bg-slate-200 dark:bg-slate-700 ml-1 mr-1" />
+                            <button
+                                onClick={stopSession}
+                                className="px-3 py-1 bg-red-500/10 hover:bg-red-500/20 text-red-500 border border-red-500/30 hover:border-red-500/50 text-[10px] font-bold rounded shadow-sm transition-all uppercase tracking-widest flex items-center gap-1.5"
+                            >
+                                EXIT
+                            </button>
+                        </>
+                    )}
                 </div>
             </header>
 

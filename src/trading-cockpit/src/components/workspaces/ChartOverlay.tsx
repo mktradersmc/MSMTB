@@ -21,6 +21,7 @@ export interface ChartOverlayProps {
     onTimezoneChange: (tz: string) => void;
     onAddIndicator?: (id: string) => void;
     botId?: string;
+    backtestId?: string;
     ohlc?: { open: number, high: number, low: number, close: number } | null;
     precision?: number;
     status: SyncStatus; // New Prop
@@ -37,6 +38,7 @@ export const ChartOverlay = React.forwardRef<ChartOverlayHandle, ChartOverlayPro
     onTimezoneChange,
     onAddIndicator,
     botId,
+    backtestId,
     ohlc,
     precision = 5,
     status = 'OFFLINE',

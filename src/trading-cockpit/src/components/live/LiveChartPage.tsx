@@ -9,12 +9,22 @@ interface LiveChartPageProps {
 
 import { Activity } from 'lucide-react';
 import { fetchDirect, getBaseUrl } from "../../lib/client-api";
+import { useBacktest } from '../../contexts/BacktestContext';
 
 export default function LiveChartPage({ onNavigate }: LiveChartPageProps) {
     const [accounts, setAccounts] = useState<any[]>([]);
     const [datafeedBotId, setDatafeedBotId] = useState<string>('');
     const [datafeedConfigError, setDatafeedConfigError] = useState<boolean>(false);
     const [isDatafeedOnline, setIsDatafeedOnline] = useState(true);
+
+    const { activeSession, stopSession } = useBacktest();
+
+    useEffect(() => {
+        if (activeSession) {
+            console.log("[LiveChartPage] Cleaning up dangling Backtest session...");
+            stopSession();
+        }
+    }, [activeSession, stopSession]);
 
     // Fetch Configured Datafeed Bot & Accounts (Kept from original)
     useEffect(() => {

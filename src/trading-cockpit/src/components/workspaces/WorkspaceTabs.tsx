@@ -4,6 +4,7 @@ import { Plus, X, ChevronLeft, ChevronRight } from 'lucide-react';
 
 export const WorkspaceTabs: React.FC = () => {
     const { workspaces, activeWorkspaceId, setActiveWorkspace, addWorkspace, removeWorkspace } = useWorkspaceStore();
+    const visibleWorkspaces = workspaces.filter((w: any) => !w.isBacktest);
 
     // Tab Scroll Logic
     const scrollRef = useRef<HTMLDivElement>(null);
@@ -30,7 +31,7 @@ export const WorkspaceTabs: React.FC = () => {
                 observer.disconnect();
             };
         }
-    }, [workspaces.length]);
+    }, [visibleWorkspaces.length]);
 
     const scroll = (direction: 'left' | 'right') => {
         if (scrollRef.current) {
@@ -40,7 +41,7 @@ export const WorkspaceTabs: React.FC = () => {
     };
 
     const handleAdd = () => {
-        addWorkspace(`Workspace ${workspaces.length + 1}`);
+        addWorkspace(`Workspace ${visibleWorkspaces.length + 1}`);
         setTimeout(() => {
             if (scrollRef.current) {
                 scrollRef.current.scrollBy({ left: 1000, behavior: 'smooth' });
@@ -69,7 +70,7 @@ export const WorkspaceTabs: React.FC = () => {
                 <style>{`
                     .no-scrollbar::-webkit-scrollbar { display: none; }
                 `}</style>
-                {workspaces.map(w => (
+                {visibleWorkspaces.map((w: any) => (
                     <div
                         key={w.id}
                         onClick={() => setActiveWorkspace(w.id)}

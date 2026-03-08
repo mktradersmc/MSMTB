@@ -120,16 +120,28 @@ export default function BacktestChartPage({ onNavigate }: BacktestChartPageProps
 
     return (
         <div className="h-full flex flex-col bg-slate-50 dark:bg-slate-950 relative">
+            {/* Header */}
+            <div className="h-20 border-b border-slate-300 dark:border-slate-800 flex items-center justify-between px-8 shrink-0">
+                <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-lg bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center text-blue-600 dark:text-blue-400">
+                        <FlaskConical size={20} />
+                    </div>
+                    <div>
+                        <h2 className="font-bold text-lg tracking-tight text-slate-900 dark:text-white leading-tight">
+                            Backtest Replay Engine
+                        </h2>
+                        <p className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold">
+                            {activeSession.name}
+                        </p>
+                    </div>
+                </div>
+            </div>
+
             {/* The Toolbar is now a floating Draggable component */}
             <ReplayToolbar />
 
             {/* Content Area */}
-            <div className="flex-1 flex flex-col min-h-0 overflow-hidden ring-2 ring-indigo-500/30 rounded-t-xl mx-2 mt-2 shadow-2xl relative">
-                {/* Visual Indicator of Simulation Mode */}
-                <div className="absolute top-0 left-1/2 -translate-x-1/2 bg-indigo-600 text-white text-[10px] font-bold uppercase tracking-widest px-4 py-0.5 rounded-b-md shadow-lg z-50">
-                    Simulation Active: {activeSession.name}
-                </div>
-
+            <div className="flex-1 flex flex-col min-h-0 overflow-hidden relative">
                 <WorkspaceShell
                     onNavigate={onNavigate}
                     accounts={accounts}

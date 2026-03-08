@@ -878,7 +878,7 @@ class DatabaseService {
             if (!db) return [];
 
             if (to) {
-                return db.prepare(`SELECT * FROM candles_${timeframe} WHERE time < ? ORDER BY time DESC LIMIT ?`).all(to, limit).reverse();
+                return db.prepare(`SELECT * FROM candles_${timeframe} WHERE time <= ? ORDER BY time DESC LIMIT ?`).all(to, limit).reverse();
             } else {
                 return db.prepare(`SELECT * FROM candles_${timeframe} ORDER BY time DESC LIMIT ?`).all(limit).reverse();
             }

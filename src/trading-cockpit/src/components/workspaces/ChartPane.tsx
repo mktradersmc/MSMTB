@@ -474,7 +474,7 @@ export const ChartPane: React.FC<ChartPaneProps> = ({ workspaceId, pane, botId =
                     paneId={pane.id}
                     onChartClick={handleFocus}
                     scrollToTimeRequest={pane.scrollToTimeRequest}
-                    isChartReady={isChartReady && data.length > 0} // Logical AND: Data must exist too
+                    isChartReady={isChartReady} // Allow empty charts to draw indicators (like session ranges)
                     syncError={syncError}
                 />
 

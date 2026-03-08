@@ -442,7 +442,7 @@ class SocketServer {
                 console.log(`[API] divergence REQ received: ${JSON.stringify(req.query)}`);
             }
             try {
-                let { symbol, timeframe, limit, settings, to, backtestId } = req.query;
+                let { symbol, timeframe, limit, settings, to, backtestId, targets } = req.query;
                 limit = parseInt(limit) || 1000;
 
                 let simTimeOffset = null;
@@ -461,6 +461,10 @@ class SocketServer {
                 // Default settings if undefined
                 if (!parsedSettings.timeframes) {
                     parsedSettings.timeframes = ['D1', 'H4'];
+                }
+
+                if (targets) {
+                    parsedSettings.other_symbols = targets.split(',');
                 }
 
                 if (!parsedSettings.other_symbols || parsedSettings.other_symbols.length === 0) {

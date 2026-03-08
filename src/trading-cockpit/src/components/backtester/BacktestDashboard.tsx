@@ -63,14 +63,14 @@ export const BacktestDashboard: React.FC = () => {
                 </div>
             </div>
 
-            <div className="flex-1 overflow-auto p-8 flex items-start justify-center">
+            <div className="flex-1 overflow-auto p-4 flex items-start justify-center">
                 <div className="w-full max-w-6xl">
                     <div className="flex items-center justify-between mb-6">
                         <h3 className="text-xl font-bold text-slate-900 dark:text-white">Simulations</h3>
                         {!showNew && (
                             <button
                                 onClick={() => setShowNew(true)}
-                                className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white font-medium px-4 py-2 rounded-lg transition-colors shadow-sm"
+                                className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-3 py-1.5 rounded transition-colors shadow-sm"
                             >
                                 <Plus size={18} /> New Session
                             </button>
@@ -125,26 +125,27 @@ export const BacktestDashboard: React.FC = () => {
                             </div>
                         </form>
                     ) : (
-                        <div className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-sm overflow-hidden">
-                            <table className="w-full text-left border-collapse">
+                        <div className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-sm shadow-sm overflow-hidden">
+                            <table className="w-full text-left border-collapse text-sm">
                                 <thead>
-                                    <tr className="bg-slate-50 dark:bg-slate-900/50 border-b border-slate-200 dark:border-slate-800 text-xs uppercase tracking-wider text-slate-500 font-semibold">
-                                        <th className="px-6 py-4">Name</th>
-                                        <th className="px-6 py-4">Symbol</th>
-                                        <th className="px-6 py-4">Timespan</th>
-                                        <th className="px-6 py-4 text-right">Balance</th>
-                                        <th className="px-6 py-4 text-center">Actions</th>
+                                    <tr className="bg-slate-50 dark:bg-slate-900/50 border-b border-slate-200 dark:border-slate-800 text-[10px] uppercase tracking-wider text-slate-500 font-semibold">
+                                        <th className="px-4 py-2.5">Name</th>
+                                        <th className="px-4 py-2.5">Symbol</th>
+                                        <th className="px-4 py-2.5 whitespace-nowrap">Timespan</th>
+                                        <th className="px-4 py-2.5 text-right">Balance</th>
+                                        <th className="px-4 py-2.5 text-right w-24">Profit</th>
+                                        <th className="px-4 py-2.5 text-center">Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
                                     {isLoading ? (
-                                        <tr><td colSpan={5} className="text-center p-12 text-slate-500">Loading sessions...</td></tr>
+                                        <tr><td colSpan={6} className="text-center p-8 text-slate-500">Loading sessions...</td></tr>
                                     ) : sessions.length === 0 ? (
-                                        <tr><td colSpan={5} className="text-center p-16">
-                                            <FlaskConical size={48} className="mx-auto text-slate-400 mb-4 opacity-50" />
-                                            <h3 className="text-lg font-bold text-slate-700 dark:text-slate-300 mb-2">No active simulations</h3>
-                                            <p className="text-slate-500 mb-6">Create a new session to start testing your strategy with historical data.</p>
-                                            <button onClick={() => setShowNew(true)} className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-4 py-2 rounded-lg transition-colors">Create your first test</button>
+                                        <tr><td colSpan={6} className="text-center p-12">
+                                            <FlaskConical size={32} className="mx-auto text-slate-400 mb-3 opacity-50" />
+                                            <h3 className="text-base font-bold text-slate-700 dark:text-slate-300 mb-1">No active simulations</h3>
+                                            <p className="text-slate-500 mb-4 text-sm">Create a new session to start testing your strategy with historical data.</p>
+                                            <button onClick={() => setShowNew(true)} className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-3 py-1.5 rounded transition-colors">Create your first test</button>
                                         </td></tr>
                                     ) : (
                                         sessions.map(s => {
@@ -154,30 +155,33 @@ export const BacktestDashboard: React.FC = () => {
 
                                             return (
                                                 <tr key={s.id} className={`hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors ${isActive ? 'bg-blue-50/30 dark:bg-blue-900/10' : ''}`}>
-                                                    <td className="px-6 py-4">
-                                                        <div className="font-semibold text-slate-900 dark:text-white flex items-center gap-2">
+                                                    <td className="px-4 py-2.5">
+                                                        <div className="font-medium text-slate-900 dark:text-white flex items-center gap-2">
                                                             {s.name}
-                                                            {isActive && <span className="text-[10px] uppercase bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 px-1.5 py-0.5 rounded font-bold">Active</span>}
+                                                            {isActive && <span className="text-[10px] uppercase bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 px-1.5 py-0.5 rounded-sm font-bold tracking-wider">Active</span>}
                                                         </div>
                                                     </td>
-                                                    <td className="px-6 py-4">
-                                                        <span className="bg-slate-100 dark:bg-slate-800 font-mono px-2 py-1 rounded text-xs text-slate-700 dark:text-slate-300 font-medium border border-slate-200 dark:border-slate-700/50">
+                                                    <td className="px-4 py-2.5">
+                                                        <span className="bg-slate-100 dark:bg-slate-800 font-mono px-2 py-0.5 rounded-sm text-xs text-slate-700 dark:text-slate-300 font-medium border border-slate-200 dark:border-slate-700/50 tracking-wider">
                                                             {s.main_symbol || 'EURUSD'}
                                                         </span>
                                                     </td>
-                                                    <td className="px-6 py-4">
-                                                        <div className="text-sm text-slate-600 dark:text-slate-400">
-                                                            <div><span className="text-slate-400 dark:text-slate-500 text-xs">Start:</span> {formatDate(s.start_time)}</div>
-                                                            <div><span className="text-slate-400 dark:text-slate-500 text-xs">Sim:</span> {s.simulation_time ? formatDate(s.simulation_time) : 'Never Started'}</div>
+                                                    <td className="px-4 py-2.5">
+                                                        <div className="text-xs text-slate-600 dark:text-slate-400 leading-tight whitespace-nowrap">
+                                                            <span className="text-slate-400 dark:text-slate-500 text-[10px] uppercase tracking-wider">Start:</span> {formatDate(s.start_time)}
+                                                            <span className="mx-2 text-slate-300 dark:text-slate-700">|</span>
+                                                            <span className="text-slate-400 dark:text-slate-500 text-[10px] uppercase tracking-wider">Sim:</span> {s.simulation_time ? formatDate(s.simulation_time) : 'Pending'}
                                                         </div>
                                                     </td>
-                                                    <td className="px-6 py-4 text-right">
+                                                    <td className="px-4 py-2.5 text-right w-24">
                                                         <div className="font-mono font-medium text-slate-900 dark:text-white">${s.current_balance.toFixed(2)}</div>
-                                                        <div className={`text-xs font-mono font-medium ${pnlColor}`}>
+                                                    </td>
+                                                    <td className="px-4 py-2.5 text-right w-24">
+                                                        <div className={`text-[12px] font-mono font-medium bg-slate-100/50 dark:bg-slate-900/50 px-2 py-1 inline-block rounded-md ${pnlColor}`}>
                                                             {pnl > 0 ? '+' : ''}{pnl.toFixed(2)}
                                                         </div>
                                                     </td>
-                                                    <td className="px-6 py-4">
+                                                    <td className="px-4 py-2.5">
                                                         <div className="flex items-center justify-center gap-2">
                                                             <button
                                                                 onClick={async () => {

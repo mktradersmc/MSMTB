@@ -379,14 +379,17 @@ export function useChartData({ symbol, timeframe, botId, isActivePane, backtestI
         // --- BACKTEST STEP HANDLER ---
         const handleBacktestStep = (payload: any) => {
             if (payload.backtestId !== backtestId) return;
-            const candles = payload.updates?.[symbol];
-            if (!candles || candles.length === 0) return;
+            // console.log(`[useChartData] 🕰️ BACKTEST_STEP_COMPLETE received for ${symbol} ${timeframe}. Triggering merge.`);
 
-            // We need to aggregate the incoming M1 candles (or whatever they are) into our timeframe
-            // For now, assume ReplayEngine sends the raw M1s and we just push them to onTick/setData
-            // A more robust implementation is to refetch the last bar or let the hook handle aggregation.
-            // But if we just call fetchHistory(true), it will merge the newly visible candles.
-            fetchHistory(true);
+            // Bypass loading lock for step updates
+            isLoadingRef.current = false;
+            fetchHistory(true).then(() => {
+                // If there's an onTick defined, we should ideally trigger it so that 
+                // ChartPane knows the price has updated.
+                if (onTick && lastCandleRef.current) {
+                    onTick(lastCandleRef.current);
+                }
+            });
         };
 
         if (backtestId) {

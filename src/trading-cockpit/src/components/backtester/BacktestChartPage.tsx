@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { WorkspaceShell } from '../workspaces/WorkspaceShell';
 import { FlaskConical } from 'lucide-react';
 import { fetchDirect, getBaseUrl } from "../../lib/client-api";
-import { ReplayToolbar } from './ReplayToolbar';
 import { useBacktest } from '../../contexts/BacktestContext';
 import { useWorkspaceStore } from '../../stores/useWorkspaceStore';
 
@@ -131,17 +130,19 @@ export default function BacktestChartPage({ onNavigate }: BacktestChartPageProps
                             Backtest Replay Engine
                         </h2>
                         <p className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold">
-                            {activeSession.name}
+                            Simulated Trading Environment
                         </p>
                     </div>
                 </div>
             </div>
 
-            {/* The Toolbar is now a floating Draggable component */}
-            <ReplayToolbar />
-
             {/* Content Area */}
             <div className="flex-1 flex flex-col min-h-0 overflow-hidden relative">
+                {/* Visual Indicator of Simulation Mode */}
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 bg-indigo-600 text-white text-[10px] font-bold uppercase tracking-widest px-4 py-0.5 rounded-b-md shadow-lg z-50">
+                    Simulation Active: {activeSession.name}
+                </div>
+
                 <WorkspaceShell
                     onNavigate={onNavigate}
                     accounts={accounts}

@@ -13,6 +13,7 @@ import { useBacktest } from '../../contexts/BacktestContext';
 // ... imports ...
 import { TradesPanel } from '../trades/TradesPanel';
 import { HistoryPanel } from '../trades/HistoryPanel';
+import { ReplayToolbar } from '../backtester/ReplayToolbar';
 
 interface WorkspaceShellProps {
     onNavigate?: (view: any) => void;
@@ -34,7 +35,7 @@ export const WorkspaceShell: React.FC<WorkspaceShellProps> = ({
     const containerRef = React.useRef<HTMLDivElement>(null);
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
     const [isGoToDateOpen, setIsGoToDateOpen] = useState(false);
-    const { stopSession } = useBacktest();
+    const { stopSession, activeSession } = useBacktest();
 
     // Panel States
     const [showTrades, setShowTrades] = useState(false);
@@ -103,14 +104,7 @@ export const WorkspaceShell: React.FC<WorkspaceShellProps> = ({
                     {!isBacktestContext ? (
                         <WorkspaceTabs />
                     ) : (
-                        <div className="flex items-center gap-2">
-                            <span className="text-sm font-semibold text-slate-700 dark:text-slate-300">
-                                BACKTEST WORKSPACE
-                            </span>
-                            <span className="text-xs text-slate-500 bg-slate-200 dark:bg-slate-800 px-2 py-0.5 rounded-full uppercase tracking-wider font-mono">
-                                Isolated Mode
-                            </span>
-                        </div>
+                        <ReplayToolbar />
                     )}
                 </div>
 

@@ -15,50 +15,12 @@ const formatStepTime = (date: number | string | Date) => {
     }).format(new Date(date));
 };
 
+
 export const ReplayToolbar: React.FC = () => {
     const { activeSession, stopSession, stepForward } = useBacktest();
     const [stepSizeMin, setStepSizeMin] = useState(1);
     const [isAutoPlaying, setIsAutoPlaying] = useState(false);
     const [speedMs, setSpeedMs] = useState(1000); // Defaults to 1000ms delay
-
-    // Draggable State
-    const [position, setPosition] = useState({ x: 0, y: 20 });
-    const [isDragging, setIsDragging] = useState(false);
-    const dragRef = useRef<{ startX: number; startY: number; initialX: number; initialY: number } | null>(null);
-
-    // Initial Centering Effect
-    useEffect(() => {
-        if (typeof window !== 'undefined') {
-            setPosition({ x: window.innerWidth / 2 - 250, y: 20 });
-        }
-    }, []);
-
-    // Pointer Drag Logic
-    const handlePointerDown = (e: React.PointerEvent) => {
-        setIsDragging(true);
-        (e.target as HTMLElement).setPointerCapture(e.pointerId);
-        dragRef.current = {
-            startX: e.clientX,
-            startY: e.clientY,
-            initialX: position.x,
-            initialY: position.y
-        };
-    };
-
-    const handlePointerMove = (e: React.PointerEvent) => {
-        if (!isDragging || !dragRef.current) return;
-        const dx = e.clientX - dragRef.current.startX;
-        const dy = e.clientY - dragRef.current.startY;
-        setPosition({
-            x: dragRef.current.initialX + dx,
-            y: dragRef.current.initialY + dy
-        });
-    };
-
-    const handlePointerUp = (e: React.PointerEvent) => {
-        setIsDragging(false);
-        (e.target as HTMLElement).releasePointerCapture(e.pointerId);
-    };
 
     // Auto-step effect
     useEffect(() => {
@@ -100,77 +62,54 @@ export const ReplayToolbar: React.FC = () => {
     const sliderValue = Math.round(1 + ((2000 - speedMs) * 19) / 1950);
 
     return (
-        <div
-            className="fixed z-[9999] bg-slate-900/95 backdrop-blur-md border border-slate-700/50 shadow-2xl rounded-full p-2 flex items-center justify-between gap-3 min-w-[500px] transition-shadow duration-200"
-            style={{
-                left: position.x,
-                top: position.y,
-                cursor: isDragging ? 'grabbing' : 'default',
-                boxShadow: isDragging ? '0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 10px 10px -5px rgba(0, 0, 0, 0.3)' : '0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.15)'
-            }}
-        >
-            {/* 1. Drag Grip */}
-            <div
-                className="pl-2 pr-1 text-slate-500 hover:text-white cursor-grab active:cursor-grabbing transition-colors h-full flex items-center"
-                onPointerDown={handlePointerDown}
-                onPointerMove={handlePointerMove}
-                onPointerUp={handlePointerUp}
-                onPointerCancel={handlePointerUp}
-                title="Drag Toolbar"
-            >
-                <GripVertical size={20} />
+        <div className="flex items-center gap-3 h-full pr-2">
+
+            {/* 1. Visual Grip */}
+            <div className="flex items-center justify-center text-slate-400 dark:text-slate-600 border-r border-slate-300 dark:border-slate-700/50 pr-2 py-2">
+                <GripVertical size={16} />
             </div>
 
             {/* 2. Speed Slider */}
-            <div className="flex items-center gap-2 group px-2 border-r border-slate-700/50">
-                <span className="text-[10px] text-slate-500 font-bold uppercase tracking-widest group-hover:text-blue-400 transition-colors">Speed</span>
+            <div className="flex items-center gap-2 group px-2 border-r border-slate-300 dark:border-slate-700/50 h-full">
                 <input
                     type="range"
                     min="1"
                     max="20"
                     value={sliderValue}
                     onChange={handleSpeedChange}
-                    className="w-24 h-1.5 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500"
+                    className="w-20 lg:w-24 h-1.5 bg-slate-300 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500"
                 />
             </div>
 
             {/* 3. Play / Pause */}
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-1 h-full">
                 <button
                     onClick={() => setIsAutoPlaying(!isAutoPlaying)}
-                    className={`w-10 h-10 flex items-center justify-center rounded-full transition-all shadow-lg ${isAutoPlaying
-                        ? 'bg-amber-500/20 text-amber-500 hover:bg-amber-500/30 ring-1 ring-amber-500/50'
-                        : 'bg-blue-600 text-white hover:bg-blue-500 hover:scale-105'
+                    className={`w-7 h-7 flex items-center justify-center rounded transition-all shadow-sm border ${isAutoPlaying
+                        ? 'bg-amber-100 dark:bg-amber-500/20 text-amber-600 dark:text-amber-500 hover:bg-amber-200 dark:hover:bg-amber-500/30 border-amber-300 dark:border-amber-500/50'
+                        : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-300 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-700'
                         }`}
                     title={isAutoPlaying ? "Pause Auto-Player" : "Play Auto-Player"}
                 >
-                    {isAutoPlaying ? <Pause size={18} fill="currentColor" /> : <Play size={18} fill="currentColor" className="ml-1" />}
+                    {isAutoPlaying ? <Pause size={14} fill="currentColor" /> : <Play size={14} fill="currentColor" className="ml-0.5" />}
                 </button>
 
                 {/* 4. Next Candle */}
                 <button
                     onClick={handleStepText}
                     disabled={isAutoPlaying}
-                    className="w-10 h-10 flex items-center justify-center text-slate-300 hover:text-white hover:bg-slate-800 rounded-full transition-all disabled:opacity-20 disabled:hover:bg-transparent"
+                    className="w-7 h-7 flex items-center justify-center text-slate-600 dark:text-slate-400 hover:text-slate-900 border border-transparent dark:hover:text-white hover:bg-slate-200 dark:hover:bg-slate-700 rounded transition-all disabled:opacity-30 disabled:hover:bg-transparent"
                     title="Next Candle (Step Forward)"
                 >
-                    <SkipForward size={20} fill="currentColor" />
+                    <SkipForward size={16} fill="currentColor" />
                 </button>
             </div>
 
-            {/* 5. Step Time Display */}
-            <div className="flex flex-col items-end justify-center px-4 border-l border-slate-700/50">
-                <span className="text-[9px] text-slate-500 uppercase tracking-widest font-bold mb-0.5">Step Time</span>
-                <span className="text-sm font-mono font-bold text-emerald-400 tabular-nums shadow-sm whitespace-nowrap">
-                    {activeSession.simulation_time ? formatStepTime(activeSession.simulation_time) : '...'}
-                </span>
-            </div>
-
-            <div className="border-l border-slate-700/50 pl-2 pr-1">
+            <div className="border-l border-slate-300 dark:border-slate-700/50 pl-3 flex h-full items-center">
                 <select
                     value={stepSizeMin}
                     onChange={e => setStepSizeMin(Number(e.target.value))}
-                    className="h-8 bg-slate-800 hover:bg-slate-700 text-white border border-slate-600 rounded-md text-xs font-bold px-3 py-1 outline-none cursor-pointer appearance-none text-center shadow-inner transition-colors"
+                    className="h-7 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-800 dark:text-white border border-slate-300 dark:border-slate-600 rounded text-[11px] font-bold px-2 outline-none cursor-pointer appearance-none text-center shadow-sm transition-colors"
                 >
                     <option value={1}>1 Min</option>
                     <option value={3}>3 Min</option>

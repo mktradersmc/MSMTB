@@ -24,9 +24,9 @@ export default function BacktestChartPage({ onNavigate }: BacktestChartPageProps
     // 1. Load Virtual Workspace on Mount
     useEffect(() => {
         if (activeSession) {
-            loadBacktestWorkspace(activeSession.id, activeSession.workspace_state);
+            loadBacktestWorkspace(activeSession.id, activeSession.workspace_state, activeSession.main_symbol);
         }
-    }, [activeSession?.id, loadBacktestWorkspace]);
+    }, [activeSession?.id, loadBacktestWorkspace, activeSession?.main_symbol]);
 
     // 2. Debounced Auto-Sync configuration changes
     useEffect(() => {

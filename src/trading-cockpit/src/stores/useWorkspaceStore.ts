@@ -43,7 +43,7 @@ interface WorkspaceState {
     updateWorkspaceLayout: (workspaceId: string, layout: LayoutType) => void;
     updateLayoutSizes: (workspaceId: string, sizes: number[]) => void;
     toggleMaximizePane: (workspaceId: string, paneId: string) => void;
-    loadBacktestWorkspace: (sessionId: string, workspaceState?: any) => void;
+    loadBacktestWorkspace: (sessionId: string, workspaceState?: any, mainSymbol?: string) => void;
 
     // Drawing
     activeDrawingTool: string | null;
@@ -101,7 +101,7 @@ export const useWorkspaceStore = create<WorkspaceState>()(
                 }));
             },
 
-            loadBacktestWorkspace: (sessionId: string, workspaceState?: any) => {
+            loadBacktestWorkspace: (sessionId: string, workspaceState?: any, mainSymbol?: string) => {
                 set((state) => {
                     // Check if we already have it
                     const existingIdx = state.workspaces.findIndex(w => w.id === sessionId);
@@ -115,8 +115,13 @@ export const useWorkspaceStore = create<WorkspaceState>()(
                         return { activeWorkspaceId: sessionId };
                     } else {
                         // Create fresh backtest workspace
+                        const defaultWorkspace = createDefaultWorkspace(`Backtest ${sessionId}`);
+                        if (mainSymbol && defaultWorkspace.panes.length > 0) {
+                            defaultWorkspace.panes[0].symbol = mainSymbol;
+                        }
+
                         newWorkspace = {
-                            ...createDefaultWorkspace(`Backtest ${sessionId}`),
+                            ...defaultWorkspace,
                             id: sessionId,
                             isBacktest: true
                         };

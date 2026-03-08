@@ -78,49 +78,50 @@ export const BacktestDashboard: React.FC = () => {
                     </div>
 
                     {showNew ? (
-                        <form onSubmit={handleCreate} className="w-full max-w-md mx-auto bg-slate-50 dark:bg-slate-800/50 p-6 rounded-lg border border-slate-200 dark:border-slate-700 h-fit">
-                            <h3 className="text-lg font-semibold mb-4 text-slate-800 dark:text-white">Create New Backtest</h3>
-                            <div className="space-y-4">
+                        <form onSubmit={handleCreate} className="w-full mx-auto max-w-sm bg-white dark:bg-slate-800/80 p-4 rounded border border-slate-200 dark:border-slate-700 h-fit shadow-sm mb-6">
+                            <h3 className="text-sm font-bold mb-3 uppercase tracking-wider text-slate-600 dark:text-slate-400">Create New Backtest</h3>
+                            <div className="space-y-3">
                                 <div>
-                                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Session Name</label>
+                                    <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">Session Name</label>
                                     <input
                                         type="text" required value={name} onChange={e => setName(e.target.value)}
-                                        className="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 rounded-lg px-3 py-2 text-slate-900 dark:text-white outline-none transition-all"
+                                        className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 rounded-md px-2.5 py-1.5 text-sm text-slate-900 dark:text-white outline-none transition-all"
                                         placeholder="e.g. My SMC Strategy Test"
                                     />
                                 </div>
 
-                                <div className="grid grid-cols-2 gap-4">
+                                <div className="grid grid-cols-2 gap-3">
                                     <div>
-                                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Main Symbol</label>
-                                        <div className="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg py-1 px-1">
+                                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">Main Symbol</label>
+                                        <div className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-md py-1 px-2 flex items-center h-[34px]">
                                             <SymbolBrowser
                                                 variant="button"
+                                                className="w-full"
                                                 currentSymbol={mainSymbol}
                                                 onSelectSymbol={(sym) => setMainSymbol(sym)}
                                             />
                                         </div>
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Starting Balance</label>
+                                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">Starting Balance</label>
                                         <input
                                             type="number" required value={balance} onChange={e => setBalance(Number(e.target.value))}
-                                            className="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 rounded-lg px-3 py-2 text-slate-900 dark:text-white outline-none transition-all font-mono"
+                                            className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 rounded-md px-2.5 py-1.5 text-sm text-slate-900 dark:text-white outline-none transition-all font-mono"
                                         />
                                     </div>
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Start Date</label>
+                                    <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">Start Date</label>
                                     <input
-                                        type="datetime-local" required value={startDate} onChange={e => setStartDate(e.target.value)}
-                                        className="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 rounded-lg px-3 py-2 text-slate-900 dark:text-white outline-none transition-all font-mono"
+                                        type="date" required value={startDate} onChange={e => setStartDate(e.target.value)}
+                                        className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 rounded-md px-2.5 py-1.5 text-sm text-slate-900 dark:text-white outline-none transition-all font-mono"
                                     />
-                                    <p className="text-xs text-slate-500 mt-1">Select the exact time the simulation will begin drawing data from.</p>
+                                    <p className="text-[10px] text-slate-500 mt-1 leading-tight">Select the starting date for the historical simulation. Data will be drawn from this point forward.</p>
                                 </div>
-                                <div className="pt-4 flex gap-2 justify-end">
-                                    <button type="button" onClick={() => setShowNew(false)} className="px-4 py-2 rounded text-slate-600 hover:bg-slate-200 dark:text-slate-400 dark:hover:bg-slate-800">Cancel</button>
-                                    <button type="submit" className="px-4 py-2 rounded bg-blue-600 hover:bg-blue-700 text-white font-medium">Start Simulation</button>
+                                <div className="pt-3 flex gap-2 justify-end border-t border-slate-200 dark:border-slate-700/50 mt-2">
+                                    <button type="button" onClick={() => setShowNew(false)} className="px-3 py-1.5 rounded text-xs font-bold text-slate-500 hover:text-slate-700 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-700 transition-colors">Cancel</button>
+                                    <button type="submit" className="px-3 py-1.5 rounded bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-sm transition-colors">Start Simulation</button>
                                 </div>
                             </div>
                         </form>

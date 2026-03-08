@@ -1295,15 +1295,17 @@ class SystemOrchestrator {
         }
         else if (msg.type === 'SYNC_UPDATE') {
             // Unify content access
-            const { symbol: sSymbol, timeframe, status, message } = msg.content || msg;
+            const payload = msg.content || msg.payload || msg;
+            const { symbol: sSymbol, timeframe, status, message } = payload;
             if (sSymbol && timeframe) {
                 this.updateSyncStatus(sSymbol, timeframe, status, message);
             } else {
-                this.updateSyncStatus(msg.symbol, msg.timeframe, msg.status);
+                this.updateSyncStatus(payload.symbol, payload.timeframe, payload.status);
             }
         }
         else if (msg.type === 'SYNC_COMPLETE') {
-            const { symbol: sSymbol, timeframe } = msg.content || msg;
+            const payload = msg.content || msg.payload || msg;
+            const { symbol: sSymbol, timeframe } = payload;
             if (this.socketServer && this.socketServer.io) {
                 this.socketServer.io.emit('SYNC_COMPLETE', { symbol: sSymbol, timeframe });
                 console.log(`[Sync] ✅ Worker Reports SYNC_COMPLETE for ${sSymbol} ${timeframe}`);

@@ -2,6 +2,7 @@ import { indicatorRegistry } from './IndicatorRegistry';
 import { ICTSessionsPlugin, ICTSessionsSchema } from '../plugins/ICTSessionsPlugin';
 import { ImbalancePlugin, applyImbalanceTransformation } from '../plugins/ImbalancePlugin';
 import { LevelsPlugin, LevelsSchema } from '../plugins/LevelsPlugin';
+import { DivergencePlugin, DivergenceSchema } from '../plugins/DivergencePlugin';
 
 // Register Default Indicators
 export const registerIndicators = () => {
@@ -78,6 +79,50 @@ export const registerIndicators = () => {
         pluginFactory: (settings) => new LevelsPlugin(settings),
         settingsSchema: LevelsSchema,
         // No data fetcher needed, uses client data via updateData
+    });
+
+    // Register SMT Divergence Indicator
+    indicatorRegistry.register({
+        id: 'divergence',
+        name: 'SMT Divergences',
+        description: 'Detects and visualizes structural divergences (SMT) across correlated assets.',
+        defaultSettings: DivergenceSchema.reduce((acc: any, item: any) => {
+            acc[item.id] = item.def;
+            return acc;
+        }, {}),
+        pluginFactory: (settings) => new DivergencePlugin(settings),
+        settingsSchema: DivergenceSchema,
+        dataFetcher: async ({ symbol, timeframe, from, to, settings, backtestId }) => {
+            // Forward calculation to Market Data Core
+            const params = new URLSearchParams({
+                symbol,
+                timeframe,
+                from: from.toString(),
+                to: to.toString(),
+                settings: JSON.stringify(settings)
+            });
+
+            if (settings.other_symbols && settings.other_symbols.length > 0) {
+                params.append('targets', settings.other_symbols.join(','));
+            }
+
+            if (backtestId) {
+                params.append('backtestId', backtestId);
+            }
+
+            const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
+            const headers: Record<string, string> = token ? { 'Authorization': `Bearer ${token}` } : {};
+
+            try {
+                const res = await fetch(`http://localhost:3005/api/indicators/divergence?${params.toString()}`, { headers });
+                if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+                const data = await res.json();
+                return data; // Returns { divergences: [...] }
+            } catch (error) {
+                console.error("[DivergencePlugin] Fetch error", error);
+                return { divergences: [] };
+            }
+        }
     });
 
     console.log("[IndicatorRegistry] Registered default indicators.");

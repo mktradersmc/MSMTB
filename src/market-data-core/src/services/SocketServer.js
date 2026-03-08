@@ -10,11 +10,13 @@ const db = require('./DatabaseService');
 const assetMappingService = require('./AssetMappingService');
 const tradeDistributionService = require('./TradeDistributionService');
 const sessionEngine = require('./SessionEngine');
+const divergenceEngine = require('./DivergenceEngine');
 const AuthService = require('./AuthService');
 
 const { WebSocketServer } = require('ws');
 const botConfigService = require('./BotConfigService'); // Import Service
 const systemConfigService = require('./SystemConfigService');
+const replayEngine = require('./ReplayEngine'); // Backtest Replay Engine
 // ... imports
 const fs = require('fs');
 const path = require('path');
@@ -377,8 +379,14 @@ class SocketServer {
                 console.log(`[API] ict-sessions REQ received: ${JSON.stringify(req.query)}`);
             }
             try {
-                let { symbol, timeframe, limit, settings, to } = req.query;
+                let { symbol, timeframe, limit, settings, to, backtestId } = req.query;
                 limit = parseInt(limit) || 1000;
+
+                let simTimeOffset = null;
+                if (backtestId) {
+                    simTimeOffset = replayEngine.getSimulationTime(backtestId);
+                    if (simTimeOffset) to = simTimeOffset;
+                }
 
                 let parsedSettings = {};
                 try {
@@ -414,6 +422,11 @@ class SocketServer {
                     // candles = db.getHistory(symbol, timeframe, limit);
                 }
 
+                // SPOOF: Override config namespace for Backtest isolation
+                if (backtestId) {
+                    parsedSettings._namespace = backtestId;
+                }
+
                 const sessions = await sessionEngine.calculateSessions(symbol, candles, parsedSettings);
                 res.json({ success: true, sessions });
 
@@ -423,13 +436,76 @@ class SocketServer {
             }
         });
 
+        // NEW: Divergence Indicator Endpoint
+        this.app.get('/api/indicators/divergence', async (req, res) => {
+            if (systemOrchestrator.getFeatures().ENABLE_INDICATOR_LOGGING) {
+                console.log(`[API] divergence REQ received: ${JSON.stringify(req.query)}`);
+            }
+            try {
+                let { symbol, timeframe, limit, settings, to, backtestId } = req.query;
+                limit = parseInt(limit) || 1000;
+
+                let simTimeOffset = null;
+                if (backtestId) {
+                    simTimeOffset = replayEngine.getSimulationTime(backtestId);
+                    if (simTimeOffset) to = simTimeOffset;
+                }
+
+                let parsedSettings = {};
+                try {
+                    parsedSettings = settings ? JSON.parse(settings) : {};
+                } catch (e) {
+                    console.error("[API] Failed to parse divergence settings JSON", e);
+                }
+
+                // Default settings if undefined
+                if (!parsedSettings.timeframes) {
+                    parsedSettings.timeframes = ['D1', 'H4'];
+                }
+
+                if (!parsedSettings.other_symbols || parsedSettings.other_symbols.length === 0) {
+                    return res.json({ success: true, divergences: [] });
+                }
+
+                const toLog = to ? new Date(parseInt(to)).toISOString() : "LATEST";
+                let candles = db.getHistory(symbol, timeframe, limit, to);
+
+                // SPOOF: Override namespace to avoid caching leak
+                if (backtestId) {
+                    parsedSettings._namespace = backtestId;
+                }
+
+                const IndicatorDataProvider = require('./IndicatorDataProvider');
+                const dataProvider = new IndicatorDataProvider({
+                    mode: backtestId ? 'BACKTEST' : 'LIVE',
+                    backtestId: backtestId,
+                    simulationTime: simTimeOffset
+                });
+
+                const divergences = await divergenceEngine.calculateDivergences(symbol, timeframe, candles, parsedSettings, dataProvider);
+                res.json({ success: true, divergences });
+
+            } catch (e) {
+                console.error("[API] Divergence Error", e);
+                res.status(500).json({ success: false, error: e.message });
+            }
+        });
+
         // History Endpoint (For Charts)
         // ✅ PERFORMANCE FIX: Non-blocking with immediate response
         this.app.get('/api/history', async (req, res) => {
             try {
-                let { symbol, timeframe, limit, to } = req.query;
+                let { symbol, timeframe, limit, to, backtestId } = req.query;
                 limit = parseInt(limit) || 10000;
-                to = to ? parseInt(to) : null;
+
+                if (backtestId) {
+                    const simTime = replayEngine.getSimulationTime(backtestId);
+                    if (simTime) {
+                        to = simTime; // HARD OVERRIDE
+                    }
+                } else {
+                    to = to ? parseInt(to) : null;
+                }
 
                 const toLog = to ? new Date(to).toISOString() : "LATEST";
 
@@ -524,10 +600,110 @@ class SocketServer {
 
         // Sync Status Endpoint
         this.app.get('/api/sync-status', (req, res) => {
-            const { symbol } = req.query;
+            const { symbol, backtestId } = req.query;
             if (!symbol) return res.json({});
+
+            // SPOOF: If backtest is active, data is ALWAYS ready locally
+            if (backtestId) {
+                return res.json({
+                    success: true,
+                    status: {
+                        'M1': { status: 'READY' },
+                        'M5': { status: 'READY' },
+                        'M15': { status: 'READY' },
+                        'H1': { status: 'READY' },
+                        'H4': { status: 'READY' },
+                        'D1': { status: 'READY' }
+                    }
+                });
+            }
+
             const status = systemOrchestrator.getStatusSnapshot(symbol);
             res.json({ success: true, status });
+        });
+
+        // --- BACKTEST API ENDPOINTS ---
+        this.app.get('/api/backtest/sessions', (req, res) => {
+            try {
+                res.json({ success: true, sessions: db.getBacktestSessions() });
+            } catch (e) {
+                res.status(500).json({ success: false, error: e.message });
+            }
+        });
+
+        this.app.delete('/api/backtest/sessions/:id', (req, res) => {
+            try {
+                const id = req.params.id;
+                db.deleteBacktestSession(id);
+                res.json({ success: true });
+            } catch (e) {
+                res.status(500).json({ success: false, error: e.message });
+            }
+        });
+
+        this.app.post('/api/backtest/start', (req, res) => {
+            try {
+                const session = replayEngine.startSession(req.body);
+                res.json({ success: true, session });
+            } catch (e) {
+                res.status(500).json({ success: false, error: e.message });
+            }
+        });
+
+        this.app.post('/api/backtest/stop', (req, res) => {
+            try {
+                replayEngine.stopSession(req.body.id);
+                res.json({ success: true });
+            } catch (e) {
+                res.status(500).json({ success: false, error: e.message });
+            }
+        });
+
+        this.app.post('/api/backtest/step', async (req, res) => {
+            try {
+                const { id, amountMs, symbols } = req.body;
+
+                // Advance Time
+                const result = await replayEngine.stepForward(id, amountMs, symbols || ['EURUSD', 'NDX']);
+
+                // Broadcast market data updates via Socket to specific clients
+                // For simplicity, emit to all, but frontend will filter by backtestId (handled in PaperTradeEngine or hook)
+                this.io.emit('BACKTEST_STEP_COMPLETE', {
+                    backtestId: id,
+                    newTime: result.newTime,
+                    updates: result.updatesBySymbol
+                });
+
+                res.json({ success: true, newTime: result.newTime });
+            } catch (e) {
+                res.status(500).json({ success: false, error: e.message });
+            }
+        });
+
+        this.app.put('/api/backtest/workspace/:id', (req, res) => {
+            try {
+                const { id } = req.params;
+                const workspaceState = req.body;
+
+                const session = db.getBacktestSession(id);
+                if (!session) {
+                    return res.status(404).json({ success: false, error: 'Session not found' });
+                }
+
+                session.workspace_state = workspaceState;
+                db.saveBacktestSession(session);
+
+                // CRITICAL FIX: Update the memory cache in ReplayEngine to prevent stale overwrites on STOP
+                const activeReplay = replayEngine.activeReplays.get(id);
+                if (activeReplay && activeReplay.data) {
+                    activeReplay.data.workspace_state = workspaceState;
+                }
+
+                res.json({ success: true });
+            } catch (e) {
+                console.error("[API] Save Backtest Workspace Error", e);
+                res.status(500).json({ success: false, error: e.message });
+            }
         });
 
         // --- NEW: Polling Endpoint for Datafeed Status (500ms) ---
@@ -1011,6 +1187,11 @@ class SocketServer {
             try {
                 const { trade, accounts } = req.body;
 
+                if (trade && trade.backtestId) {
+                    const paperTradeEngine = require('./PaperTradeEngine');
+                    return res.json(paperTradeEngine.executeTrade(trade.backtestId, trade));
+                }
+
                 // USER REQUEST: IMMEDIATE & DETAILED LOG
                 console.log(`\n[API] >>> TRADE EXECUTION RECEIVED <<<`);
                 console.log(`[API] MasterID: ${trade?.id}`);
@@ -1030,7 +1211,12 @@ class SocketServer {
 
         this.app.post('/api/trade/modify', (req, res) => {
             try {
-                const { modification, accounts } = req.body; // modification: { action, tradeId, percent }
+                const { modification, accounts } = req.body;
+
+                if (modification && modification.backtestId) {
+                    const paperTradeEngine = require('./PaperTradeEngine');
+                    return res.json(paperTradeEngine.modifyTrade(modification.backtestId, modification));
+                }
 
                 // USER REQUEST: IMMEDIATE & DETAILED LOG
                 console.log(`\n[API] >>> TRADE MODIFICATION RECEIVED <<<`);
@@ -1088,6 +1274,36 @@ class SocketServer {
         this.app.get('/api/active-trades', (req, res) => {
             try {
                 const env = req.query.env || 'test';
+                const backtestId = req.query.backtestId;
+
+                if (backtestId) {
+                    // Spoof responses using Backtest Engine
+                    const trades = db.getBacktestTrades(backtestId).filter(t => t.status === 'OPEN');
+                    const mapped = trades.map(t => ({
+                        id: t.id,
+                        symbol: t.symbol,
+                        direction: t.direction === 1 ? 'LONG' : 'SHORT',
+                        status: 'OPEN',
+                        entry_price: t.entry_price,
+                        sl: t.sl,
+                        tp: t.tp,
+                        totalVol: t.volume,
+                        profit: t.realized_pl || 0,
+                        positions: [{
+                            ticket: t.id,
+                            botId: 'PAPER_BOT',
+                            brokerId: 'Backtest Engine',
+                            symbol: t.symbol,
+                            volume: t.volume,
+                            openPrice: t.entry_price,
+                            current: t.entry_price,
+                            profit: t.realized_pl || 0,
+                            status: 'OPEN'
+                        }]
+                    }));
+                    return res.json({ success: true, trades: mapped });
+                }
+
                 const trades = db.getActiveTrades(env);
                 const brokers = db.getBrokers();
                 const accounts = db.getAccounts();
@@ -1154,6 +1370,26 @@ class SocketServer {
             try {
                 const limit = req.query.limit ? parseInt(req.query.limit) : 100;
                 const env = req.query.env || 'test';
+                const backtestId = req.query.backtestId;
+
+                if (backtestId) {
+                    const trades = db.getBacktestTrades(backtestId).filter(t => t.status === 'CLOSED');
+                    const history = trades.map(t => ({
+                        id: t.id,
+                        symbol: t.symbol,
+                        direction: t.direction === 1 ? 'LONG' : 'SHORT',
+                        status: 'CLOSED',
+                        entry_price: t.entry_price,
+                        exit_price: t.exit_price,
+                        volume: t.volume,
+                        profit: t.realized_pl,
+                        open_time: t.open_time,
+                        close_time: t.close_time,
+                        strategy: 'Backtest'
+                    }));
+                    return res.json({ success: true, history });
+                }
+
                 const history = db.getTradeHistory(limit, env);
                 res.json({ success: true, history });
             } catch (e) {

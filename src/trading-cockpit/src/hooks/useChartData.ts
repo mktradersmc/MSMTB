@@ -9,10 +9,11 @@ export interface ChartDataHookOptions {
     timeframe: string;
     botId: string;
     isActivePane: boolean; // For smart streaming
+    backtestId?: string;
     onTick?: (candle: any) => void;
 }
 
-export function useChartData({ symbol, timeframe, botId, isActivePane, onTick }: ChartDataHookOptions) {
+export function useChartData({ symbol, timeframe, botId, isActivePane, backtestId, onTick }: ChartDataHookOptions) {
     const [data, setData] = useState<any[]>([]);
     const [horizonData, setHorizonData] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(false);
@@ -74,6 +75,7 @@ export function useChartData({ symbol, timeframe, botId, isActivePane, onTick }:
             // 1. Initial Fetch (Latest from local DB)
             console.log(`[useChartData] 🚀 Fetching History for ${symbol} ${timeframe}`);
             let url = `${getBaseUrl()}/api/history?symbol=${symbol}&timeframe=${timeframe}&limit=${targetTotal}&_=${Date.now()}`;
+            if (backtestId) url += `&backtestId=${backtestId}`;
 
             const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
             const headers: Record<string, string> = token ? { 'Authorization': `Bearer ${token}` } : {};
@@ -374,15 +376,35 @@ export function useChartData({ symbol, timeframe, botId, isActivePane, onTick }:
             );
         }
 
+        // --- BACKTEST STEP HANDLER ---
+        const handleBacktestStep = (payload: any) => {
+            if (payload.backtestId !== backtestId) return;
+            const candles = payload.updates?.[symbol];
+            if (!candles || candles.length === 0) return;
+
+            // We need to aggregate the incoming M1 candles (or whatever they are) into our timeframe
+            // For now, assume ReplayEngine sends the raw M1s and we just push them to onTick/setData
+            // A more robust implementation is to refetch the last bar or let the hook handle aggregation.
+            // But if we just call fetchHistory(true), it will merge the newly visible candles.
+            fetchHistory(true);
+        };
+
+        if (backtestId) {
+            communicationHub.on('BACKTEST_STEP_COMPLETE', handleBacktestStep);
+        }
+
         return () => {
             if (adapter) adapter.unsubscribeBars(subId);
             communicationHub.off('SYNC_COMPLETE', onSyncComplete);
             communicationHub.off('SYNC_ERROR', onSyncError);
             communicationHub.off('connect', onReconnect);
             communicationHub.off('sanity_update', onSanityUpdate);
+            if (backtestId) {
+                communicationHub.off('BACKTEST_STEP_COMPLETE', handleBacktestStep);
+            }
         };
 
-    }, [symbol, timeframe, botId]);
+    }, [symbol, timeframe, botId, backtestId]);
 
     // We return refs or a way to get the latest candle to avoid re-renders
     return {

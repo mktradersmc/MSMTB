@@ -19,6 +19,7 @@ interface WorkspaceShellProps {
     datafeedBotId: string;
     isDatafeedOnline: boolean;
     datafeedConfigError: boolean;
+    isBacktestContext?: boolean;
 }
 
 export const WorkspaceShell: React.FC<WorkspaceShellProps> = ({
@@ -26,7 +27,8 @@ export const WorkspaceShell: React.FC<WorkspaceShellProps> = ({
     accounts,
     datafeedBotId,
     isDatafeedOnline,
-    datafeedConfigError
+    datafeedConfigError,
+    isBacktestContext = false
 }) => {
     const containerRef = React.useRef<HTMLDivElement>(null);
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
@@ -96,7 +98,7 @@ export const WorkspaceShell: React.FC<WorkspaceShellProps> = ({
             <header className="h-10 border-b border-slate-200 dark:border-slate-800 flex items-center px-4 pl-[3.5rem] justify-between flex-shrink-0 z-[100] gap-4">
                 {/* Workspace Tabs (Left) */}
                 <div className="flex-1 min-w-0">
-                    <WorkspaceTabs />
+                    {!isBacktestContext && <WorkspaceTabs />}
                 </div>
 
                 {/* Global Controls (Right) */}
@@ -131,13 +133,15 @@ export const WorkspaceShell: React.FC<WorkspaceShellProps> = ({
                     <div className="w-px h-4 bg-slate-200 dark:bg-slate-700" />
 
                     {/* Go To Date */}
-                    <button
-                        onClick={() => setIsGoToDateOpen(true)}
-                        className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-700/50 rounded-md text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 transition-colors"
-                        title="Go to Date..."
-                    >
-                        <Calendar size={18} />
-                    </button>
+                    {!isBacktestContext && (
+                        <button
+                            onClick={() => setIsGoToDateOpen(true)}
+                            className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-700/50 rounded-md text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 transition-colors"
+                            title="Go to Date..."
+                        >
+                            <Calendar size={18} />
+                        </button>
+                    )}
 
                     {/* Layout Switcher */}
                     <LayoutSwitcher />

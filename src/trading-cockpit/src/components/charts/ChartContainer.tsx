@@ -21,6 +21,7 @@ import { TradeDistributionManager, ExecutionBatch } from '../../managers/TradeDi
 import { useWorkspaceStore } from '../../stores/useWorkspaceStore';
 import { useTradeMonitor } from '../../hooks/useTradeMonitor';
 import { TradeLogService } from '../../services/TradeLogService';
+import { useBacktest } from '../../contexts/BacktestContext';
 
 
 
@@ -120,7 +121,8 @@ export const ChartContainer = React.forwardRef<ChartContainerHandle, ChartContai
     const containerRefB = useRef<HTMLDivElement>(null);
 
     const { theme } = useChartTheme();
-    const { isTestMode, activeDrawingTool } = useWorkspaceStore();
+    const { isTestMode, activeDrawingTool, workspaces, activeWorkspaceId } = useWorkspaceStore();
+    const { activeSession } = useBacktest();
 
     const chartARef = useRef<IChartApi | null>(null);
     const chartBRef = useRef<IChartApi | null>(null);
@@ -546,6 +548,28 @@ export const ChartContainer = React.forwardRef<ChartContainerHandle, ChartContai
         const fetchPlan = async () => {
             console.log(`[ChartContainer] EFFECT TRIGGERED: fetchPlan initiated for trade ID ${pendingTrade?.id}`);
             try {
+                if (activeSession) {
+                    const mockAccount = {
+                        id: activeSession.id,
+                        accountId: activeSession.id,
+                        login: `SIM-${activeSession.id.substring(0, 4)}`,
+                        name: activeSession.name || 'Backtest Test Account',
+                        brokerId: 'BACKTEST',
+                        status: 'RUNNING',
+                        isConnected: true,
+                        riskPercent: 1.0,
+                        balance: activeSession.initial_balance || 100000,
+                        equity: activeSession.current_balance || 100000
+                    };
+                    if (isMounted) {
+                        setMappedManualAccounts([mockAccount]);
+                        setSelectedManualAccountIds([mockAccount.id]);
+                        setDistributionMode('manual');
+                        setExecutionPlan(null);
+                    }
+                    return;
+                }
+
                 // Fetch mapped accounts for the Manual Mode base
                 const mappedAccounts = TradeDistributionManager.getMappedAccounts(pendingTrade, accounts, brokers, isTestMode);
                 if (isMounted) {
@@ -1806,15 +1830,30 @@ export const ChartContainer = React.forwardRef<ChartContainerHandle, ChartContai
                     const fromTime = currentDataA.length > 0 ? currentDataA[0].time : Math.floor(Date.now() / 1000) - 86400 * 30;
                     const toTime = currentDataA.length > 0 ? currentDataA[currentDataA.length - 1].time : Math.floor(Date.now() / 1000);
 
+                    // Inject other_symbols automatically from workspace
+                    let enrichedSettings = { ...ind.settings };
+                    const activeWs = workspaces.find(w => w.id === activeWorkspaceId);
+                    if (activeWs) {
+                        const otherSymbols = activeWs.panes
+                            .filter(p => p.symbol && p.symbol !== symbol)
+                            .map(p => p.symbol);
+                        // Prevent sending self as target
+                        enrichedSettings.other_symbols = Array.from(new Set(otherSymbols));
+                    }
+
                     def.dataFetcher({
                         symbol: symbol,
                         timeframe: timeframe,
                         from: (fromTime as number) * 1000,
                         to: (toTime as number) * 1000,
-                        settings: ind.settings
+                        settings: enrichedSettings,
+                        backtestId: activeSession?.id
                     }).then(data => {
                         if (plugin.updateSessions) {
                             plugin.updateSessions(data);
+                        }
+                        if (plugin.updateDivergences) {
+                            plugin.updateDivergences(data);
                         }
                     }).catch(e => console.error("Indicator Data Fetch Failed", e));
                 }
@@ -2119,6 +2158,10 @@ export const ChartContainer = React.forwardRef<ChartContainerHandle, ChartContai
                 const selectedAccounts = mappedManualAccounts.filter(a => selectedManualAccountIds.includes(a.id));
                 if (selectedAccounts.length > 0) {
                     const finalTrade = { ...tradeToExecute, environment: isTestMode ? 'test' : 'live' };
+                    if (activeSession) {
+                        finalTrade.backtestId = activeSession.id;
+                        finalTrade.environment = 'backtest';
+                    }
                     batches = [{ brokerId: 'MULTIPLE', trade: finalTrade, accounts: selectedAccounts }];
                 }
             }
@@ -2410,8 +2453,13 @@ export const ChartContainer = React.forwardRef<ChartContainerHandle, ChartContai
             {pendingTrade && (
                 <div className="absolute inset-0 z-[100] flex items-center justify-center bg-slate-950/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
                     <div className="bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl shadow-2xl w-full max-w-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
-                        <div className={`px-5 py-3 flex justify-between items-center shadow-md ${isTestMode ? 'bg-amber-600 text-white' : 'bg-indigo-600 text-white'}`}>
+                        <div className={`px-5 py-3 flex justify-between items-center shadow-md ${activeSession ? 'bg-fuchsia-600 dark:bg-fuchsia-700 text-white' : (isTestMode ? 'bg-amber-600 text-white' : 'bg-indigo-600 text-white')}`}>
                             <h3 className="flex items-baseline gap-2.5">
+                                {activeSession && (
+                                    <span className="font-bold bg-white text-fuchsia-600 px-2 py-0.5 rounded shadow-sm text-xs tracking-widest uppercase">
+                                        BACKTEST MODE
+                                    </span>
+                                )}
                                 <span className="font-mono bg-white/10 dark:bg-black/20 border border-white/20 dark:border-white/10 px-2.5 py-0.5 rounded shadow-sm text-white font-medium tracking-wide text-sm">
                                     {pendingTrade.symbol}
                                 </span>
@@ -2425,30 +2473,32 @@ export const ChartContainer = React.forwardRef<ChartContainerHandle, ChartContai
                         </div>
 
                         {/* Mode Toggles */}
-                        <div className="px-6 pt-5 pb-3 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800">
-                            <div className="flex gap-3 w-full mb-1">
-                                <button
-                                    onClick={() => setDistributionMode('automatic')}
-                                    className={`flex-1 py-2 px-3 rounded-lg border text-xs font-bold flex items-center justify-center gap-2 transition-all ${distributionMode === 'automatic'
-                                        ? (isTestMode ? 'border-amber-500 bg-amber-500/10 text-amber-600 dark:text-amber-500' : 'border-indigo-600 bg-indigo-600/10 text-indigo-600 dark:text-indigo-500')
-                                        : 'border-slate-200 dark:border-slate-800 text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800'
-                                        }`}
-                                >
-                                    <div className={`w-2 h-2 rounded-full ${distributionMode === 'automatic' ? (isTestMode ? 'bg-amber-500' : 'bg-indigo-600 dark:bg-indigo-500') : 'bg-slate-300 dark:bg-slate-700'}`}></div>
-                                    <span>AUTOMATIC DISTRIBUTION</span>
-                                </button>
-                                <button
-                                    onClick={() => setDistributionMode('manual')}
-                                    className={`flex-1 py-2 px-3 rounded-lg border text-xs font-bold flex items-center justify-center gap-2 transition-all ${distributionMode === 'manual'
-                                        ? (isTestMode ? 'border-amber-500 bg-amber-500/10 text-amber-600 dark:text-amber-500' : 'border-indigo-600 bg-indigo-600/10 text-indigo-600 dark:text-indigo-500')
-                                        : 'border-slate-200 dark:border-slate-800 text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800'
-                                        }`}
-                                >
-                                    <div className={`w-2 h-2 rounded-full ${distributionMode === 'manual' ? (isTestMode ? 'bg-amber-500' : 'bg-indigo-600 dark:bg-indigo-500') : 'bg-slate-300 dark:bg-slate-700'}`}></div>
-                                    <span>MANUAL SELECTION</span>
-                                </button>
+                        {!activeSession && (
+                            <div className="px-6 pt-5 pb-3 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800">
+                                <div className="flex gap-3 w-full mb-1">
+                                    <button
+                                        onClick={() => setDistributionMode('automatic')}
+                                        className={`flex-1 py-2 px-3 rounded-lg border text-xs font-bold flex items-center justify-center gap-2 transition-all ${distributionMode === 'automatic'
+                                            ? (isTestMode ? 'border-amber-500 bg-amber-500/10 text-amber-600 dark:text-amber-500' : 'border-indigo-600 bg-indigo-600/10 text-indigo-600 dark:text-indigo-500')
+                                            : 'border-slate-200 dark:border-slate-800 text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800'
+                                            }`}
+                                    >
+                                        <div className={`w-2 h-2 rounded-full ${distributionMode === 'automatic' ? (isTestMode ? 'bg-amber-500' : 'bg-indigo-600 dark:bg-indigo-500') : 'bg-slate-300 dark:bg-slate-700'}`}></div>
+                                        <span>AUTOMATIC DISTRIBUTION</span>
+                                    </button>
+                                    <button
+                                        onClick={() => setDistributionMode('manual')}
+                                        className={`flex-1 py-2 px-3 rounded-lg border text-xs font-bold flex items-center justify-center gap-2 transition-all ${distributionMode === 'manual'
+                                            ? (isTestMode ? 'border-amber-500 bg-amber-500/10 text-amber-600 dark:text-amber-500' : 'border-indigo-600 bg-indigo-600/10 text-indigo-600 dark:text-indigo-500')
+                                            : 'border-slate-200 dark:border-slate-800 text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800'
+                                            }`}
+                                    >
+                                        <div className={`w-2 h-2 rounded-full ${distributionMode === 'manual' ? (isTestMode ? 'bg-amber-500' : 'bg-indigo-600 dark:bg-indigo-500') : 'bg-slate-300 dark:bg-slate-700'}`}></div>
+                                        <span>MANUAL SELECTION</span>
+                                    </button>
+                                </div>
                             </div>
-                        </div>
+                        )}
 
                         <div className="p-0 overflow-hidden">
                             {/* Execution Plan Table */}

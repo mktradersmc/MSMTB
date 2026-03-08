@@ -2455,11 +2455,6 @@ export const ChartContainer = React.forwardRef<ChartContainerHandle, ChartContai
                     <div className="bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl shadow-2xl w-full max-w-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
                         <div className={`px-5 py-3 flex justify-between items-center shadow-md ${activeSession ? 'bg-fuchsia-600 dark:bg-fuchsia-700 text-white' : (isTestMode ? 'bg-amber-600 text-white' : 'bg-indigo-600 text-white')}`}>
                             <h3 className="flex items-baseline gap-2.5">
-                                {activeSession && (
-                                    <span className="font-bold bg-white text-fuchsia-600 px-2 py-0.5 rounded shadow-sm text-xs tracking-widest uppercase">
-                                        BACKTEST MODE
-                                    </span>
-                                )}
                                 <span className="font-mono bg-white/10 dark:bg-black/20 border border-white/20 dark:border-white/10 px-2.5 py-0.5 rounded shadow-sm text-white font-medium tracking-wide text-sm">
                                     {pendingTrade.symbol}
                                 </span>

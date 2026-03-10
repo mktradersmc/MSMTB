@@ -709,17 +709,17 @@ export default function AssetMappingsPage({ onUpdate }: { onUpdate?: () => void 
                                         </div>
                                         <div className="bg-slate-50 dark:bg-slate-950/50 p-3 rounded-lg border border-slate-200 dark:border-slate-800">
                                             <div className="flex items-center justify-between mb-1.5">
-                                                <label className="block text-[10px] font-bold text-indigo-600 dark:text-indigo-400 uppercase">Server Timezone Profile</label>
+                                                <label className="block text-[10px] font-bold text-indigo-600 dark:text-indigo-400 uppercase">Zeitumstellungs-Richtlinie (DST)</label>
                                             </div>
                                             <select
                                                 className="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg px-3 py-2 text-sm font-bold text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
                                                 value={newBrokerTimezone}
                                                 onChange={e => setNewBrokerTimezone(e.target.value)}
                                             >
-                                                <option value="DEFAULT_NY7">DEFAULT_NY7 (US-DST / e.g. FundedNext)</option>
-                                                <option value="DEFAULT_EET">DEFAULT_EET (EU-DST / e.g. RoboForex, FTMO)</option>
+                                                <option value="DEFAULT_NY7">USA (US-DST / z.B. FundedNext)</option>
+                                                <option value="DEFAULT_EET">Europa (EU-DST / z.B. RoboForex, FTMO)</option>
                                             </select>
-                                            <p className="text-[10px] text-slate-500 mt-2 font-medium">Select the Daylight Saving Time profile your broker uses to shift their servers.</p>
+                                            <p className="text-[10px] text-slate-500 mt-2 font-medium">Legt fest, nach welchem Kalender der Broker zwischen Winter- und Sommerzeit wechselt.</p>
                                         </div>
                                     </div>
                                 )}

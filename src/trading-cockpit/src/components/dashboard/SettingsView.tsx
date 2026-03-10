@@ -332,8 +332,8 @@ export function SettingsView() {
                                                     value={newBrokerTimezone}
                                                     onChange={e => setNewBrokerTimezone(e.target.value)}
                                                 >
-                                                    <option value="DEFAULT_NY7">USA (US-DST / z.B. FundedNext)</option>
-                                                    <option value="DEFAULT_EET">Europa (EU-DST / z.B. RoboForex, FTMO)</option>
+                                                    <option value="DEFAULT_NY7">USA</option>
+                                                    <option value="DEFAULT_EET">Europa</option>
                                                 </select>
                                                 <p className="text-[10px] text-slate-500 mt-2 font-medium">Legt fest, nach welchem Kalender der Broker zwischen Winter- und Sommerzeit wechselt.</p>
                                             </div>

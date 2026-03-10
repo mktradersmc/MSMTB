@@ -4,19 +4,8 @@
     [switch]$UpdateMt5Only
 )
 
-# 1. Admin-Rechte prüfen
-$isAdmin = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
-if (-not $isAdmin) {
-    Write-Host "Das Skript benoetigt Administratorrechte (fuer Windows Dienste und Backups). Fordere UAC an..." -ForegroundColor Yellow
-    
-    $ArgsList = @("-NoProfile", "-ExecutionPolicy", "Bypass", "-File", "`"$PSCommandPath`"")
-    if ($TargetDir) { $ArgsList += "-TargetDir"; $ArgsList += "`"$TargetDir`"" }
-    if ($RestartInstances) { $ArgsList += "-RestartInstances"; $ArgsList += "`"$RestartInstances`"" }
-    if ($UpdateMt5Only.IsPresent) { $ArgsList += "-UpdateMt5Only" }
-    
-    Start-Process powershell.exe -ArgumentList $ArgsList -Verb RunAs
-    exit
-}
+# 1. Admin-Rechte prüfen (Entfernt)
+# Das Skript wird nun ohne UAC-Prompt ausgeführt, da die PM2-Umgebung das Update headless starten soll.
 
 # Logger setup
 $LogDir = Join-Path $TargetDir "logs"

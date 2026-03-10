@@ -52,7 +52,8 @@ try {
     Invoke-WebRequest -Uri $AutoLogonUrl -OutFile $AutoLogonPath -UseBasicParsing
     
     Write-Log "  Führe Autologon durch (Verschluesselung in LSA)..." "Gray"
-    $proc = Start-Process -FilePath $AutoLogonPath -ArgumentList "$env:USERNAME $env:USERDOMAIN `"$WindowsPassword`" /accepteula" -Wait -PassThru -WindowStyle Hidden
+    $Domain = if ([string]::IsNullOrWhiteSpace($env:USERDOMAIN)) { "." } else { $env:USERDOMAIN }
+    $proc = Start-Process -FilePath $AutoLogonPath -ArgumentList "`"$env:USERNAME`" `"$Domain`" `"$WindowsPassword`" /accepteula" -Wait -PassThru -WindowStyle Hidden
     
     if ($proc.ExitCode -eq 0 -or $proc.ExitCode -eq 1) {
         Write-Log "  AutoLogon erfolgreich eingerichtet." "Green"

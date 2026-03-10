@@ -14,6 +14,7 @@
 #include <Commands\CClosePosition.mqh>
 #include <Commands\CAckTrade.mqh>
 #include <Commands\CConfirmHistory.mqh>
+#include <Charts\ChartCleanup.mqh>
 
 input string InpBotID = ""; // Optional: Override BotID
 
@@ -25,6 +26,7 @@ CTradingExpert expert;
 //+------------------------------------------------------------------+
 int OnInit()
 {
+   CleanupUnusedCharts();
    // Register Commands
    expert.RegisterCommand("CMD_EXECUTE_TRADE", new CTradeExecute());
    expert.RegisterCommand("CMD_MODIFY_POSITION", new CModifyPosition());

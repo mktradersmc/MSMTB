@@ -8,6 +8,7 @@
 #property version   "1.00"
 
 #include <Expert\DatafeedExpert.mqh>
+#include <Charts\ChartCleanup.mqh>
 
 CDatafeedExpert expert;
 
@@ -16,6 +17,7 @@ CDatafeedExpert expert;
 //+------------------------------------------------------------------+
 int OnInit()
   {
+   CleanupUnusedCharts();
    if(!expert.OnInit()) return(INIT_FAILED);
    return(INIT_SUCCEEDED);
   }

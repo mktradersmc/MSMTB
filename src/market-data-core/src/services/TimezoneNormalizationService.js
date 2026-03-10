@@ -39,6 +39,24 @@ class TimezoneNormalizationService {
         return offsets[0].offset_sec;
     }
 
+    _isNativeUtc(botId) {
+        if (!botId) return false;
+
+        try {
+            // Check broker table
+            const broker = db.marketDb.prepare("SELECT type, timezone FROM brokers WHERE id = ?").get(botId);
+            if (broker && (broker.type === 'NT8' || broker.timezone === 'UTC')) return true;
+
+            // Check accounts table (if botId maps to an account)
+            const cleanBotId = botId.replace('_DATAFEED', '').replace('_TRADING', '');
+            const acc = db.marketDb.prepare("SELECT platform FROM accounts WHERE bot_id = ? OR name = ?").get(botId, cleanBotId);
+            if (acc && acc.platform === 'NT8') return true;
+        } catch (e) {
+            // Ignore DB errors during initialization
+        }
+        return false;
+    }
+
     /**
      * Converts a Broker Time (Seconds timestamp) to True UTC Seconds.
      */
@@ -46,7 +64,7 @@ class TimezoneNormalizationService {
         let validSeconds = Number(brokerSeconds);
         if (validSeconds > 10000000000) validSeconds = Math.floor(validSeconds / 1000);
 
-        if (botId && botId.startsWith('NT8')) return validSeconds;
+        if (this._isNativeUtc(botId)) return validSeconds;
 
         const offsetSec = this._getOffsetForBrokerTime(botId, validSeconds);
         return validSeconds - offsetSec;
@@ -63,7 +81,7 @@ class TimezoneNormalizationService {
         let validSeconds = Number(utcSeconds);
         if (validSeconds > 10000000000) validSeconds = Math.floor(validSeconds / 1000);
 
-        if (botId && botId.startsWith('NT8')) return validSeconds;
+        if (this._isNativeUtc(botId)) return validSeconds;
 
         const offsetSec = this._getOffsetForUtcTime(botId, validSeconds);
         return validSeconds + offsetSec;

@@ -192,7 +192,7 @@ export const EconomicCalendarView: React.FC = () => {
         <div className="h-full flex flex-col p-6 animate-in fade-in zoom-in-95 duration-300 overflow-hidden text-slate-900 dark:text-slate-200">
             {/* API Warning for Next Month */}
             {missingNextMonth && (
-                <div className="mb-4 bg-rose-500/10 border border-rose-500/20 text-rose-500 px-4 py-3 rounded-xl flex items-center gap-3 animate-in slide-in-from-top-4 shrink-0 shadow-lg shadow-rose-500/5">
+                <div className="mb-4 bg-rose-500/10 border border-rose-500/20 text-rose-500 px-4 py-3 rounded-md flex items-center gap-3 animate-in slide-in-from-top-4 shrink-0 shadow-lg shadow-rose-500/5">
                     <AlertCircle size={20} className="shrink-0" />
                     <div>
                         <h4 className="font-semibold text-sm">Action Required: Scraper Needs Attention</h4>
@@ -214,9 +214,9 @@ export const EconomicCalendarView: React.FC = () => {
                 <div className="flex flex-wrap items-center gap-4 justify-end">
 
                     {/* Filters */}
-                    <div className="flex items-center gap-2 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg p-1 shadow-sm relative">
+                    <div className="flex items-center gap-2 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-sm p-1 shadow-sm relative">
                         {/* Quick Filters */}
-                        <div className="flex items-center bg-slate-100 dark:bg-slate-800 rounded-md p-0.5 mr-2">
+                        <div className="flex items-center bg-slate-100 dark:bg-slate-800 rounded p-0.5 mr-2">
                             <button
                                 onClick={() => handleQuickFilter('TODAY')}
                                 className={cn("px-2 py-1 text-xs font-semibold rounded transition-colors flex items-center gap-1", quickFilter === 'TODAY' ? "bg-white dark:bg-slate-700 shadow-sm text-indigo-600 dark:text-indigo-400" : "text-slate-500 hover:text-slate-700 dark:hover:text-slate-300")}
@@ -238,7 +238,7 @@ export const EconomicCalendarView: React.FC = () => {
                         </div>
 
                         {/* Timezone Toggle */}
-                        <div className="flex items-center bg-slate-100 dark:bg-slate-800 rounded-md p-0.5 mr-2">
+                        <div className="flex items-center bg-slate-100 dark:bg-slate-800 rounded p-0.5 mr-2">
                             <button
                                 onClick={() => setTimezone('LOCAL')}
                                 className={cn("px-2 py-1 text-xs font-semibold rounded transition-colors flex items-center gap-1", timezone === 'LOCAL' ? "bg-white dark:bg-slate-700 shadow-sm text-indigo-600 dark:text-indigo-400" : "text-slate-500 hover:text-slate-700 dark:hover:text-slate-300")}
@@ -263,7 +263,7 @@ export const EconomicCalendarView: React.FC = () => {
                         <div className="relative">
                             <button
                                 onClick={() => setShowImpactDropdown(!showImpactDropdown)}
-                                className="px-3 py-1.5 text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-md transition-colors flex items-center gap-2"
+                                className="px-3 py-1.5 text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded transition-colors flex items-center gap-2"
                             >
                                 <Filter size={14} className={selectedImpacts.size < 4 ? "text-indigo-500" : "text-slate-400"} />
                                 Impacts ({selectedImpacts.size})
@@ -272,7 +272,7 @@ export const EconomicCalendarView: React.FC = () => {
                             {showImpactDropdown && (
                                 <>
                                     <div className="fixed inset-0 z-10" onClick={() => setShowImpactDropdown(false)} />
-                                    <div className="absolute right-0 top-full mt-2 w-48 bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-slate-200 dark:border-slate-700 z-20 py-2 animate-in fade-in zoom-in-95">
+                                    <div className="absolute right-0 top-full mt-2 w-48 bg-white dark:bg-slate-800 rounded shadow-xl border border-slate-200 dark:border-slate-700 z-20 py-2 animate-in fade-in zoom-in-95">
                                         {(['High', 'Medium', 'Low', 'Non-Eco']).map((impact) => (
                                             <label key={impact} className="flex items-center gap-3 px-4 py-2 hover:bg-slate-50 dark:hover:bg-slate-700/50 cursor-pointer transition-colors">
                                                 <input
@@ -294,28 +294,28 @@ export const EconomicCalendarView: React.FC = () => {
 
                     <div className="h-6 w-px bg-slate-300 dark:bg-slate-700 mx-1 hidden md:block" />
 
-                    <div className="flex items-center gap-1 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 p-1 rounded-lg shadow-sm">
+                    <div className="flex items-center gap-1 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 p-1 rounded-sm shadow-sm">
                         <button
                             onClick={handlePrevMonth}
-                            className="p-1.5 text-slate-500 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 rounded-md transition-colors"
+                            className="p-1.5 text-slate-500 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 rounded transition-colors"
                         >
                             <ChevronLeft size={16} />
                         </button>
                         <button
                             onClick={handleThisMonth}
-                            className="px-3 py-1 text-sm font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-md transition-colors w-32 text-center"
+                            className="px-3 py-1 text-sm font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded transition-colors w-32 text-center"
                         >
                             {currentMonth.toLocaleDateString('en-US', { month: 'short', year: 'numeric', timeZone: 'UTC' })}
                         </button>
                         <button
                             onClick={handleNextMonth}
-                            className="p-1.5 text-slate-500 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 rounded-md transition-colors"
+                            className="p-1.5 text-slate-500 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 rounded transition-colors"
                         >
                             <ChevronRight size={16} />
                         </button>
                         <button
                             onClick={() => fetchEvents(currentMonth)}
-                            className="ml-1 p-1.5 text-indigo-500 hover:bg-indigo-50 hover:text-indigo-600 dark:hover:bg-indigo-500/20 rounded-md transition-colors"
+                            className="ml-1 p-1.5 text-indigo-500 hover:bg-indigo-50 hover:text-indigo-600 dark:hover:bg-indigo-500/20 rounded transition-colors"
                             title="Refresh"
                         >
                             <RefreshCw size={16} className={cn(loading && "animate-spin")} />
@@ -325,7 +325,7 @@ export const EconomicCalendarView: React.FC = () => {
             </header>
 
             {/* Content List */}
-            <div className="flex-1 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-800 rounded-2xl flex flex-col shadow-xl overflow-hidden min-w-0">
+            <div className="flex-1 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-800 rounded-sm flex flex-col shadow-xl overflow-hidden min-w-0">
                 <div className="p-4 border-b border-slate-200 dark:border-slate-800/80 grid grid-cols-12 gap-4 text-xs font-bold text-slate-500 uppercase tracking-widest shrink-0 bg-slate-50 dark:bg-slate-900/50">
                     <div className="col-span-2 pl-2">Datum</div>
                     <div className="col-span-1">Zeit {timezone === 'UTC' && <span className="text-[10px] bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-400 px-1 rounded ml-1 font-mono">UTC</span>}{timezone === 'NY' && <span className="text-[10px] bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-400 px-1 rounded ml-1 font-mono">NY</span>}</div>

@@ -51,12 +51,12 @@ const BrokerCard = ({ broker, stats, onClick, onEdit, onDelete }: { broker: Brok
     return (
         <div
             onClick={onClick}
-            className={`group relative overflow-hidden bg-white dark:bg-slate-900 border-l-4 rounded-r-lg p-3 cursor-pointer transition-all duration-300 shadow-sm hover:shadow-md flex flex-col justify-between h-auto min-h-[130px] ${borderColorClass}`}
+            className={`group relative overflow-hidden bg-white dark:bg-slate-900 border-l-4 rounded-r-sm p-3 cursor-pointer transition-all duration-300 shadow-sm hover:shadow-md flex flex-col justify-between h-auto min-h-[130px] ${borderColorClass}`}
         >
             {/* Header / Identity (Accounts Style) */}
             <div className="flex justify-between items-start">
                 <div className="flex items-center gap-3">
-                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center shadow-md transition-colors text-white font-bold text-sm shrink-0
+                    <div className={`w-10 h-10 rounded flex items-center justify-center shadow-md transition-colors text-white font-bold text-sm shrink-0
                         ${broker.environment === 'TEST' ? 'bg-amber-500 shadow-amber-500/20' : (isComplete ? 'bg-emerald-500 shadow-emerald-500/20' : 'bg-indigo-500 shadow-indigo-500/20')}
                     `}>
                         {(broker.shorthand || broker.name || '??').substring(0, 2)}
@@ -98,7 +98,7 @@ const BrokerCard = ({ broker, stats, onClick, onEdit, onDelete }: { broker: Brok
                 </div>
 
                 {/* Multi-segment Progress Bar */}
-                <div className="h-1.5 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden flex shadow-inner">
+                <div className="h-1.5 w-full bg-slate-100 dark:bg-slate-800 rounded-sm overflow-hidden flex shadow-inner">
                     {/* Mapped Segment */}
                     <div
                         className="h-full bg-indigo-500 shadow-[0_0_8px_rgba(99,102,241,0.5)] transition-all duration-700 ease-out"
@@ -199,7 +199,7 @@ const DetailView = ({
             <div className="flex items-center gap-4 mb-4">
                 <button
                     onClick={onBack}
-                    className="p-1.5 -ml-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors"
+                    className="p-1.5 -ml-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors"
                     title="Back to Connections"
                 >
                     <ArrowLeft size={18} />
@@ -213,7 +213,7 @@ const DetailView = ({
 
             {/* Simple Table */}
             {/* ... (Rest of table remains same) */}
-            <div className="flex-1 overflow-hidden flex flex-col bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-800 rounded-md relative shadow-sm">
+            <div className="flex-1 overflow-hidden flex flex-col bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-800 rounded-sm relative shadow-sm">
 
                 {/* Table Header & Actions Bar */}
                 <div className="bg-slate-50 flex items-center justify-between dark:bg-slate-950 px-4 py-3 border-b border-slate-300 dark:border-slate-800 shrink-0">
@@ -226,7 +226,7 @@ const DetailView = ({
                         <button
                             onClick={handleAutoDetect}
                             disabled={autoDetecting}
-                            className="flex items-center gap-2 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white shadow-sm rounded-md text-sm font-medium transition-all active:scale-95 disabled:opacity-50"
+                            className="flex items-center gap-2 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white shadow-sm rounded-sm text-sm font-medium transition-all active:scale-95 disabled:opacity-50"
                             title="Auto-fill empty fields based on name match"
                         >
                             <Wand2 size={14} />
@@ -240,7 +240,7 @@ const DetailView = ({
                                 placeholder="Filter symbols..."
                                 value={search}
                                 onChange={(e) => { setSearch(e.target.value); setPage(1); }}
-                                className="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-md pl-9 pr-3 py-1.5 text-sm text-slate-900 dark:text-slate-200 focus:outline-none focus:border-indigo-500 transition-colors"
+                                className="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-sm pl-9 pr-3 py-1.5 text-sm text-slate-900 dark:text-slate-200 focus:outline-none focus:border-indigo-500 transition-colors"
                             />
                         </div>
                     </div>
@@ -278,7 +278,7 @@ const DetailView = ({
 
                                                 <button
                                                     onClick={() => onChange(originalIndex, isIgnored ? '' : IGNORE_SENTINEL)}
-                                                    className={`p-2 rounded-lg border transition-all ${isIgnored
+                                                    className={`p-2 rounded border transition-all ${isIgnored
                                                         ? 'bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-600 text-slate-500 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
                                                         : 'bg-transparent border-transparent text-slate-400 dark:text-slate-600 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/20'
                                                         }`}
@@ -307,7 +307,7 @@ const DetailView = ({
                         <div className="p-4 text-center border-t border-slate-800/50">
                             <button
                                 onClick={() => setPage(p => p + 1)}
-                                className="text-xs text-blue-400 hover:text-blue-300 font-medium px-4 py-2 hover:bg-slate-800/50 rounded-lg transition-colors"
+                                className="text-xs text-blue-400 hover:text-blue-300 font-medium px-4 py-2 hover:bg-slate-800/50 rounded transition-colors"
                             >
                                 Load 50 More...
                             </button>
@@ -533,7 +533,7 @@ export default function AssetMappingsPage({ onUpdate }: { onUpdate?: () => void 
             {/* Header */}
             <div className="h-20 border-b border-slate-300 dark:border-slate-800 flex items-center justify-between px-8 shrink-0">
                 <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-lg bg-indigo-50 dark:bg-indigo-900/20 flex items-center justify-center text-indigo-600 dark:text-indigo-400">
+                    <div className="w-10 h-10 rounded bg-indigo-50 dark:bg-indigo-900/20 flex items-center justify-center text-indigo-600 dark:text-indigo-400">
                         <Settings size={20} />
                     </div>
                     <div>
@@ -548,7 +548,7 @@ export default function AssetMappingsPage({ onUpdate }: { onUpdate?: () => void 
                     {!selectedBroker && (
                         <button
                             onClick={() => { resetBrokerForm(); setIsAddOpen(true); }}
-                            className="flex items-center gap-2 px-4 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-900 dark:text-white text-sm font-bold rounded-lg transition-all active:scale-95 border border-slate-200 dark:border-slate-700"
+                            className="flex items-center gap-2 px-4 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-900 dark:text-white text-sm font-bold rounded transition-all active:scale-95 border border-slate-200 dark:border-slate-700"
                         >
                             <Plus size={16} /> Neue Verbindung
                         </button>
@@ -558,7 +558,7 @@ export default function AssetMappingsPage({ onUpdate }: { onUpdate?: () => void 
                             onClick={handleSave}
                             disabled={saving || !hasChanges}
                             className={cn(
-                                "flex items-center gap-2 px-6 py-2 font-bold rounded-lg shadow-lg transition-all text-sm",
+                                "flex items-center gap-2 px-6 py-2 font-bold rounded shadow-lg transition-all text-sm",
                                 hasChanges
                                     ? "bg-amber-500 hover:bg-amber-400 text-white shadow-amber-500/20 active:scale-95"
                                     : "bg-slate-100 dark:bg-slate-800 text-slate-400 cursor-not-allowed"
@@ -577,7 +577,7 @@ export default function AssetMappingsPage({ onUpdate }: { onUpdate?: () => void 
             )}>
 
                 {statusMsg && (
-                    <div className={`mb-6 p-4 rounded-xl flex items-center gap-3 shadow-md ${statusMsg.type === 'success' ? 'bg-emerald-950/40 text-emerald-400 border border-emerald-500/20' : 'bg-red-950/40 text-red-400 border border-red-500/20'}`}>
+                    <div className={`mb-6 p-4 rounded flex items-center gap-3 shadow-md ${statusMsg.type === 'success' ? 'bg-emerald-950/40 text-emerald-400 border border-emerald-500/20' : 'bg-red-950/40 text-red-400 border border-red-500/20'}`}>
                         {statusMsg.type === 'success' ? <CheckCircle2 size={20} /> : <AlertTriangle size={20} />}
                         <span className="font-medium">{statusMsg.text}</span>
                     </div>
@@ -624,7 +624,7 @@ export default function AssetMappingsPage({ onUpdate }: { onUpdate?: () => void 
             {/* Broker Modal */}
             {isAddOpen && (
                 <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-                    <div className="bg-white dark:bg-slate-900 w-full max-w-lg rounded-xl shadow-2xl border border-slate-200 dark:border-slate-800 flex flex-col max-h-[90vh] overflow-hidden">
+                    <div className="bg-white dark:bg-slate-900 w-full max-w-lg rounded shadow-2xl border border-slate-200 dark:border-slate-800 flex flex-col max-h-[90vh] overflow-hidden">
 
                         {/* Header */}
                         <div className="h-14 bg-indigo-600 text-white flex items-center justify-between px-6 shadow-lg z-10 shrink-0">
@@ -640,11 +640,11 @@ export default function AssetMappingsPage({ onUpdate }: { onUpdate?: () => void 
                         <div className="p-6 overflow-y-auto space-y-6">
 
                             {/* Platform Selector */}
-                            <div className="flex gap-4 p-1 bg-slate-100 dark:bg-slate-800/50 rounded-lg border border-slate-200 dark:border-slate-800/60 w-full">
+                            <div className="flex gap-4 p-1 bg-slate-100 dark:bg-slate-800/50 rounded border border-slate-200 dark:border-slate-800/60 w-full">
                                 <button
                                     onClick={() => setNewBrokerPlatform('MT5')}
                                     className={cn(
-                                        "flex-1 py-2 text-sm font-bold rounded-md transition-all text-center",
+                                        "flex-1 py-2 text-sm font-bold rounded transition-all text-center",
                                         newBrokerPlatform === 'MT5' ? "bg-white dark:bg-slate-700 shadow-sm text-indigo-600 dark:text-indigo-400 border border-slate-200 dark:border-slate-600" : "text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 transparent"
                                     )}
                                 >
@@ -653,7 +653,7 @@ export default function AssetMappingsPage({ onUpdate }: { onUpdate?: () => void 
                                 <button
                                     onClick={() => setNewBrokerPlatform('NT8')}
                                     className={cn(
-                                        "flex-1 py-2 text-sm font-bold rounded-md transition-all text-center",
+                                        "flex-1 py-2 text-sm font-bold rounded transition-all text-center",
                                         newBrokerPlatform === 'NT8' ? "bg-white dark:bg-slate-700 shadow-sm text-indigo-600 dark:text-indigo-400 border border-slate-200 dark:border-slate-600" : "text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 transparent"
                                     )}
                                 >
@@ -662,33 +662,33 @@ export default function AssetMappingsPage({ onUpdate }: { onUpdate?: () => void 
                             </div>
 
                             <div className="space-y-4">
-                                <div className="bg-slate-50 dark:bg-slate-950/50 p-3 rounded-lg border border-slate-200 dark:border-slate-800">
+                                <div className="bg-slate-50 dark:bg-slate-950/50 p-3 rounded border border-slate-200 dark:border-slate-800">
                                     <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1.5">Connection Name</label>
                                     <input
                                         type="text"
                                         placeholder="e.g. FTMO, NinjaTrader"
-                                        className="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg px-3 py-2 text-sm font-bold text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
+                                        className="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded px-3 py-2 text-sm font-bold text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
                                         value={newBrokerName}
                                         onChange={e => setNewBrokerName(e.target.value)}
                                     />
                                 </div>
                                 <div className="grid grid-cols-2 gap-4">
-                                    <div className="bg-slate-50 dark:bg-slate-950/50 p-3 rounded-lg border border-slate-200 dark:border-slate-800">
+                                    <div className="bg-slate-50 dark:bg-slate-950/50 p-3 rounded border border-slate-200 dark:border-slate-800">
                                         <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1.5">Shorthand (ID)</label>
                                         <input
                                             type="text"
                                             placeholder="e.g. FTMO"
-                                            className="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg px-3 py-2 text-sm font-mono font-bold text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none uppercase"
+                                            className="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded px-3 py-2 text-sm font-mono font-bold text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none uppercase"
                                             value={newBrokerShort}
                                             onChange={e => setNewBrokerShort(e.target.value.toUpperCase())}
                                         />
                                     </div>
-                                    <div className="bg-slate-50 dark:bg-slate-950/50 p-3 rounded-lg border border-slate-200 dark:border-slate-800">
+                                    <div className="bg-slate-50 dark:bg-slate-950/50 p-3 rounded border border-slate-200 dark:border-slate-800">
                                         <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1.5">Default Symbol</label>
                                         <input
                                             type="text"
                                             placeholder="e.g. EURUSD"
-                                            className="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg px-3 py-2 text-sm font-mono font-bold text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none uppercase"
+                                            className="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded px-3 py-2 text-sm font-mono font-bold text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none uppercase"
                                             value={newBrokerDefaultSymbol}
                                             onChange={e => setNewBrokerDefaultSymbol(e.target.value.toUpperCase())}
                                         />
@@ -697,22 +697,22 @@ export default function AssetMappingsPage({ onUpdate }: { onUpdate?: () => void 
 
                                 {newBrokerPlatform === 'MT5' && (
                                     <div className="space-y-4 pt-2 border-t border-slate-200 dark:border-slate-800">
-                                        <div className="bg-slate-50 dark:bg-slate-950/50 p-3 rounded-lg border border-slate-200 dark:border-slate-800">
+                                        <div className="bg-slate-50 dark:bg-slate-950/50 p-3 rounded border border-slate-200 dark:border-slate-800">
                                             <label className="block text-[10px] font-bold text-indigo-600 dark:text-indigo-400 uppercase mb-1.5">Servers (Comma separated)</label>
                                             <input
                                                 type="text"
                                                 placeholder="e.g. FTMO-Demo, FTMO-Live"
-                                                className="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg px-3 py-2 text-sm font-medium text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
+                                                className="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded px-3 py-2 text-sm font-medium text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
                                                 value={newBrokerServers}
                                                 onChange={e => setNewBrokerServers(e.target.value)}
                                             />
                                         </div>
-                                        <div className="bg-slate-50 dark:bg-slate-950/50 p-3 rounded-lg border border-slate-200 dark:border-slate-800">
+                                        <div className="bg-slate-50 dark:bg-slate-950/50 p-3 rounded border border-slate-200 dark:border-slate-800">
                                             <div className="flex items-center justify-between mb-1.5">
                                                 <label className="block text-[10px] font-bold text-indigo-600 dark:text-indigo-400 uppercase">Zeitumstellungs-Richtlinie (DST)</label>
                                             </div>
                                             <select
-                                                className="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg px-3 py-2 text-sm font-bold text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
+                                                className="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded px-3 py-2 text-sm font-bold text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
                                                 value={newBrokerTimezone}
                                                 onChange={e => setNewBrokerTimezone(e.target.value)}
                                             >
@@ -727,22 +727,22 @@ export default function AssetMappingsPage({ onUpdate }: { onUpdate?: () => void 
                                 {newBrokerPlatform === 'NT8' && (
                                     <div className="space-y-4 pt-2 border-t border-slate-200 dark:border-slate-800">
                                         <div className="grid grid-cols-2 gap-4">
-                                            <div className="bg-slate-50 dark:bg-slate-950/50 p-3 rounded-lg border border-slate-200 dark:border-slate-800">
+                                            <div className="bg-slate-50 dark:bg-slate-950/50 p-3 rounded border border-slate-200 dark:border-slate-800">
                                                 <label className="block text-[10px] font-bold text-indigo-600 dark:text-indigo-400 uppercase mb-1.5">NT8 Username</label>
                                                 <input
                                                     type="text"
                                                     placeholder="Username"
-                                                    className="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg px-3 py-2 text-sm font-medium text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
+                                                    className="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded px-3 py-2 text-sm font-medium text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
                                                     value={newBrokerUsername}
                                                     onChange={e => setNewBrokerUsername(e.target.value)}
                                                 />
                                             </div>
-                                            <div className="bg-slate-50 dark:bg-slate-950/50 p-3 rounded-lg border border-slate-200 dark:border-slate-800">
+                                            <div className="bg-slate-50 dark:bg-slate-950/50 p-3 rounded border border-slate-200 dark:border-slate-800">
                                                 <label className="block text-[10px] font-bold text-indigo-600 dark:text-indigo-400 uppercase mb-1.5">NT8 Password</label>
                                                 <input
                                                     type="password"
                                                     placeholder="••••••••"
-                                                    className="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg px-3 py-2 text-sm font-medium text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
+                                                    className="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded px-3 py-2 text-sm font-medium text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
                                                     value={newBrokerPassword}
                                                     onChange={e => setNewBrokerPassword(e.target.value)}
                                                 />
@@ -755,13 +755,13 @@ export default function AssetMappingsPage({ onUpdate }: { onUpdate?: () => void 
 
                         {/* Footer */}
                         <div className="p-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 flex justify-end gap-3 shrink-0">
-                            <button onClick={() => setIsAddOpen(false)} className="px-4 py-2 rounded-lg text-sm font-bold text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors">
+                            <button onClick={() => setIsAddOpen(false)} className="px-4 py-2 rounded text-sm font-bold text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors">
                                 Cancel
                             </button>
                             <button
                                 onClick={handleSaveBroker}
                                 disabled={!newBrokerName || !newBrokerShort || brokerSaving}
-                                className="px-6 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-bold shadow-md shadow-indigo-500/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                                className="px-6 py-2 rounded bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-bold shadow-md shadow-indigo-500/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                             >
                                 {brokerSaving ? <RefreshCw size={16} className="animate-spin" /> : <Save size={16} />}
                                 {editingId ? 'Update Connection' : 'Save Connection'}

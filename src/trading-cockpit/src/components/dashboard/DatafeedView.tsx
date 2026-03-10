@@ -333,7 +333,7 @@ export function DatafeedView() {
             {/* Header */}
             <div className="h-20 border-b border-slate-300 dark:border-slate-800 flex items-center justify-between px-8 shrink-0">
                 <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-lg bg-emerald-50 dark:bg-emerald-900/20 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
+                    <div className="w-10 h-10 rounded bg-emerald-50 dark:bg-emerald-900/20 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
                         <Database size={20} />
                     </div>
                     <div>
@@ -348,16 +348,16 @@ export function DatafeedView() {
                     {/* RESTART (Replaces Redeploy) */}
                     <RestartControl scope="DATAFEED" accounts={accounts} onAction={handleAction} />
 
-                    <button onClick={() => socketService.getSocket().emit('refresh_symbols')} className="p-2 text-slate-500 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 dark:text-slate-400 dark:hover:text-white dark:bg-slate-800 dark:hover:bg-slate-700 rounded-lg transition-colors" title="Refresh from Broker">
+                    <button onClick={() => socketService.getSocket().emit('refresh_symbols')} className="p-2 text-slate-500 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 dark:text-slate-400 dark:hover:text-white dark:bg-slate-800 dark:hover:bg-slate-700 rounded transition-colors" title="Refresh from Broker">
                         <RefreshCw size={18} className={loading ? "animate-spin" : ""} />
                     </button>
-                    <button onClick={() => setIsAddOpen(true)} className="flex items-center gap-2 px-4 py-2 bg-emerald-600/10 hover:bg-emerald-600/20 text-emerald-400 font-bold rounded-lg border border-emerald-500/20 transition-all active:scale-95 text-sm">
+                    <button onClick={() => setIsAddOpen(true)} className="flex items-center gap-2 px-4 py-2 bg-emerald-600/10 hover:bg-emerald-600/20 text-emerald-400 font-bold rounded border border-emerald-500/20 transition-all active:scale-95 text-sm">
                         <Plus size={16} /> Add New Datafeed
                     </button>
                     <button
                         onClick={handleSave}
                         disabled={saving}
-                        className={`flex items-center gap-2 px-6 py-2 font-bold rounded-lg shadow-lg transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed text-sm ${hasChanges ? 'bg-amber-600 hover:bg-amber-500 text-white animate-pulse' : 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-emerald-500/20'}`}
+                        className={`flex items-center gap-2 px-6 py-2 font-bold rounded shadow-lg transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed text-sm ${hasChanges ? 'bg-amber-600 hover:bg-amber-500 text-white animate-pulse' : 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-emerald-500/20'}`}
                     >
                         {saving ? <RefreshCw className="animate-spin" size={16} /> : <Save size={16} />}
                         {hasChanges ? 'Save Changes' : 'Saved'}
@@ -398,7 +398,7 @@ export function DatafeedView() {
 
                     {statusMsg && (
                         <div className={cn(
-                            "mb-6 p-4 rounded-lg flex items-center gap-3 text-sm font-medium",
+                            "mb-6 p-4 rounded flex items-center gap-3 text-sm font-medium",
                             statusMsg.type === 'success'
                                 ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20"
                                 : "bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20"
@@ -409,7 +409,7 @@ export function DatafeedView() {
                     )}
 
                     {/* Filter Bar & Table Card */}
-                    <div className="bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-800 rounded-xl overflow-hidden shadow-sm">
+                    <div className="bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-800 rounded-sm overflow-hidden shadow-sm">
                         <div className="p-4 border-b border-slate-300 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/50 flex justify-between items-center gap-4">
                             <div className="relative flex-1 max-w-md">
                                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
@@ -418,12 +418,12 @@ export function DatafeedView() {
                                     placeholder="Filter symbols..."
                                     value={filter}
                                     onChange={e => setFilter(e.target.value)}
-                                    className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg py-2 pl-9 pr-4 text-sm text-slate-900 dark:text-slate-200 focus:outline-none focus:border-emerald-500 transition-colors"
+                                    className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-sm py-2 pl-9 pr-4 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-emerald-500 transition-colors"
                                 />
                             </div>
                             <div className="flex items-center gap-4">
                                 <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">{rows.length} SYMBOLS</span>
-                                <button onClick={addRow} className="flex items-center gap-2 px-3 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-lg shadow-sm transition-all text-xs active:scale-95">
+                                <button onClick={addRow} className="flex items-center gap-2 px-3 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded shadow-sm transition-all text-xs active:scale-95">
                                     <Plus size={14} /> Add Pattern
                                 </button>
                             </div>
@@ -470,10 +470,10 @@ export function DatafeedView() {
                                                     {row.source ? (
                                                         <div
                                                             onClick={() => openSelection(row.id)}
-                                                            className="flex items-center justify-between px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg hover:border-emerald-400 dark:hover:border-emerald-500 cursor-pointer group/source transition-all shadow-sm"
+                                                            className="flex items-center justify-between px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded hover:border-emerald-400 dark:hover:border-emerald-500 cursor-pointer group/source transition-all shadow-sm"
                                                         >
                                                             <div className="flex items-center gap-3">
-                                                                <span className="text-xs font-bold text-white bg-emerald-500 px-2 py-0.5 rounded-md font-mono">{getBrokerName(row.source.botId)}</span>
+                                                                <span className="text-xs font-bold text-white bg-emerald-500 px-2 py-0.5 rounded font-mono">{getBrokerName(row.source.botId)}</span>
                                                                 <span className="text-slate-300">/</span>
                                                                 <span className="text-sm font-bold text-slate-700 dark:text-slate-200 font-mono">{row.source.symbol}</span>
                                                             </div>
@@ -482,7 +482,7 @@ export function DatafeedView() {
                                                     ) : (
                                                         <button
                                                             onClick={() => openSelection(row.id)}
-                                                            className="flex items-center gap-2 px-3 py-2 border border-dashed border-slate-300 dark:border-slate-700 rounded-lg text-slate-400 dark:text-slate-500 hover:text-indigo-600 dark:hover:text-indigo-400 hover:border-indigo-400 dark:hover:border-indigo-500 hover:bg-slate-50 dark:hover:bg-slate-800 transition-all text-xs font-medium"
+                                                            className="flex items-center gap-2 px-3 py-2 border border-dashed border-slate-300 dark:border-slate-700 rounded text-slate-400 dark:text-slate-500 hover:text-indigo-600 dark:hover:text-indigo-400 hover:border-indigo-400 dark:hover:border-indigo-500 hover:bg-slate-50 dark:hover:bg-slate-800 transition-all text-xs font-medium"
                                                         >
                                                             <Link2 size={14} /> Assign Data Source
                                                         </button>
@@ -491,7 +491,7 @@ export function DatafeedView() {
                                                 <td className="p-4 text-right">
                                                     <button
                                                         onClick={() => removeRow(row.id)}
-                                                        className="p-2 text-slate-400 dark:text-slate-600 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/10 rounded-lg transition-colors"
+                                                        className="p-2 text-slate-400 dark:text-slate-600 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/10 rounded transition-colors"
                                                         title="Remove Symbol"
                                                     >
                                                         <Trash2 size={16} />
@@ -597,7 +597,7 @@ const RestartControl = ({ scope, accounts, onAction }: { scope: 'TRADING' | 'DAT
     };
 
     return (
-        <div className={`flex items-stretch text-slate-700 dark:text-white rounded-lg shadow-sm dark:shadow-lg overflow-hidden border border-slate-300 dark:border-slate-700 ${isRestarting ? 'opacity-50 pointer-events-none' : ''}`}>
+        <div className={`flex items-stretch text-slate-700 dark:text-white rounded shadow-sm dark:shadow-lg overflow-hidden border border-slate-300 dark:border-slate-700 ${isRestarting ? 'opacity-50 pointer-events-none' : ''}`}>
             {/* Label - Darker, Non-clickable */}
             <div className="flex items-center gap-2 px-3 py-2 bg-slate-100 dark:bg-slate-800 font-bold text-sm text-slate-600 dark:text-slate-200 border-r border-slate-200 dark:border-slate-900">
                 <RotateCw size={14} className={isRestarting ? 'animate-spin text-amber-500' : 'text-slate-400'} />
@@ -659,7 +659,7 @@ function CompactAccountCard({ acc, status, serverTime, loading, onAction, onConf
     const ntMissingCreds = isNt8 && (!acc.login || !acc.password);
 
     return (
-        <div className={`bg-white dark:bg-slate-900 border-l-4 rounded-r-lg p-3 relative overflow-hidden group transition-colors min-h-[64px] flex items-center justify-between ${statusClass} shadow-sm min-w-[280px]`}>
+        <div className={`bg-white dark:bg-slate-900 border-l-4 rounded-r-sm p-3 relative overflow-hidden group transition-colors min-h-[64px] flex items-center justify-between ${statusClass} shadow-sm min-w-[280px]`}>
 
             {/* Left: Logo + Info */}
             <div className="flex items-center gap-3">

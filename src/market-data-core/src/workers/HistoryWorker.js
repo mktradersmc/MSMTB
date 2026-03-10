@@ -197,7 +197,7 @@ class HistoryWorker extends AbstractWorker {
             return;
         }
 
-        this.log(`[History] 📉 Fetching ${symbol} ${timeframe} (Depth: ${count}). From BrokerTime: ${lastTimeBrokerSec}`);
+        // this.log(`[History] 📉 Fetching ${symbol} ${timeframe} (Depth: ${count}). From BrokerTime: ${lastTimeBrokerSec}`);
 
         // 3. Execute Synchronous RPC
         const cmd = {
@@ -240,7 +240,7 @@ class HistoryWorker extends AbstractWorker {
 
             // LOG RAW BROKER TIMES AROUND DST WEEKEND
             if (brokerSec >= 1772700000 && brokerSec <= 1773100000) {
-                this.log(`[RAW-BROKER-TIME-DEBUG] Raw Broker Sec: ${brokerSec} -> Interpreted Date: ${new Date(brokerSec * 1000).toISOString()}`);
+                // this.log(`[RAW-BROKER-TIME-DEBUG] Raw Broker Sec: ${brokerSec} -> Interpreted Date: ${new Date(brokerSec * 1000).toISOString()}`);
             }
 
             prevBrokerSec = brokerSec;
@@ -291,7 +291,7 @@ class HistoryWorker extends AbstractWorker {
 
                     const logFirst = new Date(minTime).toISOString();
                     const logLast = new Date(maxTime).toISOString();
-                    this.log(`[History] 📊 BATCH SAVED - Symbol: ${symbol} | Timeframe: ${timeframe} | Count: ${cleanCandles.length} | Range: [${logFirst}] to [${logLast}]`);
+                    // this.log(`[History] 📊 BATCH SAVED - Symbol: ${symbol} | Timeframe: ${timeframe} | Count: ${cleanCandles.length} | Range: [${logFirst}] to [${logLast}]`);
 
                     // Notify Orchestrator
                     const totalCountNow = db.getCandleCount(symbol, timeframe);

@@ -1611,7 +1611,7 @@ class SystemOrchestrator {
             const targetFunc = msg.func;
             const requestId = msg.requestId; // Extracted from Worker Envelope
 
-            console.log(`[Sync] 📥 RX SymbolWorker CMD: ${commandType} for ${symbol} -> Bot ${targetBotId} (Func: ${targetFunc}) ReqID: ${requestId || 'Auto'}`);
+            // console.log(`[Sync] 📥 RX SymbolWorker CMD: ${commandType} for ${symbol} -> Bot ${targetBotId} (Func: ${targetFunc}) ReqID: ${requestId || 'Auto'}`);
 
             if (targetBotId && targetFunc) {
                 // STRICT ROUTING KEY CONSTRUCTION
@@ -1641,7 +1641,7 @@ class SystemOrchestrator {
         this.syncState.set(key, { status, message, timestamp: Date.now() });
 
         if (oldStatus?.status !== status) {
-            console.log(`[StatusFlow] 🔄 STATE CHANGE: ${symbol} ${timeframe} | ${oldStatus?.status || 'N/A'} -> ${status} | Msg: ${message || ''} `);
+            // console.log(`[StatusFlow] 🔄 STATE CHANGE: ${symbol} ${timeframe} | ${oldStatus?.status || 'N/A'} -> ${status} | Msg: ${message || ''} `);
         }
 
         this.broadcastStatus(symbol, status, timeframe);
@@ -2511,7 +2511,7 @@ class SystemOrchestrator {
         if (targetSocket && targetSocket.readyState === 1) { // OPEN
             const payload = JSON.stringify(envelope);
             targetSocket.send(payload);
-            console.log(`[SystemOrchestrator] 📤 SENT ${type} to ${routingKey} (SocketID: ${targetSocket.id})`);
+            // console.log(`[SystemOrchestrator] 📤 SENT ${type} to ${routingKey} (SocketID: ${targetSocket.id})`);
             db.logMessage({ ...cmdLog, isActive: 0 }); // Log Success
             return;
         }
@@ -3237,7 +3237,7 @@ class SystemOrchestrator {
         const prev = tfMap.get(timeframe) || {};
 
         if (prev.status !== status || prev.message !== message) {
-            console.log(`[StatusFlow] 🔄 STATE CHANGE: ${symbol} ${timeframe} | ${prev.status || 'N/A'} -> ${status} | Msg: ${message || ''}`);
+            // console.log(`[StatusFlow] 🔄 STATE CHANGE: ${symbol} ${timeframe} | ${prev.status || 'N/A'} -> ${status} | Msg: ${message || ''}`);
             tfMap.set(timeframe, { status, message, timestamp: Date.now() });
 
             if (this.socketServer && this.socketServer.io) {
@@ -3328,9 +3328,9 @@ class SystemOrchestrator {
         const targetFunc = parts.length > 1 ? parts[1] : null;
         const targetSymbol = parts.length > 2 ? parts[2] : routingKey; // fallback
 
-        console.log(`[!!! ALARM-FLOW-TICKSPY 4 !!!] [Orchestrator] splittet '${routingKey}' -> BotId=${botId}, Func=${targetFunc}, Symbol=${targetSymbol}`);
+        // console.log(`[!!! ALARM-FLOW-TICKSPY 4 !!!] [Orchestrator] splittet '${routingKey}' -> BotId=${botId}, Func=${targetFunc}, Symbol=${targetSymbol}`);
 
-        console.log(`[Sync] ➕ User Subscribed to ${targetSymbol} ${timeframe} | Route: ${routingKey}`);
+        // console.log(`[Sync] ➕ User Subscribed to ${targetSymbol} ${timeframe} | Route: ${routingKey}`);
 
         const msg = { type: 'CMD_SUBSCRIBE_TICKS', content: { symbol: targetSymbol, timeframe, routingKey } };
         let workerFound = false;
@@ -3338,7 +3338,7 @@ class SystemOrchestrator {
         // DIRECT ROUTING WITHOUT FUZZY LOGIC
         const worker = this.getWorker(botId, targetFunc, targetSymbol);
         if (worker) {
-            console.log(`[!!! ALARM-FLOW-TICKSPY 5 !!!] [Orchestrator] Worker gefunden! Sende CMD_SUBSCRIBE_TICKS an RoutingKey=${routingKey}`);
+            // console.log(`[!!! ALARM-FLOW-TICKSPY 5 !!!] [Orchestrator] Worker gefunden! Sende CMD_SUBSCRIBE_TICKS an RoutingKey=${routingKey}`);
             worker.postMessage(msg);
             workerFound = true;
         } else {

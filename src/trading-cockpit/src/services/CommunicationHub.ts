@@ -80,7 +80,7 @@ class CommunicationHub {
         if (this.socket?.connected) {
             // Send as separate arguments matching SocketServer handler
             const traceId = `TRC-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
-            console.log(`[!!! ALARM-FLOW-TICKSPY 2 !!!] [CommunicationHub] Frontend Emit | socket.emit('subscribe', '${routingKey}', '${timeframe}')`);
+            // console.log(`[!!! ALARM-FLOW-TICKSPY 2 !!!] [CommunicationHub] Frontend Emit | socket.emit('subscribe', '${routingKey}', '${timeframe}')`);
 
             // Pass TraceID as 3rd arg
             this.socket.emit("subscribe", routingKey, timeframe, traceId);

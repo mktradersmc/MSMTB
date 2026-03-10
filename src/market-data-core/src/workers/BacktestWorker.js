@@ -68,7 +68,7 @@ class BacktestWorker extends AbstractWorker {
                 // --- TICK SPY INTERCEPTION ---
                 case 'CMD_SUBSCRIBE_TICKS':
                     const subPayload = msg.content || msg;
-                    console.log(`[!!! ALARM-FLOW-TICKSPY 6 !!!] [BacktestWorker:${this.botId}:${this.func}:${this.symbol}] hat Subscribe Command für RoutingKey='${subPayload.routingKey}' empfangen!`);
+                    // console.log(`[!!! ALARM-FLOW-TICKSPY 6 !!!] [BacktestWorker:${this.botId}:${this.func}:${this.symbol}] hat Subscribe Command für RoutingKey='${subPayload.routingKey}' empfangen!`);
                     this.subscribe(subPayload.timeframe);
                     break;
 

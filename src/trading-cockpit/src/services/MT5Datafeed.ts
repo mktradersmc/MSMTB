@@ -253,7 +253,7 @@ export class MT5Datafeed implements IDatafeed {
         const botId = backtestId ? 'PAPER_BOT' : (symbolInfo.botId || this.botId);
         const routingKey = botId ? `${botId}:TICK_SPY:${symbol}` : symbol;
 
-        console.log(`[!!! ALARM-FLOW-TICKSPY 1 !!!] [MT5Datafeed] generiert RoutingKey: '${routingKey}' für TF: ${expectedTf}`);
+        // console.log(`[!!! ALARM-FLOW-TICKSPY 1 !!!] [MT5Datafeed] generiert RoutingKey: '${routingKey}' für TF: ${expectedTf}`);
         console.log(`[MT5Datafeed] Subscribe Realtime: ${routingKey} [${subscribeUID} / TF: ${expectedTf}]`);
 
         const periodMs = this.resolutionToMs(resolution);

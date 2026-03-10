@@ -1802,11 +1802,11 @@ class SocketServer {
                 }
 
                 if (traceId) {
-                    console.log(`[Forensic] ${traceId} | 2. Socket RX | ${symbol} ${timeframe}`);
+                    // console.log(`[Forensic] ${traceId} | 2. Socket RX | ${symbol} ${timeframe}`);
                 }
 
                 // DIAGNOSTIC LOG (Task: Fix Over-Subscription)
-                console.log(`[SocketServer] 📥 SUBSCRIBE Request from ${socket.id}: Symbol=${symbol}, TF=${timeframe}, Trace=${traceId || 'N/A'}`);
+                // console.log(`[SocketServer] 📥 SUBSCRIBE Request from ${socket.id}: Symbol=${symbol}, TF=${timeframe}, Trace=${traceId || 'N/A'}`);
 
                 if (!symbol) return;
                 symbol = symbol.trim();

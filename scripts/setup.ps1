@@ -91,7 +91,7 @@ if (Test-Path $RootMetaTraderMaster) {
     Invoke-WebRequest -Uri "https://download.terminal.free/cdn/web/metaquotes.ltd/mt5/mt5setup.exe?utm_source=www.metatrader5.com&utm_campaign=download" -OutFile $Mt5Installer
 
     Write-Log "  Installiere MetaTrader 5 in Master-Verzeichnis ($MasterDist)..." "Yellow"
-    $SetupProc = Start-Process -FilePath $Mt5Installer -ArgumentList "/auto /path:`"$MasterDist`"" -Wait -PassThru
+    $null = Start-Process -FilePath $Mt5Installer -ArgumentList "/auto /path:`"$MasterDist`"" -Wait -PassThru
     
     # Wait additional seconds because MT5 setup sometimes spawns child processes and returns too early
     Start-Sleep -Seconds 5
@@ -109,7 +109,7 @@ if (Test-Path $RootNinjaTraderMaster) {
         Invoke-WebRequest -Uri "http://download.ninjatrader.com/download?lang=de-de" -OutFile $Nt8Installer
 
         Write-Log "  Installiere NinjaTrader 8 (Silent)..." "Yellow"
-        $SetupProc = Start-Process -FilePath "msiexec.exe" -ArgumentList "/i `"$Nt8Installer`" /qn" -Wait -PassThru
+        $null = Start-Process -FilePath "msiexec.exe" -ArgumentList "/i `"$Nt8Installer`" /qn" -Wait -PassThru
     }
     else {
         Write-Log "  NinjaTrader 8 ist bereits installiert. Ueberspringe Download und Installation." "Green"

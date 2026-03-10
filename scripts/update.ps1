@@ -90,7 +90,7 @@ if ($UpdateMt5Only.IsPresent) {
         }
         
         Write-Log "  Installiere MetaTrader 5 ueber Master ($MasterDist)..." "Yellow"
-        $SetupProc = Start-Process -FilePath $Mt5Installer -ArgumentList "/auto /path:`"$MasterDist`"" -Wait -PassThru
+        $null = Start-Process -FilePath $Mt5Installer -ArgumentList "/auto /path:`"$MasterDist`"" -Wait -PassThru
         Start-Sleep -Seconds 5
         
         Write-Log "  Update von Master abgeschlossen. Kopiere neue EXEs in alle Instanzen..." "Cyan"
@@ -356,7 +356,7 @@ try {
     npm install --silent 2>&1 | Out-File -Append -FilePath $LogFile -Encoding utf8
     
     # We capture build errors correctly to trigger self-healing
-    $buildEnv = Get-ChildItem Env: | Out-String
+    $null = Get-ChildItem Env: | Out-String
     $buildStatus = npm run build 2>&1
     $buildStatus | Out-File -Append -FilePath $LogFile -Encoding utf8
     

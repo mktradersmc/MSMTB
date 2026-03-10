@@ -52,7 +52,7 @@ $DriverDir = Join-Path $TargetDir "components\virtual-display"
 if (Test-Path (Join-Path $DriverDir "uninstall.bat")) {
     Push-Location $DriverDir
     Write-Log "  Fuehre uninstall.bat aus dem Treiber-Verzeichnis aus..." "Gray"
-    $UninstallProc = Start-Process -FilePath "cmd.exe" -ArgumentList "/c uninstall.bat" -Wait -PassThru -WindowStyle Hidden
+    $null = Start-Process -FilePath "cmd.exe" -ArgumentList "/c uninstall.bat" -Wait -PassThru -WindowStyle Hidden
     Pop-Location
 }
 

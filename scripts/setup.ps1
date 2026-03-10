@@ -1,7 +1,8 @@
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingPlainTextForPassword', '')]
 param(
     [string]$TargetDir = "C:\awesome-cockpit",
     [string]$SourceDir = "$TargetDir\.github_main",
-    [SecureString]$Password = $null,
+    [string]$Password = "",
     [string]$GithubPat = ""
 )
 

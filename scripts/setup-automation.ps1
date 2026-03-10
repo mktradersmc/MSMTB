@@ -1,6 +1,7 @@
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingPlainTextForPassword', '')]
 param(
     [string]$TargetDir = "C:\awesome-cockpit",
-    [SecureString]$WindowsPassword = $null
+    [string]$WindowsPassword = ""
 )
 
 $isAdmin = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)

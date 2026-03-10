@@ -765,7 +765,7 @@ class DatabaseService {
                     );
                 }
                 this.marketDb.prepare("DELETE FROM active_trades WHERE id = ?").run(id);
-            })();
+            }).immediate();
             return true;
         } catch (e) { return false; }
     }
@@ -1290,7 +1290,7 @@ class DatabaseService {
                         console.log(`[DB] ⚠️ processClosedTrades: Invalid magic number ${magic} derived from payload ID: ${p.id}`);
                     }
                 });
-            })();
+            }).immediate();
         } catch (e) {
             console.error("[DB] processClosedTrades Error:", e);
         }

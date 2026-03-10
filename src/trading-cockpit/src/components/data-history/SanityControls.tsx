@@ -14,6 +14,8 @@ interface SanityControlsProps {
     isChecking: boolean;
 }
 
+import { API_URLS } from '../../lib/client-api';
+
 export function SanityControls({ onRunCheck, isChecking }: SanityControlsProps) {
     // Default to 1 week ago
     const getDefaultDate = () => {
@@ -65,7 +67,7 @@ export function SanityControls({ onRunCheck, isChecking }: SanityControlsProps) 
                     </div>
 
                     <button
-                        onClick={() => window.open((window as any).API_URL ? `${(window as any).API_URL}/api/sanity-check/report` : 'http://localhost:3005/api/sanity-check/report', '_blank')}
+                        onClick={() => window.open(`${API_URLS.BACKEND_API}/sanity-check/report`, '_blank')}
                         className={cn(
                             "inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50",
                             "border border-input bg-transparent shadow-sm hover:bg-accent hover:text-accent-foreground",

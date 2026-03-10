@@ -5,9 +5,10 @@ import { Socket } from 'socket.io-client';
 import { socketService } from '../../services/socket';
 import { HistoryTreeTable, HistoryNode } from './HistoryTreeTable';
 import { SanityControls } from './SanityControls';
+import { API_URLS } from '../../lib/client-api';
 
 // Config
-const API_URL = 'http://localhost:3005'; // Correct backend port
+const API_URL = API_URLS.DIRECT_BASE;
 
 interface SanityUpdate {
     symbol: string;

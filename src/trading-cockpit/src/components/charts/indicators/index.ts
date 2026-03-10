@@ -3,6 +3,8 @@ import { ICTSessionsPlugin, ICTSessionsSchema } from '../plugins/ICTSessionsPlug
 import { ImbalancePlugin, applyImbalanceTransformation } from '../plugins/ImbalancePlugin';
 import { LevelsPlugin, LevelsSchema } from '../plugins/LevelsPlugin';
 import { DivergencePlugin, DivergenceSchema } from '../plugins/DivergencePlugin';
+import { fetchDirect } from '../../../lib/client-api';
+
 
 // Register Default Indicators
 export const registerIndicators = () => {
@@ -35,9 +37,7 @@ export const registerIndicators = () => {
                 to: to.toString(),
                 settings: JSON.stringify(engineSettings)
             });
-            const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
-            const headers: Record<string, string> = token ? { 'Authorization': `Bearer ${token}` } : {};
-            const res = await fetch(`http://localhost:3005/api/indicators/ict-sessions?${params.toString()}`, { headers });
+            const res = await fetchDirect(`/indicators/ict-sessions?${params.toString()}`);
             const data = await res.json();
             return data.sessions || [];
         }
@@ -110,11 +110,8 @@ export const registerIndicators = () => {
                 params.append('backtestId', backtestId);
             }
 
-            const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
-            const headers: Record<string, string> = token ? { 'Authorization': `Bearer ${token}` } : {};
-
             try {
-                const res = await fetch(`http://localhost:3005/api/indicators/divergence?${params.toString()}`, { headers });
+                const res = await fetchDirect(`/indicators/divergence?${params.toString()}`);
                 if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
                 const data = await res.json();
                 return data; // Returns { divergences: [...] }

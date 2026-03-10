@@ -204,15 +204,6 @@ class SocketServer {
             // Return collected statuses from SyncManager
             const botStatuses = { ...systemOrchestrator.botStatus };
 
-            // Inject Timezone Info
-            const tzService = require('./TimezoneNormalizationService');
-            Object.keys(botStatuses).forEach(botId => {
-                botStatuses[botId] = {
-                    ...botStatuses[botId],
-                    timezone: tzService.getBotZone(botId) || 'Unknown'
-                };
-            });
-
             res.json({
                 success: true,
                 serverTime: Date.now(),

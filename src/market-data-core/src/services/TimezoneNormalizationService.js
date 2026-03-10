@@ -1,95 +1,92 @@
-const { DateTime } = require("luxon");
+const db = require('./DatabaseService');
 
 class TimezoneNormalizationService {
     constructor() {
-        this.botTimezones = new Map(); // BotID -> IANA Zone
-        this.defaultZone = "Europe/Athens"; // Default if unknown (EET)
+        this.cache = new Map(); // botId -> Array of { anchor_time, offset_sec }
+    }
+
+    _getOffsets(botId) {
+        if (!this.cache.has(botId)) {
+            const offsets = db.getHistoricalOffsets(botId) || [];
+            this.cache.set(botId, offsets);
+        }
+        return this.cache.get(botId);
     }
 
     /**
-     * Registers a detected signature and maps it to an IANA zone.
-     * @param {string} botId 
-     * @param {string} signature - "EET", "EST", "UTC"
+     * Finds the closest preceding offset for a given broker time.
      */
-    registerBotTimezone(botId, signature) {
-        let ianaZone = this.defaultZone;
-
-        const sig = (signature || "").toUpperCase();
-        if (sig === "EET") ianaZone = "Europe/Athens";
-        else if (sig === "EST") ianaZone = "America/New_York";
-        else if (sig === "UTC") ianaZone = "Etc/UTC";
-        else if (signature && signature.length > 0) {
-            // Allow passing IANA zone directly if robust
-            if (signature.includes("/")) ianaZone = signature;
-            else console.warn(`[Timezone] Unknown signature '${signature}' for ${botId}. Defaulting to ${ianaZone}.`);
+    _getOffsetForBrokerTime(botId, brokerSeconds) {
+        const offsets = this._getOffsets(botId);
+        if (!offsets || offsets.length === 0) throw new Error("CRITICAL: No timezone anchors loaded!");
+        for (let i = offsets.length - 1; i >= 0; i--) {
+            if (brokerSeconds >= offsets[i].anchor_time) {
+                return offsets[i].offset_sec;
+            }
         }
-
-        this.botTimezones.set(botId, ianaZone);
-        console.log(`[Timezone] Registered ${botId} -> Signature: ${signature} => Zone: ${ianaZone}`);
+        return offsets[0].offset_sec; // Failsafe for times before year 2000
     }
 
-    getBotZone(botId) {
-        return this.botTimezones.get(botId) || this.defaultZone;
+    _getOffsetForUtcTime(botId, utcSeconds) {
+        const offsets = this._getOffsets(botId);
+        if (!offsets || offsets.length === 0) throw new Error("CRITICAL: No timezone anchors loaded!");
+        for (let i = offsets.length - 1; i >= 0; i--) {
+            const utcOfAnchor = offsets[i].anchor_time - offsets[i].offset_sec;
+            if (utcSeconds >= utcOfAnchor) {
+                return offsets[i].offset_sec;
+            }
+        }
+        return offsets[0].offset_sec;
     }
 
     /**
      * Converts a Broker Time (Seconds timestamp) to True UTC Seconds.
-     * @param {string} botId 
-     * @param {number} brokerSeconds - Seconds from MQL5 (relative to 1970 Local Server Time)
-     * @returns {number} UTC Seconds
      */
     convertBrokerToUtc(botId, brokerSeconds) {
-        // MQL5 "Time" is seconds since 1970-01-01 00:00 SERVER TIME.
-        // We treat it as UTC Face Value to get the components (yyyy-MM-dd HH:mm:ss)
-        // Then re-parse those components in the Broker's Timezone.
-
         let validSeconds = Number(brokerSeconds);
-        // Safety: If passed MS, revert to Seconds
         if (validSeconds > 10000000000) validSeconds = Math.floor(validSeconds / 1000);
 
-        // 1. Get Face Value (Time components) by treating numeric timestamp as UTC
-        const faceValue = DateTime.fromSeconds(validSeconds, { zone: 'UTC' });
+        if (botId && botId.startsWith('NT8')) return validSeconds;
 
-        // 2. Format to string to lock in "2024-01-01 10:00:00"
-        const timeString = faceValue.toFormat("yyyy-MM-dd HH:mm:ss");
-
-        // 3. Re-parse using the actual Broker Zone.
-        const zone = this.getBotZone(botId);
-        const actualTime = DateTime.fromFormat(timeString, "yyyy-MM-dd HH:mm:ss", { zone: zone });
-
-        // 4. Return True UTC Seconds
-        return actualTime.toUTC().toSeconds();
+        const offsetSec = this._getOffsetForBrokerTime(botId, validSeconds);
+        return validSeconds - offsetSec;
     }
 
     convertBrokerToUtcMs(botId, brokerSeconds) {
-        // Return MS
         return Math.floor(this.convertBrokerToUtc(botId, brokerSeconds) * 1000);
     }
 
     /**
      * Converts a True UTC Timestamp (Seconds) to Broker Time (Seconds).
-     * @param {string} botId 
-     * @param {number} utcSeconds 
-     * @returns {number} Broker Seconds (Relative to 1970-01-01 Server Time)
      */
     convertUtcToBroker(botId, utcSeconds) {
-        // 1. Parse UTC Seconds
-        const utcTime = DateTime.fromSeconds(Number(utcSeconds), { zone: 'UTC' });
+        let validSeconds = Number(utcSeconds);
+        if (validSeconds > 10000000000) validSeconds = Math.floor(validSeconds / 1000);
 
-        // 2. Convert to the Broker's Zone to get local time components
-        const zone = this.getBotZone(botId);
-        const brokerTime = utcTime.setZone(zone);
+        if (botId && botId.startsWith('NT8')) return validSeconds;
 
-        // 3. Get "Face Value" string
-        const faceString = brokerTime.toFormat("yyyy-MM-dd HH:mm:ss");
+        const offsetSec = this._getOffsetForUtcTime(botId, validSeconds);
+        return validSeconds + offsetSec;
+    }
 
-        // 4. Treat as UTC to generate MQL5-compatible timestamp
-        const serverFaceValue = DateTime.fromFormat(faceString, "yyyy-MM-dd HH:mm:ss", { zone: 'UTC' });
+    /**
+     * Registers a new dynamic offset (e.g. from Gap detection or Monday anchor).
+     */
+    registerDynamicOffset(botId, anchorTimeSec, offsetSec) {
+        const offsets = this._getOffsets(botId);
+        const existing = offsets.find(o => o.anchor_time === anchorTimeSec);
+        if (existing && existing.offset_sec === offsetSec) return;
 
-        const result = serverFaceValue.toSeconds();
-        console.log(`[Timezone] convertUtcToBroker(${botId}): UTC=${utcSeconds} (${utcTime.toFormat("HH:mm:ss")}) -> Zone=${zone} -> Broker=${faceString} -> MQL5=${result}`);
+        db.saveTimezoneOffset(botId, anchorTimeSec, offsetSec);
 
-        return result;
+        if (existing) {
+            existing.offset_sec = offsetSec;
+        } else {
+            offsets.push({ anchor_time: anchorTimeSec, offset_sec: offsetSec });
+            offsets.sort((a, b) => a.anchor_time - b.anchor_time);
+        }
+
+        console.log(`[TimezoneAnchor] ⚓ New Anchor for ${botId}: BrokerTime=${anchorTimeSec}, Offset=${offsetSec / 3600}h`);
     }
 }
 

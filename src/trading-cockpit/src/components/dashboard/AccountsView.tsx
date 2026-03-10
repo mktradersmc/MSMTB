@@ -320,8 +320,6 @@ function AccountCard({ acc, statuses, serverTime, loadingAction, onAction, onCon
     const brokerName = getBrokerName(acc.brokerId, brokers);
 
     const displayBalance = status?.account?.balance !== undefined ? status.account.balance : acc.balance;
-    const rawTz = (status?.timezone && status.timezone !== 'Unknown') ? status.timezone : acc.timezone;
-    const displayTz = rawTz ? (rawTz.split('/')[1] || rawTz) : '---';
 
     return (
         <div className={`bg-white dark:bg-slate-900 border-l-4 rounded-r-lg p-3 relative overflow-hidden group transition-colors h-[88px] flex flex-col justify-between ${statusClass} ${isDatafeedSection ? 'border-emerald-500/30' : 'shadow-sm'}`}>
@@ -341,7 +339,7 @@ function AccountCard({ acc, statuses, serverTime, loadingAction, onAction, onCon
                     {acc.isTest ? <span className="text-[9px] font-bold text-amber-500 bg-amber-500/10 px-1 py-px rounded uppercase leading-none">TEST</span> : <span className="text-[9px] font-bold text-emerald-500 bg-emerald-500/10 px-1 py-px rounded uppercase leading-none">LIVE</span>}
                     <div className="flex items-center gap-1 text-[10px] text-slate-400 font-mono">
                         <div className={`w-1.5 h-1.5 rounded-full ${isRunning ? (isBotConnected ? 'bg-emerald-500' : 'bg-orange-500') : 'bg-slate-300'}`}></div>
-                        {displayTz}
+                        UTC
                     </div>
                 </div>
             </div>

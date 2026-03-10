@@ -22,6 +22,7 @@ export function SettingsView() {
     const [newBrokerPlatform, setNewBrokerPlatform] = useState<'MT5' | 'NT8'>('MT5');
     const [newBrokerUsername, setNewBrokerUsername] = useState('');
     const [newBrokerPassword, setNewBrokerPassword] = useState('');
+    const [newBrokerTimezone, setNewBrokerTimezone] = useState('DEFAULT_NY7');
     const [loading, setLoading] = useState(false);
 
     // Edit State
@@ -64,6 +65,7 @@ export function SettingsView() {
             platform: newBrokerPlatform,
             username: newBrokerPlatform === 'NT8' ? newBrokerUsername : undefined,
             password: newBrokerPlatform === 'NT8' ? newBrokerPassword : undefined,
+            timezone: newBrokerTimezone,
             symbolMappings: existingBroker?.symbolMappings || {} // Preserve existing mappings
         };
 
@@ -87,6 +89,7 @@ export function SettingsView() {
         setNewBrokerPlatform('MT5');
         setNewBrokerUsername('');
         setNewBrokerPassword('');
+        setNewBrokerTimezone('DEFAULT_NY7');
     };
 
     const handleEdit = (broker: Broker) => {
@@ -98,6 +101,7 @@ export function SettingsView() {
         setNewBrokerPlatform(broker.platform || 'MT5');
         setNewBrokerUsername(broker.username || '');
         setNewBrokerPassword(broker.password || '');
+        setNewBrokerTimezone(broker.timezone || 'DEFAULT_NY7');
         setIsAddOpen(true);
     };
 
@@ -294,16 +298,29 @@ export function SettingsView() {
                                 </div>
 
                                 {newBrokerPlatform === 'MT5' && (
-                                    <div>
-                                        <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Servers (comma separated)</label>
-                                        <input
-                                            type="text"
-                                            placeholder="e.g. FTMO-Demo, FTMO-Live"
-                                            className="bg-slate-100 dark:bg-slate-700 border-none rounded p-2 text-slate-900 dark:text-white text-sm w-full outline-none focus:ring-1 focus:ring-indigo-500"
-                                            value={newBrokerServers}
-                                            onChange={e => setNewBrokerServers(e.target.value)}
-                                        />
-                                    </div>
+                                    <>
+                                        <div>
+                                            <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Servers (comma separated)</label>
+                                            <input
+                                                type="text"
+                                                placeholder="e.g. FTMO-Demo, FTMO-Live"
+                                                className="bg-slate-100 dark:bg-slate-700 border-none rounded p-2 text-slate-900 dark:text-white text-sm w-full outline-none focus:ring-1 focus:ring-indigo-500"
+                                                value={newBrokerServers}
+                                                onChange={e => setNewBrokerServers(e.target.value)}
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Server Timezone Profile</label>
+                                            <select
+                                                className="bg-slate-100 dark:bg-slate-700 border-none rounded p-2 text-slate-900 dark:text-white text-sm w-full outline-none focus:ring-1 focus:ring-indigo-500"
+                                                value={newBrokerTimezone}
+                                                onChange={e => setNewBrokerTimezone(e.target.value)}
+                                            >
+                                                <option value="DEFAULT_NY7">DEFAULT_NY7 (US-DST / e.g. FundedNext)</option>
+                                                <option value="DEFAULT_EET">DEFAULT_EET (EU-DST / e.g. RoboForex)</option>
+                                            </select>
+                                        </div>
+                                    </>
                                 )}
 
                                 {newBrokerPlatform === 'NT8' && (

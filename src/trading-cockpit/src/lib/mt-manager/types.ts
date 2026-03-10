@@ -9,6 +9,7 @@ export interface Broker {
     platform?: 'MT5' | 'NT8'; // MT5 vs NT8 connection types
     username?: string; // Credentials (especially for NT8)
     password?: string;
+    timezone?: string; // e.g. "DEFAULT_NY7" or "DEFAULT_EET"
 }
 
 export interface TradingAccount {

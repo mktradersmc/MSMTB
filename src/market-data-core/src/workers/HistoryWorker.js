@@ -183,7 +183,13 @@ class HistoryWorker extends AbstractWorker {
         }
 
         // Timezone Conversion: UTC (ms) -> Broker Time (Seconds API)
-        const lastTimeBrokerSec = tzService.convertUtcToBroker(this.botId || 'default', Math.floor(oldestTimestampMs / 1000));
+        const isHighTimeframe = timeframe.startsWith('D') || timeframe.startsWith('W') || timeframe.startsWith('MN');
+        let lastTimeBrokerSec;
+        if (isHighTimeframe) {
+            lastTimeBrokerSec = Math.floor(oldestTimestampMs / 1000);
+        } else {
+            lastTimeBrokerSec = tzService.convertUtcToBroker(this.botId || 'default', Math.floor(oldestTimestampMs / 1000));
+        }
         const limitBoundaryMs = this.getLimitBoundaryMs(timeframe);
         if (limitBoundaryMs > 0 && oldestTimestampMs < limitBoundaryMs) {
             this.log(`[History] 🛑 Boundary Reached for ${symbol} ${timeframe}. Flagging max_history.`);
@@ -214,22 +220,39 @@ class HistoryWorker extends AbstractWorker {
             return;
         }
 
-        // --- PIPELINE: SANITIZE & NORMALIZE ---
+        // Ensure chronological order for reliable gap detection
+        data.sort((a, b) => {
+            const ta = a.t || a.time;
+            const tb = b.t || b.time;
+            return ta - tb;
+        });
+
         const cleanCandles = [];
         let minTime = Infinity;
         let maxTime = -Infinity;
+        let prevBrokerSec = null;
 
         for (const raw of data) {
-            let t = raw.t || raw.time;
+            let brokerSec = raw.t || raw.time;
+            if (brokerSec > 10000000000) brokerSec = Math.floor(brokerSec / 1000);
 
-            // Normalize to UTC MS
-            let timeMs = t;
-            if (timeMs < 10000000000) {
-                const timeSec = tzService.convertBrokerToUtc(this.botId || 'default', timeMs);
-                timeMs = timeSec * 1000;
+            if (brokerSec < 946684800) continue; // Skip pre-2000
+
+            // LOG RAW BROKER TIMES AROUND DST WEEKEND
+            if (brokerSec >= 1772700000 && brokerSec <= 1773100000) {
+                this.log(`[RAW-BROKER-TIME-DEBUG] Raw Broker Sec: ${brokerSec} -> Interpreted Date: ${new Date(brokerSec * 1000).toISOString()}`);
             }
 
-            if (timeMs < this.MIN_TIMESTAMP) continue; // Skip 1970 
+            prevBrokerSec = brokerSec;
+
+            // Normalize to UTC MS using the highly precise Anchor Service
+            const isHighTimeframe = timeframe.startsWith('D') || timeframe.startsWith('W') || timeframe.startsWith('MN');
+            let timeMs;
+            if (isHighTimeframe) {
+                timeMs = brokerSec * 1000;
+            } else {
+                timeMs = tzService.convertBrokerToUtcMs(this.botId || 'default', brokerSec);
+            }
 
             cleanCandles.push({
                 time: timeMs,

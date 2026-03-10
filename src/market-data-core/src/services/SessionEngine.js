@@ -65,12 +65,6 @@ class SessionEngine {
             const dt = getZoned(ts);
             const timeVal = dt.hour * 100 + dt.minute;
 
-            // DEBUG LOGGING (First 5 candles only)
-            // DEBUG LOGGING (First 5 candles only)
-            // if (sortedCandles.indexOf(candle) < 5) {
-            //     console.log(`[SessionEngine] Debug: Time=${candle.time} (Adj=${ts}) -> NY=${dt.toFormat('HH:mm')} (${timeVal})`);
-            // }
-
             // Check for New Session Starts or Active Updates
             for (const cfg of sessionConfigs) {
                 if (!cfg.enabled) continue;

@@ -144,10 +144,19 @@ class SymbolWorker extends AbstractWorker {
 
         const { time, open, high, low, close, volume } = candle;
 
-        let timeMS = time;
-        if (timeMS < 10000000000) {
-            const timeSec = tzService.convertBrokerToUtc(this.botId || 'default', timeMS);
-            timeMS = timeSec * 1000;
+        let brokerSec = time;
+        if (brokerSec > 10000000000) brokerSec = Math.floor(brokerSec / 1000);
+
+
+
+        const isHighTimeframe = timeframe.startsWith('D') || timeframe.startsWith('W') || timeframe.startsWith('MN');
+        let timeMS;
+        if (isHighTimeframe) {
+            // For D1/W1/MN, DO NOT convert to UTC. Keep the Broker's 00:00:00 as UTC 00:00:00
+            // This ensures Lightweight Charts aligns the candle with the correct calendar day
+            timeMS = brokerSec * 1000;
+        } else {
+            timeMS = tzService.convertBrokerToUtcMs(this.botId || 'default', brokerSec);
         }
 
         const dbCandle = {
@@ -247,6 +256,8 @@ class SymbolWorker extends AbstractWorker {
 
         this.log(`[Sync] 📥 Ingesting ${content.length} bars for ${timeframe}. First Bar Sample: ${JSON.stringify(content[0])}`);
 
+        const isHighTimeframe = timeframe.startsWith('D') || timeframe.startsWith('W') || timeframe.startsWith('MN');
+
         // 1. Save to DB
         let maxTime = 0;
         const dbCandles = content.map(c => {
@@ -258,10 +269,13 @@ class SymbolWorker extends AbstractWorker {
             // TickSpy usually sends SECONDS.
 
             if (timeMS < 10000000000) {
-                // It is seconds. Convert using Timezone Service.
-                // We need the botId. existing logic uses this.botId.
-                const timeSec = tzService.convertBrokerToUtc(this.botId || 'default', timeMS);
-                timeMS = timeSec * 1000;
+                if (isHighTimeframe) {
+                    // For HTF, treat Broker 00:00 as UTC 00:00 to avoid duplicates
+                    timeMS = timeMS * 1000;
+                } else {
+                    const timeSec = tzService.convertBrokerToUtc(this.botId || 'default', timeMS);
+                    timeMS = timeSec * 1000;
+                }
             }
 
             if (timeMS > maxTime) maxTime = timeMS;
@@ -541,6 +555,8 @@ class SymbolWorker extends AbstractWorker {
                 // Ingest Data (Merged Logic from handleHistorySnapshot)
                 this.log(`[Sync] 📥 Ingesting ${data.length} bars from RPC for ${timeframe}.`);
 
+                const isHighTimeframe = timeframe.startsWith('D') || timeframe.startsWith('W') || timeframe.startsWith('MN');
+
                 let maxTime = 0;
                 const dbCandles = data.map(c => {
                     let timeMS = c.time;
@@ -548,9 +564,13 @@ class SymbolWorker extends AbstractWorker {
                     // We removed the broker->UTC conversion here since it corrupted NT8 timestamps.
 
                     if (timeMS < 10000000000) {
-                        // Fallback ONLY for actual seconds (e.g. from an MT5 origin)
-                        const timeSec = tzService.convertBrokerToUtc(this.botId || 'default', timeMS);
-                        timeMS = timeSec * 1000;
+                        if (isHighTimeframe) {
+                            timeMS = timeMS * 1000;
+                        } else {
+                            // Fallback ONLY for actual seconds (e.g. from an MT5 origin)
+                            const timeSec = tzService.convertBrokerToUtc(this.botId || 'default', timeMS);
+                            timeMS = timeSec * 1000;
+                        }
                     }
 
                     if (timeMS > maxTime) maxTime = timeMS;

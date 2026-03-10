@@ -1,9 +1,20 @@
-const db = require('better-sqlite3')('c:/Users/Michael/IdeaProjects/MSMTB/src/market-data-core/market_data.db');
+const Database = require('better-sqlite3');
+const path = require('path');
 
-console.log("=== RECENT ACTIVE TRADES ===");
-const active = db.prepare("SELECT id, status, entry_price FROM active_trades ORDER BY updated_at DESC LIMIT 5").all();
-console.table(active);
+const dbPath = path.resolve(__dirname, '../../market_data.db');
+console.log(`Open DB: ${dbPath}`);
+const db = new Database(dbPath, { readonly: false });
 
-console.log("=== RECENT BROKER EXECUTIONS ===");
-const execs = db.prepare("SELECT id, master_trade_id, bot_id, status, magic_number, realized_pl, unrealized_pl FROM broker_executions ORDER BY updated_at DESC LIMIT 5").all();
-console.table(execs);
+const anchors = db.prepare("SELECT * FROM broker_time_anchors ORDER BY anchor_time DESC").all();
+console.log(`Total anchors: ${anchors.length}`);
+console.log("Top 10 most recent:");
+console.table(anchors.slice(0, 10));
+
+console.log("Oldest 10:");
+console.table(anchors.slice(-10));
+
+console.log("Clearing all anchors to recover...");
+const res = db.prepare("DELETE FROM broker_time_anchors").run();
+console.log(`Deleted ${res.changes} anchors.`);
+
+db.close();

@@ -1,0 +1,64 @@
+﻿[2026-03-10 12:43:35] [UPDATE] =========================================
+[2026-03-10 12:43:36] [UPDATE]    STARTE AUTO-UPDATE PROZESS            
+[2026-03-10 12:43:36] [UPDATE] =========================================
+[2026-03-10 12:43:39] [UPDATE] Temporäres Repository Verzeichnis nicht gefunden. Klone initial...
+[2026-03-10 12:43:39] [UPDATE] HINWEIS: Kein Github PAT in system.json gefunden. Versuche anonymen Klon...
+git : Cloning into 'C:\Users\Michael\IdeaProjects\MSMTB\.github_main'...
+In C:\Users\Michael\IdeaProjects\MSMTB\scripts\update.ps1:167 Zeichen:5
++     git clone -b main $AuthRepoUrl $GitTarget 2>&1 | Out-File -Append ...
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (Cloning into 'C...github_main'...:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+fatal: fetch-pack: invalid index-pack output
+[2026-03-10 12:45:50] [UPDATE] =========================================
+[2026-03-10 12:45:50] [UPDATE]    STARTE AUTO-UPDATE PROZESS            
+[2026-03-10 12:45:50] [UPDATE] =========================================
+[2026-03-10 12:45:50] [UPDATE] 
+[1/6] Erstelle Sicherheitskopien (Self-Healing)...
+[2026-03-10 12:45:50] [UPDATE]   -> Core-Komponenten erfolgreich nach .backup gesichert.
+[2026-03-10 12:45:50] [UPDATE] 
+[2/6] Lade Updates aus GitHub herunter...
+[2026-03-10 12:52:52] [UPDATE] =========================================
+[2026-03-10 12:52:52] [UPDATE]    STARTE AUTO-UPDATE PROZESS            
+[2026-03-10 12:52:52] [UPDATE] =========================================
+[2026-03-10 12:52:52] [UPDATE] 
+[1/6] Erstelle Sicherheitskopien (Self-Healing)...
+[2026-03-10 12:52:52] [UPDATE]   -> Core-Komponenten erfolgreich nach .backup gesichert.
+[2026-03-10 12:52:52] [UPDATE] 
+[2/6] Lade Updates aus GitHub herunter...
+git : error: unable to unlink old 'src/market-data-core/market_data.db': Invalid argument
+In C:\Users\Michael\IdeaProjects\MSMTB\scripts\update.ps1:196 Zeichen:1
++ git reset --hard origin/main 2>&1 | Out-File -Append -FilePath $LogFi ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (error: unable t...nvalid argument:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+error: unable to unlink old 'src/market-data-core/market_data.db-shm': Invalid argument
+error: unable to unlink old 'src/market-data-core/market_data.db-wal': Invalid argument
+error: unable to unlink old 'src/market-data-core/trades.db': Invalid argument
+error: unable to unlink old 'src/market-data-core/trades.db-shm': Invalid argument
+error: unable to unlink old 'src/market-data-core/trades.db-wal': Invalid argument
+fatal: Could not reset index file to revision 'origin/main'.
+[2026-03-10 12:52:54] [UPDATE] FEHLER beim Git Pull. Breche Update ab.
+[2026-03-10 12:58:51] [UPDATE] =========================================
+[2026-03-10 12:58:51] [UPDATE]    STARTE HEADLESS MT5 UPDATE PROZESS    
+[2026-03-10 12:58:51] [UPDATE] =========================================
+[2026-03-10 12:58:51] [UPDATE]   Lade aktuelles MetaTrader 5 Setup herunter...
+[2026-03-10 12:59:32] [UPDATE]   Installiere MetaTrader 5 ueber Master (C:\Users\Michael\IdeaProjects\MSMTB\components\metatrader\master)...
+[2026-03-10 12:59:58] [UPDATE]   Update von Master abgeschlossen. Kopiere neue EXEs in alle Instanzen...
+[2026-03-10 12:59:58] [UPDATE]   -> Verarbeite Instanz: MT_AGC_2452250
+[2026-03-10 12:59:58] [UPDATE]   -> Verarbeite Instanz: MT_AGC_2496071
+[2026-03-10 12:59:58] [UPDATE]   -> Verarbeite Instanz: MT_AGC_2580321
+[2026-03-10 12:59:58] [UPDATE]   -> Verarbeite Instanz: MT_BlueGuardian_369760
+[2026-03-10 12:59:59] [UPDATE]   -> Verarbeite Instanz: MT_FN_13848884
+[2026-03-10 13:00:00] [UPDATE]   -> Verarbeite Instanz: MT_FN_13885827
+[2026-03-10 13:00:00] [UPDATE]   -> Verarbeite Instanz: MT_FN_33438963
+[2026-03-10 13:00:01] [UPDATE]   -> Verarbeite Instanz: MT_FTMO_1512564534
+[2026-03-10 13:00:01] [UPDATE]   -> Verarbeite Instanz: MT_PS_62104204
+[2026-03-10 13:00:01] [UPDATE]   -> Verarbeite Instanz: MT_PS_62104204_DATAFEED
+[2026-03-10 13:00:02] [UPDATE]   -> Verarbeite Instanz: MT_RoboForex_67177422
+[2026-03-10 13:00:06] [UPDATE]   -> Verarbeite Instanz: MT_RoboForex_67177422_DATAFEED
+[2026-03-10 13:00:06] [UPDATE]   -> Verarbeite Instanz: MT_SLF_9116720
+[2026-03-10 13:00:10] [UPDATE]   -> Verarbeite Instanz: MT_SLF_9120033
+[2026-03-10 13:00:10] [UPDATE]   MT5 Update erfolgreich durchgefuehrt.

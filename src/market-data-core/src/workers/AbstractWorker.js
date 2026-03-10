@@ -25,10 +25,7 @@ class AbstractWorker {
             throw new Error(`[AbstractWorker] Missing Critical Identity Params: ${this.botId}:${this.botFunc}`);
         }
 
-        // Initialize Timezone for this specific thread
-        if (workerData.timezone) {
-            tzService.registerBotTimezone(this.botId, workerData.timezone);
-        }
+        // Initialize Timezone (Now uses Dynamic DB Anchors)
 
         // State
         this.isConnected = true; // Spawned = Connected
@@ -59,10 +56,7 @@ class AbstractWorker {
                     this.isConnected = true;
                     if (msg.botId) this.botId = msg.botId;
 
-                    // Update Timezone if provided
-                    if (msg.timezone) {
-                        tzService.registerBotTimezone(this.botId, msg.timezone);
-                    }
+                    // Timezone update removed: now handled by dynamic DatabaseService Anchors
 
                     this._log(`[State] 🟢 Bot Connected (Re-attach): ${this.botId}`);
                     this.onBotConnected(msg); // Triggers Gap Check in Subclasses

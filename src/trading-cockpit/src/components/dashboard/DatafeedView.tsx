@@ -646,9 +646,7 @@ function CompactAccountCard({ acc, status, serverTime, loading, onAction, onConf
     // UI correctly shows RUNNING if the actual backend worker is sending heartbeats, overriding a stale DB STOPPED state.
     const isRunning = acc.status === 'RUNNING' || isAlive;
     const accOk = status ? !!status.account?.connected : (acc.brokerConnectionStatus === 'CONNECTED');
-    // Extract Timezone short code (e.g. "New_York")
-    const rawTz = acc.timezone;
-    const tz = rawTz ? (rawTz.split('/')[1] || rawTz) : '---';
+    const tz = 'UTC';
 
     // 3-State Logic for Border
     const isBotConnected = acc.platform === 'NT8'

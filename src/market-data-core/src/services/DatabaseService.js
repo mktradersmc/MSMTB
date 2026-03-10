@@ -114,12 +114,13 @@ class DatabaseService {
         this.marketDb.exec(`
             CREATE TABLE IF NOT EXISTS brokers (
                 id TEXT PRIMARY KEY, name TEXT, shorthand TEXT, servers TEXT, symbol_mappings TEXT,
-                default_symbol TEXT, type TEXT, api TEXT, environment TEXT, username TEXT, password TEXT
+                default_symbol TEXT, type TEXT, api TEXT, environment TEXT, username TEXT, password TEXT,
+                timezone TEXT DEFAULT 'DEFAULT_NY7'
             );
             CREATE TABLE IF NOT EXISTS accounts (
                 id TEXT PRIMARY KEY, bot_id TEXT, broker_id TEXT, login TEXT, password TEXT, server TEXT,
                 account_type TEXT, is_test INTEGER,
-                is_datafeed INTEGER, platform TEXT, timezone TEXT, balance REAL, account_size REAL, created_at INTEGER
+                is_datafeed INTEGER, platform TEXT, balance REAL, account_size REAL, created_at INTEGER
             );
             CREATE TABLE IF NOT EXISTS distribution_configs (
                 broker_id TEXT, loop_size INTEGER, matrix TEXT, environment TEXT,
@@ -142,6 +143,10 @@ class DatabaseService {
             CREATE TABLE IF NOT EXISTS global_settings (
                 key_name TEXT PRIMARY KEY, key_value TEXT, updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
             );
+            CREATE TABLE IF NOT EXISTS broker_time_anchors (
+                broker_id TEXT, anchor_time INTEGER, offset_sec INTEGER, 
+                PRIMARY KEY (broker_id, anchor_time)
+            );
         `);
 
         // Migrations for brokers (NinjaTrader credentials)
@@ -150,6 +155,12 @@ class DatabaseService {
 
         // Perform Data Migration from JSON if tables are empty
         this.migrateJsonToDb();
+
+        // Migrations for brokers (Timezone Profile)
+        try { this.marketDb.exec("ALTER TABLE brokers ADD COLUMN timezone TEXT DEFAULT 'DEFAULT_NY7'"); } catch (e) { }
+
+        // Bootstrapping static timezone anchors
+        this._initTimezoneAnchors();
 
         // Indices
         this.marketDb.prepare("CREATE INDEX IF NOT EXISTS idx_sessions_lookup ON session_records (symbol, start_time, config_hash)").run();
@@ -164,6 +175,108 @@ class DatabaseService {
              );
         `);
         this.tradesDb.prepare("CREATE INDEX IF NOT EXISTS idx_messages_polling ON messages (isActive, sender, botId)").run();
+    }
+
+    _initTimezoneAnchors() {
+        try {
+            const countRows = this.marketDb.prepare("SELECT broker_id, count(*) as c FROM broker_time_anchors WHERE broker_id IN ('DEFAULT_EET', 'DEFAULT_NY7') GROUP BY broker_id").all();
+            if (countRows.length === 2 && countRows.every(r => r.c > 0)) {
+                return; // Already initialized correctly
+            }
+
+            console.log("[DB] ⚙️ Bootstrapping 'DEFAULT_EET' and 'DEFAULT_NY7' timezone anchors via luxon...");
+            const { DateTime } = require('luxon');
+
+            const allTransitions = [];
+
+            // Function to generate anchors using a specific IANA zone
+            function generateAnchorsForZone(brokerId, zoneString) {
+                // Base Offset: Winter offset for the year 2000 (roughly)
+                const baseDt = DateTime.local(2000, 1, 15, 12, 0, 0, { zone: zoneString });
+
+                let baseOffsetSec = baseDt.offset * 60;
+                if (brokerId === 'DEFAULT_NY7') baseOffsetSec += (7 * 3600); // Shift UTC-5 to Server Time (UTC+2)
+
+                allTransitions.push({ broker_id: brokerId, anchor_time: 0, offset_sec: baseOffsetSec });
+
+                for (let year = 2000; year <= 2035; year++) {
+                    // Spring Forward (Month 2 to 4)
+                    for (let month = 2; month <= 4; month++) {
+                        for (let day = 1; day <= 31; day++) {
+                            try {
+                                const dt = DateTime.local(year, month, day, 12, 0, 0, { zone: zoneString });
+                                if (!dt.isValid) continue;
+                                const dtPrev = dt.minus({ days: 1 });
+                                if (dt.offset !== dtPrev.offset) {
+                                    let hourDt = dtPrev;
+                                    while (hourDt.offset === dtPrev.offset) {
+                                        let nextHour = hourDt.plus({ hours: 1 });
+                                        if (nextHour.offset !== dtPrev.offset) {
+                                            let offsetToSave = nextHour.offset * 60;
+                                            if (brokerId === 'DEFAULT_NY7') offsetToSave += (7 * 3600);
+
+                                            allTransitions.push({
+                                                broker_id: brokerId,
+                                                anchor_time: Math.floor(nextHour.toMillis() / 1000),
+                                                offset_sec: offsetToSave
+                                            });
+                                            break;
+                                        }
+                                        hourDt = nextHour;
+                                    }
+                                }
+                            } catch (e) { }
+                        }
+                    }
+
+                    // Fall Backward (Month 9 to 11)
+                    for (let month = 9; month <= 11; month++) {
+                        for (let day = 1; day <= 31; day++) {
+                            try {
+                                const dt = DateTime.local(year, month, day, 12, 0, 0, { zone: zoneString });
+                                if (!dt.isValid) continue;
+                                const dtPrev = dt.minus({ days: 1 });
+                                if (dt.offset !== dtPrev.offset) {
+                                    let hourDt = dtPrev;
+                                    while (hourDt.offset === dtPrev.offset) {
+                                        let nextHour = hourDt.plus({ hours: 1 });
+                                        if (nextHour.offset !== dtPrev.offset) {
+                                            let offsetToSave = nextHour.offset * 60;
+                                            if (brokerId === 'DEFAULT_NY7') offsetToSave += (7 * 3600);
+
+                                            allTransitions.push({
+                                                broker_id: brokerId,
+                                                anchor_time: Math.floor(nextHour.toMillis() / 1000),
+                                                offset_sec: offsetToSave
+                                            });
+                                            break;
+                                        }
+                                        hourDt = nextHour;
+                                    }
+                                }
+                            } catch (e) { }
+                        }
+                    }
+                }
+            }
+
+            generateAnchorsForZone('DEFAULT_NY7', 'America/New_York');
+            generateAnchorsForZone('DEFAULT_EET', 'Europe/Athens');
+
+            const insert = this.marketDb.prepare("INSERT OR REPLACE INTO broker_time_anchors (broker_id, anchor_time, offset_sec) VALUES (@broker_id, @anchor_time, @offset_sec)");
+
+            this.marketDb.transaction(() => {
+                for (const t of allTransitions) {
+                    insert.run(t);
+                }
+            })();
+
+            const finalCount = this.marketDb.prepare("SELECT count(*) as c FROM broker_time_anchors").get().c;
+            console.log(`[DB] ✅ Successfully bootstrapped ${finalCount} strict luxon anchor entries.`);
+
+        } catch (error) {
+            console.error("[DB] ❌ Failed to bootstrap timezone anchors:", error);
+        }
     }
 
     purgeLegacyTables() {
@@ -209,15 +322,15 @@ class DatabaseService {
                 console.log("[DB] Migrating Accounts from JSON...");
                 const accounts = this._loadJson(ACCOUNTS_FILE);
                 const insert = this.marketDb.prepare(`
-                    INSERT INTO accounts (id, bot_id, broker_id, login, password, server, account_type, is_test, is_datafeed, platform, timezone, balance, account_size, created_at)
-                    VALUES (@id, @botId, @brokerId, @login, @password, @server, @accountType, @isTest, @isDatafeed, @platform, @timezone, @balance, @accountSize, @createdAt)
+                    INSERT INTO accounts (id, bot_id, broker_id, login, password, server, account_type, is_test, is_datafeed, platform, balance, account_size, created_at)
+                    VALUES (@id, @botId, @brokerId, @login, @password, @server, @accountType, @isTest, @isDatafeed, @platform, @balance, @accountSize, @createdAt)
                 `);
                 const insertMany = this.marketDb.transaction((list) => {
                     for (const a of list) insert.run({
                         id: a.id, botId: a.botId, brokerId: a.brokerId, login: a.login, password: a.password,
                         server: a.server, accountType: a.accountType, isTest: a.isTest ? 1 : 0,
                         isDatafeed: a.isDatafeed ? 1 : 0, platform: a.platform,
-                        timezone: a.timezone, balance: a.balance || 0, accountSize: a.accountSize || null,
+                        balance: a.balance || 0, accountSize: a.accountSize || null,
                         createdAt: a.createdAt || Date.now()
                     });
                 });
@@ -430,7 +543,8 @@ class DatabaseService {
                 defaultSymbol: r.default_symbol,
                 platform: r.type, // Map DB 'type' to API 'platform'
                 username: r.username,
-                password: r.password
+                password: r.password,
+                timezone: r.timezone || 'DEFAULT_NY7'
             };
         });
     }
@@ -442,8 +556,8 @@ class DatabaseService {
         }
 
         const stmt = this.marketDb.prepare(`
-            INSERT OR REPLACE INTO brokers (id, name, shorthand, servers, symbol_mappings, default_symbol, type, api, environment, username, password)
-            VALUES (@id, @name, @shorthand, @servers, @symbolMappings, @defaultSymbol, @type, @api, @environment, @username, @password)
+            INSERT OR REPLACE INTO brokers (id, name, shorthand, servers, symbol_mappings, default_symbol, type, api, environment, username, password, timezone)
+            VALUES (@id, @name, @shorthand, @servers, @symbolMappings, @defaultSymbol, @type, @api, @environment, @username, @password, @timezone)
         `);
         stmt.run({
             id: b.id, name: b.name, shorthand: b.shorthand,
@@ -451,7 +565,8 @@ class DatabaseService {
             symbolMappings: JSON.stringify(b.symbolMappings || {}),
             defaultSymbol: b.defaultSymbol,
             type: b.platform || b.type, api: b.api, environment: b.environment,
-            username: b.username || null, password: b.password || null
+            username: b.username || null, password: b.password || null,
+            timezone: b.timezone || 'DEFAULT_NY7'
         });
     }
 
@@ -474,7 +589,6 @@ class DatabaseService {
             accountType: r.account_type,
             accountSize: r.account_size,
             platform: r.platform,
-            timezone: r.timezone,
             // Fallbacks for transitional runtime where consumers expect these
             status: 'STOPPED',
             pid: 0
@@ -502,15 +616,15 @@ class DatabaseService {
             }
 
             const stmt = this.marketDb.prepare(`
-                INSERT OR REPLACE INTO accounts (id, bot_id, broker_id, login, password, server, account_type, is_test, is_datafeed, platform, timezone, balance, account_size, created_at)
-                VALUES (@id, @botId, @brokerId, @login, @password, @server, @accountType, @isTest, @isDatafeed, @platform, @timezone, @balance, @accountSize, @createdAt)
+                INSERT OR REPLACE INTO accounts (id, bot_id, broker_id, login, password, server, account_type, is_test, is_datafeed, platform, balance, account_size, created_at)
+                VALUES (@id, @botId, @brokerId, @login, @password, @server, @accountType, @isTest, @isDatafeed, @platform, @balance, @accountSize, @createdAt)
             `);
 
             stmt.run({
                 id: a.id, botId: a.botId || null, brokerId: a.brokerId || null, login: a.login || '', password: a.password || '',
                 server: a.server || null, accountType: a.accountType || null, isTest: a.isTest ? 1 : 0,
                 isDatafeed: a.isDatafeed ? 1 : 0,
-                platform: a.platform || 'MT5', timezone: a.timezone || null, balance: finalBalance, accountSize: finalAccountSize,
+                platform: a.platform || 'MT5', balance: finalBalance, accountSize: finalAccountSize,
                 createdAt: a.createdAt || Date.now()
             });
             return true;
@@ -520,12 +634,43 @@ class DatabaseService {
         }
     }
 
-    saveAccountTimezone(botId, timezone) {
+    // --- TIMEZONE ANCHORS ---
+    saveTimezoneOffset(brokerId, anchorTime, offsetSec) {
         try {
-            this.marketDb.prepare("UPDATE accounts SET timezone = ? WHERE id = ? OR bot_id = ?").run(timezone, botId, botId);
-            console.log(`[DB] Persisted Timezone for bot_id ${botId}: ${timezone}`);
+            this.marketDb.prepare(`
+                INSERT OR REPLACE INTO broker_time_anchors (broker_id, anchor_time, offset_sec) 
+                VALUES (?, ?, ?)
+            `).run(brokerId, anchorTime, offsetSec);
+            return true;
         } catch (e) {
-            console.error("[DB] saveAccountTimezone Error:", e);
+            console.error("[DB] saveTimezoneOffset Error:", e);
+            return false;
+        }
+    }
+
+    getHistoricalOffsets(botId) {
+        try {
+            let targetId = botId;
+            let brokerTimezone = 'DEFAULT_NY7'; // New Default fallback
+
+            let acc = this.marketDb.prepare("SELECT broker_id FROM accounts WHERE bot_id = ?").get(botId);
+            if (acc && acc.broker_id) {
+                targetId = acc.broker_id;
+                let broker = this.marketDb.prepare("SELECT timezone FROM brokers WHERE id = ?").get(targetId);
+                if (broker && broker.timezone) {
+                    brokerTimezone = broker.timezone;
+                }
+            }
+
+            let res = this.marketDb.prepare("SELECT anchor_time, offset_sec FROM broker_time_anchors WHERE broker_id = ? ORDER BY anchor_time ASC").all(targetId);
+
+            if (res.length === 0) {
+                // Failsafe for missing custom bot_id anchors -> use the statically generated Timezone Profile (NY7 / EET)
+                res = this.marketDb.prepare("SELECT anchor_time, offset_sec FROM broker_time_anchors WHERE broker_id = ? ORDER BY anchor_time ASC").all(brokerTimezone);
+            }
+            return res;
+        } catch (e) {
+            return [];
         }
     }
 

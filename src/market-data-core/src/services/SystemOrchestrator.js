@@ -154,7 +154,7 @@ class SystemOrchestrator {
                 const isNT8 = provider === 'NinjaTrader' || provider === 'Apex' || platform === 'NT8' || data.id.startsWith('NT8') || data.id.startsWith('Apex');
                 const defaultTz = isNT8 ? "UTC" : "EET";
                 const tzSignature = data.timezone || defaultTz;
-                tzService.registerBotTimezone(data.id, tzSignature);
+                // tzService.registerBotTimezone(data.id, tzSignature); // Removed: Timezone dynamically managed
             } catch (e) {
                 console.error("[SysOrch] Failed to register timezone:", e);
             }
@@ -218,7 +218,7 @@ class SystemOrchestrator {
 
             // 3. Fake network liveness
             this.botServers.set(botId, { isVirtual: true, botId: botId });
-            tzService.registerBotTimezone(botId, 'UTC');
+            // tzService.registerBotTimezone(botId, 'UTC'); // Removed: Handled dynamically
 
             this.botStatus[botId] = {
                 id: botId,
@@ -1128,24 +1128,8 @@ class SystemOrchestrator {
             status.connectionId = connectionId || key;
         }
 
-        // Timezone Handling
-        const rawTimezone = data.timezone || (payload && payload.timezone);
-        const tzService = require('./TimezoneNormalizationService');
-
-        if (rawTimezone) {
-            tzService.registerBotTimezone(id, rawTimezone);
-        } else {
-            // Apply platform default if missing
-            const provider = data.provider || (payload && payload.provider);
-            const platform = data.platform || (payload && payload.platform);
-            const isNT8 = provider === 'NinjaTrader' || provider === 'Apex' || platform === 'NT8' || id.startsWith('NT8') || id.startsWith('Apex');
-
-            if (isNT8) {
-                tzService.registerBotTimezone(id, "UTC");
-            }
-        }
-
-        this.botStatus[key].timezone = tzService.getBotZone(id);
+        // Timezone Handling (All UTC natively handled dynamically)
+        this.botStatus[key].timezone = "UTC";
 
         // PERSISTENCE: Save discovered timezone to DB
         if (typeof this.db.saveAccountTimezone === 'function') {

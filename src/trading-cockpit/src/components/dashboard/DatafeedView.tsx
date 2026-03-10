@@ -679,10 +679,7 @@ function CompactAccountCard({ acc, status, serverTime, loading, onAction, onConf
                     <div className="text-sm font-bold text-slate-900 dark:text-white font-mono tracking-tight leading-tight whitespace-normal break-words" title={brokerName}>
                         {brokerName}
                     </div>
-                    {/* Bottom: Status (Replaces Broker Name) */}
-                    <div className="text-[11px] text-slate-400 font-medium leading-tight mt-1 flex items-center gap-1 font-mono">
-                        <div className={`w-1.5 h-1.5 rounded-full ${isRunning ? (isBotConnected ? 'bg-emerald-500' : 'bg-orange-500') : 'bg-slate-300'}`} title="Status"></div>
-                    </div>
+                    {/* Bottom: (Removed) */}
                 </div>
             </div>
 

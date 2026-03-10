@@ -239,18 +239,29 @@ export function SettingsView() {
 
                 {/* Modal */}
                 {isAddOpen && (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-                        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl shadow-2xl w-full max-w-md p-6 animate-in zoom-in-95">
-                            <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-6">{editingId ? 'Edit Connection' : 'Neue Verbindung'}</h3>
+                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+                        <div className="bg-white dark:bg-slate-900 w-full max-w-lg rounded-xl shadow-2xl border border-slate-200 dark:border-slate-800 flex flex-col max-h-[90vh] overflow-hidden">
 
-                            <div className="space-y-4">
+                            {/* Header */}
+                            <div className="h-14 bg-indigo-600 text-white flex items-center justify-between px-6 shadow-lg z-10 shrink-0">
+                                <h2 className="text-base font-bold flex items-center">
+                                    {editingId ? 'Edit Connection' : 'Neue Verbindung'}
+                                </h2>
+                                <button onClick={() => setIsAddOpen(false)} className="text-white/70 hover:text-white transition-colors">
+                                    <X size={20} />
+                                </button>
+                            </div>
+
+                            {/* Body */}
+                            <div className="p-6 overflow-y-auto space-y-6">
+
                                 {/* Platform Selector */}
-                                <div className="flex gap-4 p-1 bg-slate-100 dark:bg-slate-800 rounded-lg w-full mb-6">
+                                <div className="flex gap-4 p-1 bg-slate-100 dark:bg-slate-800/50 rounded-lg border border-slate-200 dark:border-slate-800/60 w-full">
                                     <button
                                         onClick={() => setNewBrokerPlatform('MT5')}
                                         className={cn(
                                             "flex-1 py-2 text-sm font-bold rounded-md transition-all text-center",
-                                            newBrokerPlatform === 'MT5' ? "bg-white dark:bg-slate-600 shadow-sm text-indigo-600 dark:text-white" : "text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200"
+                                            newBrokerPlatform === 'MT5' ? "bg-white dark:bg-slate-700 shadow-sm text-indigo-600 dark:text-indigo-400 border border-slate-200 dark:border-slate-600" : "text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 transparent"
                                         )}
                                     >
                                         MetaTrader 5
@@ -259,106 +270,120 @@ export function SettingsView() {
                                         onClick={() => setNewBrokerPlatform('NT8')}
                                         className={cn(
                                             "flex-1 py-2 text-sm font-bold rounded-md transition-all text-center",
-                                            newBrokerPlatform === 'NT8' ? "bg-white dark:bg-slate-600 shadow-sm text-indigo-600 dark:text-white" : "text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200"
+                                            newBrokerPlatform === 'NT8' ? "bg-white dark:bg-slate-700 shadow-sm text-indigo-600 dark:text-indigo-400 border border-slate-200 dark:border-slate-600" : "text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 transparent"
                                         )}
                                     >
                                         NinjaTrader 8
                                     </button>
                                 </div>
 
-                                <div>
-                                    <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Connection Name</label>
-                                    <input
-                                        type="text"
-                                        placeholder="Name (e.g. FTMO)"
-                                        className="bg-slate-100 dark:bg-slate-700 border-none rounded p-2 text-slate-900 dark:text-white text-sm w-full outline-none focus:ring-1 focus:ring-indigo-500"
-                                        value={newBrokerName}
-                                        onChange={e => setNewBrokerName(e.target.value)}
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Shorthand (ID)</label>
-                                    <input
-                                        type="text"
-                                        placeholder="Shorthand (e.g. FTMO)"
-                                        className="bg-slate-100 dark:bg-slate-700 border-none rounded p-2 text-slate-900 dark:text-white text-sm w-full outline-none focus:ring-1 focus:ring-indigo-500"
-                                        value={newBrokerShort}
-                                        onChange={e => setNewBrokerShort(e.target.value)}
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Default Symbol</label>
-                                    <input
-                                        type="text"
-                                        placeholder="Default Symbol (e.g. EURUSD)"
-                                        className="bg-slate-100 dark:bg-slate-700 border-none rounded p-2 text-slate-900 dark:text-white text-sm w-full outline-none focus:ring-1 focus:ring-indigo-500"
-                                        value={newBrokerDefaultSymbol}
-                                        onChange={e => setNewBrokerDefaultSymbol(e.target.value)}
-                                    />
-                                </div>
-
-                                {newBrokerPlatform === 'MT5' && (
-                                    <>
-                                        <div>
-                                            <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Servers (comma separated)</label>
+                                <div className="space-y-4">
+                                    <div className="bg-slate-50 dark:bg-slate-950/50 p-3 rounded-lg border border-slate-200 dark:border-slate-800">
+                                        <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1.5">Connection Name</label>
+                                        <input
+                                            type="text"
+                                            placeholder="e.g. FTMO, NinjaTrader"
+                                            className="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg px-3 py-2 text-sm font-bold text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
+                                            value={newBrokerName}
+                                            onChange={e => setNewBrokerName(e.target.value)}
+                                        />
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="bg-slate-50 dark:bg-slate-950/50 p-3 rounded-lg border border-slate-200 dark:border-slate-800">
+                                            <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1.5">Shorthand (ID)</label>
                                             <input
                                                 type="text"
-                                                placeholder="e.g. FTMO-Demo, FTMO-Live"
-                                                className="bg-slate-100 dark:bg-slate-700 border-none rounded p-2 text-slate-900 dark:text-white text-sm w-full outline-none focus:ring-1 focus:ring-indigo-500"
-                                                value={newBrokerServers}
-                                                onChange={e => setNewBrokerServers(e.target.value)}
+                                                placeholder="e.g. FTMO"
+                                                className="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg px-3 py-2 text-sm font-mono font-bold text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none uppercase"
+                                                value={newBrokerShort}
+                                                onChange={e => setNewBrokerShort(e.target.value.toUpperCase())}
                                             />
                                         </div>
-                                        <div>
-                                            <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Server Timezone Profile</label>
-                                            <select
-                                                className="bg-slate-100 dark:bg-slate-700 border-none rounded p-2 text-slate-900 dark:text-white text-sm w-full outline-none focus:ring-1 focus:ring-indigo-500"
-                                                value={newBrokerTimezone}
-                                                onChange={e => setNewBrokerTimezone(e.target.value)}
-                                            >
-                                                <option value="DEFAULT_NY7">DEFAULT_NY7 (US-DST / e.g. FundedNext)</option>
-                                                <option value="DEFAULT_EET">DEFAULT_EET (EU-DST / e.g. RoboForex)</option>
-                                            </select>
-                                        </div>
-                                    </>
-                                )}
-
-                                {newBrokerPlatform === 'NT8' && (
-                                    <>
-                                        <div>
-                                            <label className="block text-xs font-bold text-slate-500 uppercase mb-1">NinjaTrader Username</label>
+                                        <div className="bg-slate-50 dark:bg-slate-950/50 p-3 rounded-lg border border-slate-200 dark:border-slate-800">
+                                            <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1.5">Default Symbol</label>
                                             <input
                                                 type="text"
-                                                placeholder="Username"
-                                                className="bg-slate-100 dark:bg-slate-700 border-none rounded p-2 text-slate-900 dark:text-white text-sm w-full outline-none focus:ring-1 focus:ring-indigo-500"
-                                                value={newBrokerUsername}
-                                                onChange={e => setNewBrokerUsername(e.target.value)}
+                                                placeholder="e.g. EURUSD"
+                                                className="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg px-3 py-2 text-sm font-mono font-bold text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none uppercase"
+                                                value={newBrokerDefaultSymbol}
+                                                onChange={e => setNewBrokerDefaultSymbol(e.target.value.toUpperCase())}
                                             />
                                         </div>
-                                        <div>
-                                            <label className="block text-xs font-bold text-slate-500 uppercase mb-1">NinjaTrader Password</label>
-                                            <input
-                                                type="password"
-                                                placeholder="Password"
-                                                className="bg-slate-100 dark:bg-slate-700 border-none rounded p-2 text-slate-900 dark:text-white text-sm w-full outline-none focus:ring-1 focus:ring-indigo-500"
-                                                value={newBrokerPassword}
-                                                onChange={e => setNewBrokerPassword(e.target.value)}
-                                            />
+                                    </div>
+
+                                    {newBrokerPlatform === 'MT5' && (
+                                        <div className="space-y-4 pt-2 border-t border-slate-200 dark:border-slate-800">
+                                            <div className="bg-slate-50 dark:bg-slate-950/50 p-3 rounded-lg border border-slate-200 dark:border-slate-800">
+                                                <label className="block text-[10px] font-bold text-indigo-600 dark:text-indigo-400 uppercase mb-1.5">Servers (Comma separated)</label>
+                                                <input
+                                                    type="text"
+                                                    placeholder="e.g. FTMO-Demo, FTMO-Live"
+                                                    className="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg px-3 py-2 text-sm font-medium text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
+                                                    value={newBrokerServers}
+                                                    onChange={e => setNewBrokerServers(e.target.value)}
+                                                />
+                                            </div>
+                                            <div className="bg-slate-50 dark:bg-slate-950/50 p-3 rounded-lg border border-slate-200 dark:border-slate-800">
+                                                <div className="flex items-center justify-between mb-1.5">
+                                                    <label className="block text-[10px] font-bold text-indigo-600 dark:text-indigo-400 uppercase">Server Timezone Profile</label>
+                                                </div>
+                                                <select
+                                                    className="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg px-3 py-2 text-sm font-bold text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
+                                                    value={newBrokerTimezone}
+                                                    onChange={e => setNewBrokerTimezone(e.target.value)}
+                                                >
+                                                    <option value="DEFAULT_NY7">DEFAULT_NY7 (US-DST / e.g. FundedNext)</option>
+                                                    <option value="DEFAULT_EET">DEFAULT_EET (EU-DST / e.g. RoboForex, FTMO)</option>
+                                                </select>
+                                                <p className="text-[10px] text-slate-500 mt-2 font-medium">Select the Daylight Saving Time profile your broker uses to shift their servers.</p>
+                                            </div>
                                         </div>
-                                    </>
-                                )}
+                                    )}
+
+                                    {newBrokerPlatform === 'NT8' && (
+                                        <div className="space-y-4 pt-2 border-t border-slate-200 dark:border-slate-800">
+                                            <div className="grid grid-cols-2 gap-4">
+                                                <div className="bg-slate-50 dark:bg-slate-950/50 p-3 rounded-lg border border-slate-200 dark:border-slate-800">
+                                                    <label className="block text-[10px] font-bold text-indigo-600 dark:text-indigo-400 uppercase mb-1.5">NT8 Username</label>
+                                                    <input
+                                                        type="text"
+                                                        placeholder="Username"
+                                                        className="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg px-3 py-2 text-sm font-medium text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
+                                                        value={newBrokerUsername}
+                                                        onChange={e => setNewBrokerUsername(e.target.value)}
+                                                    />
+                                                </div>
+                                                <div className="bg-slate-50 dark:bg-slate-950/50 p-3 rounded-lg border border-slate-200 dark:border-slate-800">
+                                                    <label className="block text-[10px] font-bold text-indigo-600 dark:text-indigo-400 uppercase mb-1.5">NT8 Password</label>
+                                                    <input
+                                                        type="password"
+                                                        placeholder="••••••••"
+                                                        className="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg px-3 py-2 text-sm font-medium text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
+                                                        value={newBrokerPassword}
+                                                        onChange={e => setNewBrokerPassword(e.target.value)}
+                                                    />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
                             </div>
 
-                            <div className="flex justify-end gap-3 mt-8">
-                                <button onClick={() => setIsAddOpen(false)} className="px-4 py-2 rounded-lg text-slate-400 hover:bg-slate-800 transition-colors">Cancel</button>
+                            {/* Footer */}
+                            <div className="p-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 flex justify-end gap-3 shrink-0">
+                                <button onClick={() => setIsAddOpen(false)} className="px-4 py-2 rounded-lg text-sm font-bold text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors">
+                                    Cancel
+                                </button>
                                 <button
                                     onClick={handleSave}
                                     disabled={!newBrokerName || !newBrokerShort}
-                                    className="px-6 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                    className="px-6 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-bold shadow-md shadow-indigo-500/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                                 >
+                                    <Save size={16} />
                                     {editingId ? 'Update Connection' : 'Save Connection'}
                                 </button>
                             </div>
+
                         </div>
                     </div>
                 )}

@@ -16,10 +16,12 @@ if ($PidToKill -gt 0) {
     try {
         Stop-Process -Id $PidToKill -Force -ErrorAction SilentlyContinue
         Write-Host "  PID $PidToKill Terminated." -ForegroundColor Green
-    } catch {
+    }
+    catch {
         Write-Warning "  Could not kill PID $PidToKill (Might be already dead)."
     }
-} else {
+}
+else {
     $SearchText = if ($ConfigPath) { $ConfigPath } elseif ($InstancePath) { $InstancePath } else { $null }
 
     if ($SearchText) {
@@ -31,7 +33,8 @@ if ($PidToKill -gt 0) {
         }
         # Give it a moment to release file handles
         Start-Sleep -Seconds 1
-    } else {
+    }
+    else {
         Write-Warning "No PID or Instance/Config path provided. Termination skipped."
     }
 }
@@ -41,6 +44,31 @@ if ($ExecutablePath -ne "") {
     if (-not (Test-Path $ExecutablePath)) {
         Write-Error "Executable not found: $ExecutablePath"
         exit 1
+    }
+
+    $WorkDir = if ($InstancePath -ne "") { $InstancePath } else { Split-Path $ExecutablePath -Parent }
+
+    # =========================================================================
+    # BOOTSTRAP HARDENING: Exe-Injection
+    # Since the process is now definitively dead (Start-Sleep ran), 
+    # we can safely overwrite the .exe files from the master directory.
+    # =========================================================================
+    if (Test-Path $WorkDir) {
+        $InstancesRoot = Split-Path $WorkDir -Parent
+        $Mt5Root = Split-Path $InstancesRoot -Parent
+        $MasterPath = Join-Path $Mt5Root "master"
+
+        if (Test-Path $MasterPath) {
+            Write-Host "  Injecting latest binaries from $MasterPath"
+            $Exes = @("terminal64.exe", "MetaEditor64.exe", "metatester64.exe")
+            foreach ($Exe in $Exes) {
+                $Src = Join-Path $MasterPath $Exe
+                $Dst = Join-Path $WorkDir $Exe
+                if (Test-Path $Src) {
+                    Copy-Item -Path $Src -Destination $Dst -Force -ErrorAction SilentlyContinue
+                }
+            }
+        }
     }
 
     $ArgsList = @()
@@ -58,6 +86,7 @@ if ($ExecutablePath -ne "") {
     
     $proc = Start-Process -FilePath $ExecutablePath -ArgumentList $ArgsList -WorkingDirectory $WorkDir -PassThru
     Write-Host "  Started! New PID: $($proc.Id)" -ForegroundColor Green
-} else {
+}
+else {
     Write-Warning "No ExecutablePath provided. Only termination performed."
 }

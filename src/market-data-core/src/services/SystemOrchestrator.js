@@ -360,6 +360,33 @@ class SystemOrchestrator {
                     // Enforce WebRequest Configuration (MT5 wipes it on shutdown often)
                     await this.updateCommonConfig(instance.path);
 
+                    // =========================================================================
+                    // BOOTSTRAP HARDENING: Inject Newest Executables from Master
+                    // =========================================================================
+                    try {
+                        const sysConfig = require('./SystemConfigService').getConfig();
+                        const fsPromises = require('fs/promises');
+                        const masterPath = path.join(sysConfig.projectRoot, 'components', 'metatrader', 'master');
+                        if (fs.existsSync(masterPath)) {
+                            const exes = ['terminal64.exe', 'MetaEditor64.exe', 'metatester64.exe'];
+                            for (const exe of exes) {
+                                const src = path.join(masterPath, exe);
+                                const dst = path.join(instance.path, exe);
+                                if (fs.existsSync(src)) {
+                                    // Use copyFile instead of rename (overwrites if exists)
+                                    await fsPromises.copyFile(src, dst).catch(err => {
+                                        // Ignore EBUSY/EPERM if the file is locked (means instance is technically still running somehow)
+                                        if (err.code !== 'EBUSY' && err.code !== 'EPERM') {
+                                            console.warn(`[SystemOrchestrator] ⚠️ Could not copy ${exe}:`, err.message);
+                                        }
+                                    });
+                                }
+                            }
+                        }
+                    } catch (copyErr) {
+                        console.error(`[SystemOrchestrator] ❌ Error during binary sync for ${instance.folderName}:`, copyErr.message);
+                    }
+
                     const { spawn } = require('child_process');
                     const child = spawn(terminalPath, ['/portable', '/config:login.ini'], {
                         cwd: instance.path,

@@ -1,14 +1,20 @@
 ﻿param(
     [string]$TargetDir = "C:\awesome-cockpit",
-    [string]$RestartInstances = "False"
+    [string]$RestartInstances = "False",
+    [switch]$UpdateMt5Only
 )
 
 # 1. Admin-Rechte prüfen
 $isAdmin = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
 if (-not $isAdmin) {
     Write-Host "Das Skript benoetigt Administratorrechte (fuer Windows Dienste und Backups). Fordere UAC an..." -ForegroundColor Yellow
-    # CRITICAL FIX: Convert parameter to simple string wrapper to prevent System.Boolean parser crashes. Removed -NoExit to prevent hanging.
-    Start-Process powershell.exe -ArgumentList "-NoProfile -ExecutionPolicy Bypass -File `"$PSCommandPath`" -RestartInstances `"$RestartInstances`"" -Verb RunAs
+    
+    $ArgsList = @("-NoProfile", "-ExecutionPolicy", "Bypass", "-File", "`"$PSCommandPath`"")
+    if ($TargetDir) { $ArgsList += "-TargetDir"; $ArgsList += "`"$TargetDir`"" }
+    if ($RestartInstances) { $ArgsList += "-RestartInstances"; $ArgsList += "`"$RestartInstances`"" }
+    if ($UpdateMt5Only.IsPresent) { $ArgsList += "-UpdateMt5Only" }
+    
+    Start-Process powershell.exe -ArgumentList $ArgsList -Verb RunAs
     exit
 }
 
@@ -34,6 +40,89 @@ function Set-Progress {
 }
 
 Set-Progress 1 "Initialisiere Update-Prozess..."
+
+Set-Progress 1 "Initialisiere Update-Prozess..."
+
+if ($UpdateMt5Only.IsPresent) {
+    Write-Log "=========================================" "Cyan"
+    Write-Log "   STARTE HEADLESS MT5 UPDATE PROZESS    " "Cyan"
+    Write-Log "=========================================" "Cyan"
+    
+    $ProjectTempDir = Join-Path $TargetDir "temp"
+    if (-not (Test-Path $ProjectTempDir)) { New-Item -ItemType Directory -Path $ProjectTempDir -Force | Out-Null }
+    
+    $Mt5Installer = Join-Path $ProjectTempDir "mt5setup.exe"
+    $Mt5Url = "https://download.terminal.free/cdn/web/metaquotes.ltd/mt5/mt5setup.exe?utm_source=www.metatrader5.com&utm_campaign=download"
+    $NeedsUpdate = $true
+
+    if (Test-Path $Mt5Installer) {
+        Write-Log "  Pruefe auf neues Setup-Release via HTTP HEAD..." "Gray"
+        try {
+            $Response = Invoke-WebRequest -Uri $Mt5Url -Method Head -UseBasicParsing
+            $ServerModified = $Response.Headers["Last-Modified"]
+            if ($ServerModified) {
+                $ServerDate = [datetime]::Parse($ServerModified).ToUniversalTime()
+                $LocalDate = (Get-Item $Mt5Installer).LastWriteTimeUtc
+                if ($ServerDate -le $LocalDate) {
+                    $NeedsUpdate = $false
+                    Write-Log "  Lokale mt5setup.exe ist aktuell. Kein Download erforderlich." "Green"
+                }
+                else {
+                    Write-Log "  Neue Version verfuegbar ($ServerModified). Lokal: $LocalDate" "Yellow"
+                }
+            }
+        }
+        catch {
+            Write-Log "  WARNUNG: HEAD Request fehlgeschlagen ($($_.Exception.Message)). Lade sicherheitshalber neu herunter." "Yellow"
+        }
+    }
+
+    if ($NeedsUpdate) {
+        Write-Log "  Lade aktuelles MetaTrader 5 Setup herunter..." "Cyan"
+        Invoke-WebRequest -Uri $Mt5Url -OutFile $Mt5Installer
+        
+        $MetaDist = Join-Path $TargetDir "components\metatrader"
+        $MasterDist = Join-Path $MetaDist "master"
+        
+        if (-not (Test-Path $MasterDist)) { 
+            Write-Log "  WARNUNG: Master-Verzeichnis nicht gefunden ($MasterDist)." "Yellow"
+            exit 0
+        }
+        
+        Write-Log "  Installiere MetaTrader 5 ueber Master ($MasterDist)..." "Yellow"
+        $SetupProc = Start-Process -FilePath $Mt5Installer -ArgumentList "/auto /path:`"$MasterDist`"" -Wait -PassThru
+        Start-Sleep -Seconds 5
+        
+        Write-Log "  Update von Master abgeschlossen. Kopiere neue EXEs in alle Instanzen..." "Cyan"
+        
+        $InstancesDir = Join-Path $MetaDist "instances"
+        if (Test-Path $InstancesDir) {
+            $Instances = Get-ChildItem -Path $InstancesDir -Directory
+            foreach ($Instance in $Instances) {
+                Write-Log "  -> Verarbeite Instanz: $($Instance.Name)" "Yellow"
+                
+                # HINWEIS: Wir beenden absichtlich KEINE laufenden Prozesse. (User Requirement)
+                # Laufende Terminals haben eine Dateisperre (Lock) auf ihre .exe Dateien.
+                # Wir nutzen -ErrorAction SilentlyContinue, sodass die laufenden nicht
+                # gecrasht werden. Sie erhalten das Update beim naechsten manuellen Neustart.
+                $Executables = @("terminal64.exe", "MetaEditor64.exe", "metatester64.exe")
+                foreach ($Exe in $Executables) {
+                    $SrcExe = Join-Path $MasterDist $Exe
+                    $DstExe = Join-Path $Instance.FullName $Exe
+                    if (Test-Path $SrcExe) {
+                        Copy-Item -Path $SrcExe -Destination $DstExe -Force -ErrorAction SilentlyContinue
+                    }
+                }
+            }
+        }
+        Write-Log "  MT5 Update erfolgreich durchgefuehrt." "Green"
+    }
+    else {
+        Write-Log "  MT5 Setup Head-Check abgeschlossen. Keine Aenderungen." "Green"
+    }
+    
+    exit 0
+}
 
 Write-Log "=========================================" "Cyan"
 Write-Log "   STARTE AUTO-UPDATE PROZESS            " "Cyan"

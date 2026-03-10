@@ -659,7 +659,7 @@ function CompactAccountCard({ acc, status, serverTime, loading, onAction, onConf
     const ntMissingCreds = isNt8 && (!acc.login || !acc.password);
 
     return (
-        <div className={`bg-white dark:bg-slate-900 border-l-4 rounded-r-lg p-3 relative overflow-hidden group transition-colors min-h-[88px] flex items-center justify-between ${statusClass} shadow-sm min-w-[280px]`}>
+        <div className={`bg-white dark:bg-slate-900 border-l-4 rounded-r-lg p-3 relative overflow-hidden group transition-colors min-h-[64px] flex items-center justify-between ${statusClass} shadow-sm min-w-[280px]`}>
 
             {/* Left: Logo + Info */}
             <div className="flex items-center gap-3">

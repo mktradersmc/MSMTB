@@ -17,6 +17,7 @@ export interface PaneConfig {
     symbol: string;
     timeframe: string;
     isActive: boolean;
+    botId?: string;
     indicators?: SavedIndicator[];
     drawings?: string; // Serialized JSON of chart shapes
     scrollToTimeRequest?: { id: string, time: number };
@@ -29,6 +30,7 @@ export interface Workspace {
     layoutSizes: number[];
     panes: PaneConfig[];
     maximizedPaneId?: string; // ID of the maximized pane, if any
+    isBacktest?: boolean; // True if isolated context
 }
 
 interface WorkspaceState {
@@ -42,6 +44,7 @@ interface WorkspaceState {
     updateWorkspaceLayout: (workspaceId: string, layout: LayoutType) => void;
     updateLayoutSizes: (workspaceId: string, sizes: number[]) => void;
     toggleMaximizePane: (workspaceId: string, paneId: string) => void;
+    loadBacktestWorkspace: (sessionId: string, workspaceState?: any, mainSymbol?: string) => void;
 
     // Drawing
     activeDrawingTool: string | null;
@@ -97,6 +100,53 @@ export const useWorkspaceStore = create<WorkspaceState>()(
                     workspaces: [...state.workspaces, newWorkspace],
                     activeWorkspaceId: newWorkspace.id
                 }));
+            },
+
+            loadBacktestWorkspace: (sessionId: string, workspaceState?: any, mainSymbol?: string) => {
+                set((state) => {
+                    // Check if we already have it
+                    const existingIdx = state.workspaces.findIndex(w => w.id === sessionId);
+
+                    let newWorkspace: Workspace;
+                    if (workspaceState && workspaceState.id === sessionId) {
+                        // Trust provided state
+                        newWorkspace = workspaceState;
+                    } else if (existingIdx !== -1) {
+                        // Already exists, just activate
+                        return { activeWorkspaceId: sessionId };
+                    } else {
+                        // Create fresh backtest workspace
+                        const defaultWorkspace = createDefaultWorkspace(`Backtest ${sessionId}`);
+                        if (mainSymbol && defaultWorkspace.panes.length > 0) {
+                            defaultWorkspace.panes[0].symbol = mainSymbol;
+                        }
+
+                        newWorkspace = {
+                            ...defaultWorkspace,
+                            id: sessionId,
+                            isBacktest: true
+                        };
+                    }
+
+                    // Enforce flag
+                    newWorkspace.isBacktest = true;
+
+                    // Remove any existing backtest workspaces to prevent memory leak
+                    const filtered = state.workspaces.filter(w => !w.isBacktest || w.id === sessionId);
+
+                    // Add/Update
+                    const existingInFiltered = filtered.findIndex(w => w.id === sessionId);
+                    if (existingInFiltered !== -1) {
+                        filtered[existingInFiltered] = newWorkspace;
+                    } else {
+                        filtered.push(newWorkspace);
+                    }
+
+                    return {
+                        workspaces: filtered,
+                        activeWorkspaceId: sessionId
+                    };
+                });
             },
 
             removeWorkspace: (id) => {
@@ -257,6 +307,21 @@ export const useWorkspaceStore = create<WorkspaceState>()(
         {
             name: 'workspace-storage',
             storage: createJSONStorage(() => localStorage),
+            partialize: (state) => {
+                const persistentWorkspaces = state.workspaces.filter(w => !w.isBacktest);
+                let fallbackActiveId = state.activeWorkspaceId;
+
+                // If the active workspace was a backtest, revert to the first persistent one on reload
+                if (!persistentWorkspaces.find(w => w.id === fallbackActiveId)) {
+                    fallbackActiveId = persistentWorkspaces.length > 0 ? persistentWorkspaces[0].id : '';
+                }
+
+                return {
+                    ...state,
+                    workspaces: persistentWorkspaces,
+                    activeWorkspaceId: fallbackActiveId
+                };
+            },
             onRehydrateStorage: () => (state) => {
                 // Ensure activeWorkspaceId is valid on load
                 if (state && state.workspaces.length > 0 && !state.activeWorkspaceId) {

@@ -2,6 +2,7 @@
 
 import React, { useMemo, useCallback, useState } from 'react';
 import { useWorkspaceStore } from '../../stores/useWorkspaceStore';
+import { useBacktest } from '../../contexts/BacktestContext';
 import { ChartPane } from './ChartPane';
 import { Group as PanelGroup, Panel, Separator as PanelResizeHandle, Layout } from 'react-resizable-panels';
 
@@ -32,6 +33,7 @@ const DraggableGutter = ({ direction = "horizontal", onDoubleClick }: { directio
 
 export const LayoutGrid: React.FC<LayoutGridProps> = ({ botId, accounts, isDatafeedOnline = true }) => {
     const { workspaces, activeWorkspaceId, updateLayoutSizes } = useWorkspaceStore();
+    const { jumpVersion } = useBacktest();
 
     // State to force remount of PanelGroups by changing their key
     const [groupVersions, setGroupVersions] = useState<Record<string, number>>({});
@@ -98,7 +100,7 @@ export const LayoutGrid: React.FC<LayoutGridProps> = ({ botId, accounts, isDataf
         return (
             <div className="w-full h-full bg-white dark:bg-slate-900 overflow-hidden">
                 <ChartPane
-                    key={pane.id}
+                    key={`${pane.id}-jv${jumpVersion}`}
                     workspaceId={activeWorkspace.id}
                     pane={pane}
                     botId={botId}

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { MT5Datafeed } from '../services/MT5Datafeed';
 import { generatePhantomBars, getTimeframeSeconds } from '../utils/chartUtils';
 import { fetchMessages } from '../services/api';
@@ -9,10 +9,11 @@ export interface ChartDataHookOptions {
     timeframe: string;
     botId: string;
     isActivePane: boolean; // For smart streaming
+    backtestId?: string;
     onTick?: (candle: any) => void;
 }
 
-export function useChartData({ symbol, timeframe, botId, isActivePane, onTick }: ChartDataHookOptions) {
+export function useChartData({ symbol, timeframe, botId, isActivePane, backtestId, onTick }: ChartDataHookOptions) {
     const [data, setData] = useState<any[]>([]);
     const [horizonData, setHorizonData] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(false);
@@ -21,6 +22,7 @@ export function useChartData({ symbol, timeframe, botId, isActivePane, onTick }:
     const [isChartReady, setIsChartReady] = useState(false);
     const [syncError, setSyncError] = useState<string | undefined>(undefined);
     const [syncStatus, setSyncStatus] = useState<string>('READY');
+    const [dataVersion, setDataVersion] = useState(0);
 
     // Refs
     const lastCandleRef = useRef<any>(null);
@@ -52,10 +54,13 @@ export function useChartData({ symbol, timeframe, botId, isActivePane, onTick }:
 
     // Initialize Datafeed Adapter
     useEffect(() => {
+        console.log(`[!!! ALARM-FLOW-FRONTEND 5.1 - useChartData] Init Datafeed with botId = ${botId}, backtestId = ${backtestId}`);
         if (!datafeedRef.current) {
-            datafeedRef.current = new MT5Datafeed();
+            datafeedRef.current = new MT5Datafeed(botId, backtestId);
+        } else {
+            datafeedRef.current.setBotId(botId, backtestId);
         }
-    }, []);
+    }, [botId, backtestId]);
 
     // Helper: Fetch History (Progressive / Chunked)
     const fetchHistory = async (isMerge: boolean = false) => {
@@ -72,8 +77,12 @@ export function useChartData({ symbol, timeframe, botId, isActivePane, onTick }:
             const targetTotal = 10000; // Goal: 10k bars
 
             // 1. Initial Fetch (Latest from local DB)
-            console.log(`[useChartData] 🚀 Fetching History for ${symbol} ${timeframe}`);
-            let url = `${getBaseUrl()}/api/history?symbol=${symbol}&timeframe=${timeframe}&limit=${targetTotal}&_=${Date.now()}`;
+            const effectiveBotId = backtestId ? 'PAPER_BOT' : botId;
+            const routingKey = effectiveBotId ? `${effectiveBotId}:HISTORY:${symbol}` : symbol;
+
+            console.log(`[!!! ALARM-FLOW-FRONTEND 5.2 - fetchHistory] botId = ${effectiveBotId}, RoutingKey = ${routingKey}, limit = ${targetTotal}`);
+            let url = `${getBaseUrl()}/api/history?routingKey=${routingKey}&timeframe=${timeframe}&limit=${targetTotal}&_=${Date.now()}`;
+            if (backtestId) url += `&backtestId=${backtestId}`;
 
             const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
             const headers: Record<string, string> = token ? { 'Authorization': `Bearer ${token}` } : {};
@@ -106,13 +115,17 @@ export function useChartData({ symbol, timeframe, botId, isActivePane, onTick }:
                 }
 
                 // MERGE LIVE CANDLE (Fix for Initial Fetch Flicker)
-                const liveCandle = lastCandleRef.current;
-                if (liveCandle) {
-                    const lastFetched = gatheredBars[gatheredBars.length - 1];
-                    if (!lastFetched || lastFetched.time < liveCandle.time) {
-                        gatheredBars.push(liveCandle);
-                    } else if (lastFetched.time === liveCandle.time) {
-                        gatheredBars[gatheredBars.length - 1] = liveCandle;
+                // In LIVE mode, the websocket is the authority. 
+                // In BACKTEST mode, the history fetch IS the authority (progresses on step). We must not overwrite it.
+                if (!backtestId) {
+                    const liveCandle = lastCandleRef.current;
+                    if (liveCandle) {
+                        const lastFetched = gatheredBars[gatheredBars.length - 1];
+                        if (!lastFetched || lastFetched.time < liveCandle.time) {
+                            gatheredBars.push(liveCandle);
+                        } else if (lastFetched.time === liveCandle.time) {
+                            gatheredBars[gatheredBars.length - 1] = liveCandle;
+                        }
                     }
                 }
 
@@ -231,6 +244,12 @@ export function useChartData({ symbol, timeframe, botId, isActivePane, onTick }:
 
         // 1. Check Initial Sync Status (Fix for Race Condition)
         const checkSyncStatus = async () => {
+            if (backtestId) {
+                console.log(`[useChartData] ✅ Initial Status Check: Bypassing for Backtest mode. Fetching immediately.`);
+                setIsChartReady(true);
+                fetchHistory();
+                return;
+            }
 
             try {
                 const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
@@ -269,7 +288,7 @@ export function useChartData({ symbol, timeframe, botId, isActivePane, onTick }:
 
         if (adapter) {
             adapter.subscribeBars(
-                { name: symbol },
+                { name: symbol, backtestId }, // Restore original
                 timeframe,
                 (bar: any) => {
                     // Realtime Logic (copied from LiveChartPage and simplified)
@@ -374,15 +393,51 @@ export function useChartData({ symbol, timeframe, botId, isActivePane, onTick }:
             );
         }
 
+        // --- BACKTEST STEP HANDLER ---
+        const handleBacktestStep = (payload: any) => {
+            if (payload.backtestId !== backtestId) return;
+
+            // Bypass loading lock for step updates
+            isLoadingRef.current = false;
+
+            if (payload.isJump) {
+                console.log(`[useChartData] ⏪ JUMP received for ${symbol} ${timeframe}. Forcing full history reload.`);
+                // Reset local state completely before fetching
+                setData([]);
+                setHorizonData([]);
+                lastCandleRef.current = null;
+                historyLoadedRef.current = false;
+                setDataVersion(v => v + 1);
+
+                // Fetch fresh history (isMerge = false)
+                fetchHistory(false);
+            } else {
+                fetchHistory(true).then(() => {
+                    // If there's an onTick defined, we should ideally trigger it so that 
+                    // ChartPane knows the price has updated.
+                    if (onTick && lastCandleRef.current) {
+                        onTick(lastCandleRef.current);
+                    }
+                });
+            }
+        };
+
+        if (backtestId) {
+            communicationHub.on('BACKTEST_STEP_COMPLETE', handleBacktestStep);
+        }
+
         return () => {
             if (adapter) adapter.unsubscribeBars(subId);
             communicationHub.off('SYNC_COMPLETE', onSyncComplete);
             communicationHub.off('SYNC_ERROR', onSyncError);
             communicationHub.off('connect', onReconnect);
             communicationHub.off('sanity_update', onSanityUpdate);
+            if (backtestId) {
+                communicationHub.off('BACKTEST_STEP_COMPLETE', handleBacktestStep);
+            }
         };
 
-    }, [symbol, timeframe, botId]);
+    }, [symbol, timeframe, botId, backtestId]);
 
     // We return refs or a way to get the latest candle to avoid re-renders
     return {
@@ -392,6 +447,7 @@ export function useChartData({ symbol, timeframe, botId, isActivePane, onTick }:
         isChartReady,
         syncError,
         syncStatus, // <--- Exposed
+        dataVersion,
         getLastCandle: () => lastCandleRef.current
     };
 }

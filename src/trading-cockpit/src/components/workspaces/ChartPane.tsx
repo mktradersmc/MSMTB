@@ -14,6 +14,7 @@ import { indicatorRegistry } from '../charts/indicators/IndicatorRegistry';
 import { registerIndicators } from '../charts/indicators';
 import { IndicatorSettingsDialog } from '../charts/settings/IndicatorSettingsDialog';
 import { useChartTheme } from '../../context/ChartThemeContext';
+import { useBacktest } from '../../contexts/BacktestContext';
 
 interface ChartPaneProps {
     workspaceId: string;
@@ -25,6 +26,7 @@ interface ChartPaneProps {
 
 export const ChartPane: React.FC<ChartPaneProps> = ({ workspaceId, pane, botId = 'MT5_Bot', accounts, isDatafeedOnline = true }) => {
     const { setActivePane, updatePane, toggleMaximizePane, workspaces } = useWorkspaceStore();
+    const { activeSession } = useBacktest();
     const activeWorkspace = workspaces.find(w => w.id === workspaceId);
     const isMaximized = activeWorkspace?.maximizedPaneId === pane.id;
     const maximizeId = activeWorkspace?.maximizedPaneId;
@@ -52,6 +54,7 @@ export const ChartPane: React.FC<ChartPaneProps> = ({ workspaceId, pane, botId =
     // --- INDICATOR STATE ---
     const [activeIndicators, setActiveIndicators] = useState<any[]>(pane.indicators || []);
     const [editingIndicatorId, setEditingIndicatorId] = useState<string | null>(null);
+    const [indicatorLoadingStates, setIndicatorLoadingStates] = useState<Record<string, boolean>>({});
 
     // Init Registry (Once)
     useEffect(() => {
@@ -179,11 +182,18 @@ export const ChartPane: React.FC<ChartPaneProps> = ({ workspaceId, pane, botId =
     }, []);
 
     // Data Hook
-    const { data, horizonData, isLoading, isChartReady, syncError, syncStatus } = useChartData({
+    const symbolInfoFromStore = getSymbolInfo(pane.symbol);
+    const isBacktest = !!activeSession?.id;
+    // ARCHITECTURE FIX: Single Source of Truth. If backtest, we NEVER ask the store for a live broker.
+    const resolvedBotId = isBacktest ? 'PAPER_BOT' : (pane.botId || symbolInfoFromStore?.botId || botId);
+
+    console.log(`[!!! ALARM-FLOW-FRONTEND 4 - ChartPane (useChartData)] Sending to Hook: Symbol: ${pane.symbol}, PaneBotId: ${pane.botId}, StoreBotId: ${symbolInfoFromStore?.botId}, GlobalBotId: ${botId}, Resolving to: ${resolvedBotId}`);
+    const { data, horizonData, isLoading, isChartReady, syncError, syncStatus, dataVersion } = useChartData({
         symbol: pane.symbol,
         timeframe: pane.timeframe,
-        botId: botId,
+        botId: resolvedBotId,
         isActivePane: pane.isActive,
+        backtestId: activeSession?.id,
         onTick: handleTick
     });
 
@@ -429,10 +439,14 @@ export const ChartPane: React.FC<ChartPaneProps> = ({ workspaceId, pane, botId =
             {/* --- IN-CHART HUD OVERLAY --- */}
             <ChartOverlay
                 ref={overlayRef}
+                backtestId={activeSession?.id}
                 symbol={pane.symbol}
                 timeframe={pane.timeframe}
                 timezone={timezone}
-                onSymbolChange={(s) => updatePane(workspaceId, pane.id, { symbol: s })}
+                onSymbolChange={(s, b) => {
+                    console.log(`[!!! ALARM-FLOW-FRONTEND 3 - ChartPane (updatePane)] Received from Overlay: sym=${s}, botId=${b}`);
+                    updatePane(workspaceId, pane.id, { symbol: s, botId: b })
+                }}
                 onTimeframeChange={handleCallbackTimeframeChange}
                 onTimezoneChange={(tz) => setTimezone(tz)}
                 onAddIndicator={handleAddIndicator}
@@ -450,6 +464,7 @@ export const ChartPane: React.FC<ChartPaneProps> = ({ workspaceId, pane, botId =
                 <ChartContainer
                     ref={chartRef}
                     symbol={pane.symbol}
+                    dataVersion={dataVersion}
                     symbolB=""
                     dataA={data}
                     dataB={[]}
@@ -467,10 +482,11 @@ export const ChartPane: React.FC<ChartPaneProps> = ({ workspaceId, pane, botId =
                     // onVisibleRangeChange={handleCallbackVisibleRangeChange} // Disabled to prevent Time-Sync Jitter. We rely on LogicalRange.
                     onVisibleLogicalRangeChange={handleCallbackLogicalRangeChange}
                     activeIndicators={activeIndicators}
+                    onIndicatorLoadStatesChange={setIndicatorLoadingStates}
                     paneId={pane.id}
                     onChartClick={handleFocus}
                     scrollToTimeRequest={pane.scrollToTimeRequest}
-                    isChartReady={isChartReady && data.length > 0} // Logical AND: Data must exist too
+                    isChartReady={isChartReady} // Allow empty charts to draw indicators (like session ranges)
                     syncError={syncError}
                 />
 
@@ -486,6 +502,9 @@ export const ChartPane: React.FC<ChartPaneProps> = ({ workspaceId, pane, botId =
                                 <span className={`text-sm cursor-default ${ind.visible === false ? `${mutedColor} line-through decoration-slate-500` : textColor}`}>
                                     {def?.name || ind.defId}
                                 </span>
+                                {indicatorLoadingStates[ind.instanceId] && (
+                                    <div className="ml-1 w-3 h-3 border-2 border-slate-400 border-t-transparent rounded-full animate-spin"></div>
+                                )}
                                 <div className="flex items-center gap-0 opacity-0 group-hover/legend:opacity-100 transition-opacity duration-200 ml-1">
                                     <button
                                         onClick={(e) => { e.stopPropagation(); handleToggleVisibility(ind.instanceId); }}

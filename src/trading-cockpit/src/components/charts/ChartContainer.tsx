@@ -16,11 +16,13 @@ import { ContextMenu, ContextMenuItem } from './contextmenu/ContextMenu';
 import { SettingsModal } from './settings/SettingsModal';
 import { indicatorRegistry } from './indicators/IndicatorRegistry';
 import { ICTSessionsPlugin } from './plugins/ICTSessionsPlugin';
+import { CutOverlayPrimitive } from './plugins/CutOverlayPrimitive';
 import { useBrokerStore } from '../../stores/useBrokerStore';
 import { TradeDistributionManager, ExecutionBatch } from '../../managers/TradeDistributionManager';
 import { useWorkspaceStore } from '../../stores/useWorkspaceStore';
 import { useTradeMonitor } from '../../hooks/useTradeMonitor';
 import { TradeLogService } from '../../services/TradeLogService';
+import { useBacktest } from '../../contexts/BacktestContext';
 
 
 
@@ -66,11 +68,13 @@ interface ChartContainerProps {
     onVisibleRangeChange?: (range: { from: number, to: number }) => void;
     onVisibleLogicalRangeChange?: (range: LogicalRange & { anchorTime?: number, whitespaceOffset?: number }) => void;
     activeIndicators?: any[];
+    onIndicatorLoadStatesChange?: (states: Record<string, boolean>) => void;
     paneId?: string; // New Prop for Identity Verification
     onChartClick?: () => void; // New Prop for Explicit Activation
     scrollToTimeRequest?: { id: string, time: number }; // Scroll Request from Store
     isChartReady?: boolean;
     syncError?: string;
+    dataVersion?: number;
 }
 
 export interface ChartContainerHandle {
@@ -109,18 +113,57 @@ export const ChartContainer = React.forwardRef<ChartContainerHandle, ChartContai
     onVisibleRangeChange, // Destructure new prop
     onVisibleLogicalRangeChange,
     activeIndicators = [],
+    onIndicatorLoadStatesChange,
     paneId, // Destructure paneId
     onChartClick, // Destructure onChartClick
     scrollToTimeRequest, // Destructure scrollToTimeRequest
     isChartReady = true, // Default to true for backward compatibility
-    syncError
+    syncError,
+    dataVersion
 }, ref) => {
     const mainContainerRef = useRef<HTMLDivElement>(null);
     const containerRefA = useRef<HTMLDivElement>(null);
     const containerRefB = useRef<HTMLDivElement>(null);
 
     const { theme } = useChartTheme();
-    const { isTestMode, activeDrawingTool } = useWorkspaceStore();
+    const { isTestMode, activeDrawingTool, workspaces, activeWorkspaceId } = useWorkspaceStore();
+    const { activeSession, isCutModeActive, setIsCutModeActive, jumpToTime } = useBacktest();
+
+    // Cut Mode Refs & Effect
+    const cutOverlayRef = useRef<CutOverlayPrimitive | null>(null);
+    const isCutModeActiveRef = useRef(false);
+    const jumpToTimeRef = useRef<any>(null);
+    const setIsCutModeActiveRef = useRef<any>(null);
+
+    useEffect(() => {
+        isCutModeActiveRef.current = isCutModeActive;
+        jumpToTimeRef.current = jumpToTime;
+        setIsCutModeActiveRef.current = setIsCutModeActive;
+
+        if (seriesARef.current) {
+            if (isCutModeActive) {
+                if (!cutOverlayRef.current) {
+                    cutOverlayRef.current = new CutOverlayPrimitive();
+                    seriesARef.current.attachPrimitive(cutOverlayRef.current);
+                }
+            } else {
+                if (cutOverlayRef.current) {
+                    seriesARef.current.detachPrimitive(cutOverlayRef.current);
+                    cutOverlayRef.current = null;
+                }
+            }
+        }
+    }, [isCutModeActive, jumpToTime, setIsCutModeActive]);
+
+    // --- JUMP / DATA VERSION RESET ---
+    useEffect(() => {
+        if (dataVersion !== undefined && dataVersion > 0) {
+            console.log(`[ChartContainer] DataVersion updated to ${dataVersion}. Forcing re-fit and state reset.`);
+            hasFittedARef.current = false;
+            hasFittedBRef.current = false;
+            viewStateRef.current = { type: 'NONE', savedBarCount: null, savedRightTime: null, savedRightOffset: null, savedRange: null };
+        }
+    }, [dataVersion]);
 
     const chartARef = useRef<IChartApi | null>(null);
     const chartBRef = useRef<IChartApi | null>(null);
@@ -132,6 +175,9 @@ export const ChartContainer = React.forwardRef<ChartContainerHandle, ChartContai
     // DATA REFS for Sync Closure Access
     const dataARef = useRef<any[]>([]);
     const dataBRef = useRef<any[]>([]);
+
+    // INDICATOR LOADING STATES
+    const indicatorLoadingStatesRef = useRef<Record<string, boolean>>({});
 
     // --- SCROLL TO TIME EFFECT ---
     useEffect(() => {
@@ -285,12 +331,17 @@ export const ChartContainer = React.forwardRef<ChartContainerHandle, ChartContai
             const logEntry = logs.find(l => l.id === trade.tradeId);
 
             // 2. Resolve Levels (Current Live > Local Log Fallback)
-            const entryPrice = trade.avgEntry || logEntry?.initialEntry || 0;
-            const slPrice = trade.avgSl || logEntry?.initialSL || 0;
-            const tpPrice = trade.avgTp || logEntry?.initialTP || 0;
+            const tAny = trade as any;
+            // Explicitly favor the new explicitly injected raw entryPrice from useTradeMonitor
+            const entryPrice = tAny.entryPrice || trade.avgEntry || logEntry?.initialEntry || tAny.entry_price || tAny.entry || 0;
+            const slPrice = trade.avgSl || logEntry?.initialSL || tAny.sl || 0;
+            const tpPrice = trade.avgTp || logEntry?.initialTP || tAny.tp || 0;
+
+            console.log(`[ChartContainer:${trade.tradeId}] Eval => entryPriceMap=${tAny.entryPrice}, avgEntry=${trade.avgEntry}, entry_price=${tAny.entry_price}, entry=${tAny.entry}, initial=${logEntry?.initialEntry} => RESOLVED: ${entryPrice}`);
+            console.log(`[ChartContainer:${trade.tradeId}] Volume => vol=${trade.volume}, totalVol=${trade.totalVol}, size=${trade.size} => RESOLVED: ${trade.volume || trade.totalVol || trade.size || 0}`);
 
             // Extract the original execution entry price from DB matches or local log fallback
-            const initialEntryPrice = trade.positions?.[0]?.initialEntry || logEntry?.initialEntry || trade.avgEntry || 0;
+            const initialEntryPrice = trade.positions?.[0]?.initialEntry || logEntry?.initialEntry || trade.avgEntry || tAny.entry_price || 0;
 
             // 3. Create/Update Tool
             // We use createShape with ID override. If it exists, it might duplicate or we rely on ChartWidget to handle?
@@ -317,7 +368,7 @@ export const ChartContainer = React.forwardRef<ChartContainerHandle, ChartContai
                             profitColor: 'rgba(16, 185, 129, 1)',
                             currentProfit: trade.unrealizedPl,
                             currency: 'USD', // Hardcoded or derive from symbol/account
-                            volume: trade.volume || trade.size || 0, // Pass Volume
+                            volume: trade.volume || trade.totalVol || trade.size || 0, // Pass Volume
                             contractSize: 1, // Default to 1 (CFD/Crypto) or need to fetch from broker info
                             allSlAtBe: trade.allSlAtBe,
                             anySlAtBe: trade.anySlAtBe,
@@ -343,7 +394,7 @@ export const ChartContainer = React.forwardRef<ChartContainerHandle, ChartContai
 
                     // Update Volume if missing in state
                     if ((primitive as any)._data && !(primitive as any)._data.volume) {
-                        (primitive as any)._data.volume = trade.volume || trade.size || 0;
+                        (primitive as any)._data.volume = trade.volume || trade.totalVol || trade.size || 0;
                     }
 
                     // Direct Profit Update
@@ -546,6 +597,28 @@ export const ChartContainer = React.forwardRef<ChartContainerHandle, ChartContai
         const fetchPlan = async () => {
             console.log(`[ChartContainer] EFFECT TRIGGERED: fetchPlan initiated for trade ID ${pendingTrade?.id}`);
             try {
+                if (activeSession) {
+                    const mockAccount = {
+                        id: activeSession.id,
+                        accountId: activeSession.id,
+                        login: `SIM-${activeSession.id.substring(0, 4)}`,
+                        name: activeSession.name || 'Backtest Test Account',
+                        brokerId: 'BACKTEST',
+                        status: 'RUNNING',
+                        isConnected: true,
+                        riskPercent: 1.0,
+                        balance: activeSession.initial_balance || 100000,
+                        equity: activeSession.current_balance || 100000
+                    };
+                    if (isMounted) {
+                        setMappedManualAccounts([mockAccount]);
+                        setSelectedManualAccountIds([mockAccount.id]);
+                        setDistributionMode('manual');
+                        setExecutionPlan(null);
+                    }
+                    return;
+                }
+
                 // Fetch mapped accounts for the Manual Mode base
                 const mappedAccounts = TradeDistributionManager.getMappedAccounts(pendingTrade, accounts, brokers, isTestMode);
                 if (isMounted) {
@@ -882,6 +955,15 @@ export const ChartContainer = React.forwardRef<ChartContainerHandle, ChartContai
 
         // Subscribe to Click for Activation and Drawing
         chartA.subscribeClick((param) => {
+            // Cut Mode: Handle click to jump back in time
+            if (isCutModeActiveRef.current && param.time) {
+                if (jumpToTimeRef.current && setIsCutModeActiveRef.current) {
+                    jumpToTimeRef.current((param.time as number) * 1000);
+                    setIsCutModeActiveRef.current(false);
+                }
+                return; // Prevent normal click behaviors
+            }
+
             if (onChartClick) onChartClick();
 
             // Handle drawing mode placement
@@ -899,6 +981,11 @@ export const ChartContainer = React.forwardRef<ChartContainerHandle, ChartContai
         let isCrosshairOverridden = false;
 
         chartA.subscribeCrosshairMove((param) => {
+            // Cut Mode: Update overlay position
+            if (isCutModeActiveRef.current && cutOverlayRef.current) {
+                cutOverlayRef.current.updateHoverTime((param.time as number) || null);
+            }
+
             // Ignore synthetic crosshair movements triggered by programmatic snapping
             if (!param.sourceEvent) return;
 
@@ -1801,27 +1888,58 @@ export const ChartContainer = React.forwardRef<ChartContainerHandle, ChartContai
             if (plugin && ind.visible) {
                 const def = indicatorRegistry.get(ind.defId);
                 if (def && def.dataFetcher) {
+
+                    // NEW: Update Loading State
+                    indicatorLoadingStatesRef.current[ind.instanceId] = true;
+                    if (onIndicatorLoadStatesChange) onIndicatorLoadStatesChange({ ...indicatorLoadingStatesRef.current });
+
                     // Fetch Data logic
                     const currentDataA = dataARef.current;
                     const fromTime = currentDataA.length > 0 ? currentDataA[0].time : Math.floor(Date.now() / 1000) - 86400 * 30;
                     const toTime = currentDataA.length > 0 ? currentDataA[currentDataA.length - 1].time : Math.floor(Date.now() / 1000);
+
+                    // Inject other_symbols automatically from workspace
+                    let enrichedSettings = { ...ind.settings };
+                    const activeWs = workspaces.find(w => w.id === activeWorkspaceId);
+                    if (activeWs) {
+                        const otherSymbols = activeWs.panes
+                            .filter(p => p.symbol && p.symbol !== symbol)
+                            .map(p => p.symbol);
+                        // Prevent sending self as target
+                        enrichedSettings.other_symbols = Array.from(new Set(otherSymbols));
+                    }
 
                     def.dataFetcher({
                         symbol: symbol,
                         timeframe: timeframe,
                         from: (fromTime as number) * 1000,
                         to: (toTime as number) * 1000,
-                        settings: ind.settings
+                        settings: enrichedSettings,
+                        backtestId: activeSession?.id
                     }).then(data => {
                         if (plugin.updateSessions) {
                             plugin.updateSessions(data);
                         }
-                    }).catch(e => console.error("Indicator Data Fetch Failed", e));
+                        if (plugin.updateDivergences) {
+                            plugin.updateDivergences(data);
+                        }
+
+                        // NEW: Update Loading State
+                        indicatorLoadingStatesRef.current[ind.instanceId] = false;
+                        if (onIndicatorLoadStatesChange) onIndicatorLoadStatesChange({ ...indicatorLoadingStatesRef.current });
+
+                    }).catch(e => {
+                        console.error("Indicator Data Fetch Failed", e);
+
+                        // NEW: Update Loading State (Failed/Finished)
+                        indicatorLoadingStatesRef.current[ind.instanceId] = false;
+                        if (onIndicatorLoadStatesChange) onIndicatorLoadStatesChange({ ...indicatorLoadingStatesRef.current });
+                    });
                 }
             }
         });
 
-    }, [activeIndicators, symbol, timeframe, chartReady]);
+    }, [activeIndicators, symbol, timeframe, chartReady, dataVersion]);
 
     // --- PUSH DATA TO PLUGINS ON TICK ---
     useEffect(() => {
@@ -2119,6 +2237,10 @@ export const ChartContainer = React.forwardRef<ChartContainerHandle, ChartContai
                 const selectedAccounts = mappedManualAccounts.filter(a => selectedManualAccountIds.includes(a.id));
                 if (selectedAccounts.length > 0) {
                     const finalTrade = { ...tradeToExecute, environment: isTestMode ? 'test' : 'live' };
+                    if (activeSession) {
+                        finalTrade.backtestId = activeSession.id;
+                        finalTrade.environment = 'backtest';
+                    }
                     batches = [{ brokerId: 'MULTIPLE', trade: finalTrade, accounts: selectedAccounts }];
                 }
             }
@@ -2283,7 +2405,8 @@ export const ChartContainer = React.forwardRef<ChartContainerHandle, ChartContai
                 )}
                 {/* Chart A Wrapper */}
                 <div
-                    className={`w-full relative min-h-0 bg-slate-50 dark:bg-slate-900/10 ${isSingleMode ? 'flex-1' : 'flex-1'}`}
+                    className={`w-full relative min-h-0 bg-slate-50 dark:bg-slate-900/10 flex-1`}
+                    style={isCutModeActive ? { cursor: `url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="2"><circle cx="6" cy="6" r="3"></circle><circle cx="6" cy="18" r="3"></circle><line x1="20" y1="4" x2="8.12" y2="15.88"></line><line x1="14.47" y1="14.48" x2="20" y2="20"></line><line x1="8.12" y1="8.12" x2="12" y2="12"></line></svg>') 12 12, crosshair` } : undefined}
                     onMouseMove={(e) => {
                         const rect = e.currentTarget.getBoundingClientRect();
                         currentMousePosRef.current = {
@@ -2410,7 +2533,7 @@ export const ChartContainer = React.forwardRef<ChartContainerHandle, ChartContai
             {pendingTrade && (
                 <div className="absolute inset-0 z-[100] flex items-center justify-center bg-slate-950/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
                     <div className="bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl shadow-2xl w-full max-w-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
-                        <div className={`px-5 py-3 flex justify-between items-center shadow-md ${isTestMode ? 'bg-amber-600 text-white' : 'bg-indigo-600 text-white'}`}>
+                        <div className={`px-5 py-3 flex justify-between items-center shadow-md ${activeSession ? 'bg-fuchsia-600 dark:bg-fuchsia-700 text-white' : (isTestMode ? 'bg-amber-600 text-white' : 'bg-indigo-600 text-white')}`}>
                             <h3 className="flex items-baseline gap-2.5">
                                 <span className="font-mono bg-white/10 dark:bg-black/20 border border-white/20 dark:border-white/10 px-2.5 py-0.5 rounded shadow-sm text-white font-medium tracking-wide text-sm">
                                     {pendingTrade.symbol}
@@ -2425,30 +2548,32 @@ export const ChartContainer = React.forwardRef<ChartContainerHandle, ChartContai
                         </div>
 
                         {/* Mode Toggles */}
-                        <div className="px-6 pt-5 pb-3 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800">
-                            <div className="flex gap-3 w-full mb-1">
-                                <button
-                                    onClick={() => setDistributionMode('automatic')}
-                                    className={`flex-1 py-2 px-3 rounded-lg border text-xs font-bold flex items-center justify-center gap-2 transition-all ${distributionMode === 'automatic'
-                                        ? (isTestMode ? 'border-amber-500 bg-amber-500/10 text-amber-600 dark:text-amber-500' : 'border-indigo-600 bg-indigo-600/10 text-indigo-600 dark:text-indigo-500')
-                                        : 'border-slate-200 dark:border-slate-800 text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800'
-                                        }`}
-                                >
-                                    <div className={`w-2 h-2 rounded-full ${distributionMode === 'automatic' ? (isTestMode ? 'bg-amber-500' : 'bg-indigo-600 dark:bg-indigo-500') : 'bg-slate-300 dark:bg-slate-700'}`}></div>
-                                    <span>AUTOMATIC DISTRIBUTION</span>
-                                </button>
-                                <button
-                                    onClick={() => setDistributionMode('manual')}
-                                    className={`flex-1 py-2 px-3 rounded-lg border text-xs font-bold flex items-center justify-center gap-2 transition-all ${distributionMode === 'manual'
-                                        ? (isTestMode ? 'border-amber-500 bg-amber-500/10 text-amber-600 dark:text-amber-500' : 'border-indigo-600 bg-indigo-600/10 text-indigo-600 dark:text-indigo-500')
-                                        : 'border-slate-200 dark:border-slate-800 text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800'
-                                        }`}
-                                >
-                                    <div className={`w-2 h-2 rounded-full ${distributionMode === 'manual' ? (isTestMode ? 'bg-amber-500' : 'bg-indigo-600 dark:bg-indigo-500') : 'bg-slate-300 dark:bg-slate-700'}`}></div>
-                                    <span>MANUAL SELECTION</span>
-                                </button>
+                        {!activeSession && (
+                            <div className="px-6 pt-5 pb-3 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800">
+                                <div className="flex gap-3 w-full mb-1">
+                                    <button
+                                        onClick={() => setDistributionMode('automatic')}
+                                        className={`flex-1 py-2 px-3 rounded-lg border text-xs font-bold flex items-center justify-center gap-2 transition-all ${distributionMode === 'automatic'
+                                            ? (isTestMode ? 'border-amber-500 bg-amber-500/10 text-amber-600 dark:text-amber-500' : 'border-indigo-600 bg-indigo-600/10 text-indigo-600 dark:text-indigo-500')
+                                            : 'border-slate-200 dark:border-slate-800 text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800'
+                                            }`}
+                                    >
+                                        <div className={`w-2 h-2 rounded-full ${distributionMode === 'automatic' ? (isTestMode ? 'bg-amber-500' : 'bg-indigo-600 dark:bg-indigo-500') : 'bg-slate-300 dark:bg-slate-700'}`}></div>
+                                        <span>AUTOMATIC DISTRIBUTION</span>
+                                    </button>
+                                    <button
+                                        onClick={() => setDistributionMode('manual')}
+                                        className={`flex-1 py-2 px-3 rounded-lg border text-xs font-bold flex items-center justify-center gap-2 transition-all ${distributionMode === 'manual'
+                                            ? (isTestMode ? 'border-amber-500 bg-amber-500/10 text-amber-600 dark:text-amber-500' : 'border-indigo-600 bg-indigo-600/10 text-indigo-600 dark:text-indigo-500')
+                                            : 'border-slate-200 dark:border-slate-800 text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800'
+                                            }`}
+                                    >
+                                        <div className={`w-2 h-2 rounded-full ${distributionMode === 'manual' ? (isTestMode ? 'bg-amber-500' : 'bg-indigo-600 dark:bg-indigo-500') : 'bg-slate-300 dark:bg-slate-700'}`}></div>
+                                        <span>MANUAL SELECTION</span>
+                                    </button>
+                                </div>
                             </div>
-                        </div>
+                        )}
 
                         <div className="p-0 overflow-hidden">
                             {/* Execution Plan Table */}

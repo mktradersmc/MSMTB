@@ -98,6 +98,8 @@ class SystemOrchestrator {
         // Queues (Separate for strict prioritization)
         this.isSyncing = false;
 
+        this.initVirtualBrokers(); // NEW: Boot PAPER_BOT
+
         // --- TASK 0300: Monitoring ---
         this.startSystemFileMonitor(); // Start monitoring MQL5 files
 
@@ -187,6 +189,50 @@ class SystemOrchestrator {
     }
 
     // --- HELPER METHODS ---
+
+    setSocketServer(server) {
+        this.socketServer = server;
+        console.log(`[SystemOrchestrator] SocketServer attached successfully.`);
+    }
+
+    initVirtualBrokers() {
+        try {
+            const workerFactory = require('../framework/worker/WorkerFactory');
+            const tzService = require('./TimezoneNormalizationService');
+            const botId = 'PAPER_BOT';
+
+            // 1. Create a single Virtual Worker designed to handle everything
+            const worker = workerFactory.createWorker(botId, 'BACKTEST', 'ALL', `${botId}:ALL:ALL`, this.features, {}, 'UTC');
+            worker.botId = botId;
+
+            // 2. Bind to all 4 functional capabilities
+            this.workers.set(`${botId}:DATAFEED:ALL`, worker);
+            this.workers.set(`${botId}:TICK_SPY:ALL`, worker);
+            this.workers.set(`${botId}:HISTORY:ALL`, worker);
+            this.workers.set(`${botId}:TRADING:ALL`, worker);
+
+            // 3. Fake network liveness
+            this.botServers.set(botId, { isVirtual: true, botId: botId });
+            tzService.registerBotTimezone(botId, 'UTC');
+
+            this.botStatus[botId] = {
+                id: botId,
+                connected: true,
+                status: 'RUNNING',
+                provider: 'VirtualBroker',
+                platform: 'NodeNode',
+                version: '1.0',
+                features: this.features,
+                timezone: 'UTC',
+                lastHeartbeat: Date.now()
+            };
+            this.updateBotDbStatus(botId, 'RUNNING');
+
+            console.log(`[SystemOrchestrator] 🚀 Virtual Broker ${botId} registered for DATAFEED, TICK_SPY, HISTORY, and TRADING.`);
+        } catch (e) {
+            console.error(`[SystemOrchestrator] ❌ Failed to init Virtual Broker PAPER_BOT:`, e);
+        }
+    }
 
     startProcessMonitor() {
         // Run every 2 seconds for high-fidelity state tracking
@@ -474,6 +520,22 @@ class SystemOrchestrator {
             }
         });
 
+        // NEW: INJECT PAPER_BOT SYMBOLS
+        this.configuredSymbols.forEach(c => {
+            const symName = c.symbol;
+            const pbKey = `PAPER_BOT:${symName}`;
+            if (!seen.has(pbKey)) {
+                seen.add(pbKey);
+                allSymbols.push({
+                    name: symName,
+                    botId: 'PAPER_BOT',
+                    path: 'Virtual/Backtest',
+                    desc: 'Simulated Broker Datafeed',
+                    digits: c.digits || 5
+                });
+            }
+        });
+
         // 4. Expose & Emit
         this.availableSymbols = allSymbols;
         console.log(`[SystemOrchestrator] 🔄 Refreshed Available Symbols. Total Count: ${allSymbols.length}`);
@@ -612,22 +674,35 @@ class SystemOrchestrator {
         return this.sendToBot(routingKey, commandName, payload, requestId);
     }
 
-    getWorkerBySymbol(func, symbol) {
+    getWorkerBySymbol(func, symbol, botId = null) {
         if (!func || !symbol) return null;
         const cleanFunc = func.trim();
         const cleanSymbol = symbol.trim();
-        // Strict Suffix: :FUNC:SYMBOL
-        const suffix = `:${cleanFunc}:${cleanSymbol}`;
 
+        // 1. Exact RoutingKey Match (if botId is provided)
+        if (botId) {
+            const exactKey = `${botId}:${cleanFunc}:${cleanSymbol}`;
+            if (this.workers.has(exactKey)) return this.workers.get(exactKey);
+
+            // Fallback to Bot's Wildcard (e.g. PAPER_BOT:HISTORY:ALL)
+            const wildcardKey = `${botId}:${cleanFunc}:ALL`;
+            if (this.workers.has(wildcardKey)) return this.workers.get(wildcardKey);
+        }
+
+        // 2. Strict Suffix: :FUNC:SYMBOL
+        const suffix = `:${cleanFunc}:${cleanSymbol}`;
         for (const [key, worker] of this.workers) {
             if (key.endsWith(suffix)) return worker;
         }
 
-        // Debug: Why not found?
-        // Only log if it's not a common probe
-        if (cleanFunc === 'TICK_SPY') {
-            // console.warn(`[SystemOrchestrator] ⚠️ Worker Lookup Failed. Suffix: '${suffix}'. Available: ${Array.from(this.workers.keys()).join(', ')}`);
+        // 3. Global Wildcard Fallback (For virtual brokers handling EVERYTHING)
+        const wildcardSuffix = `:${cleanFunc}:ALL`;
+        for (const [key, worker] of this.workers) {
+            // But ONLY if the user didn't explicitly request a specific bot that doesn't exist
+            if (!botId && key.endsWith(wildcardSuffix)) return worker;
+            if (botId && key.startsWith(`${botId}:`) && key.endsWith(wildcardSuffix)) return worker;
         }
+
         return null;
     }
 
@@ -1241,9 +1316,18 @@ class SystemOrchestrator {
         }
         else if (msg.type === 'EV_BAR_CLOSED' || msg.type === 'EV_BAR_UPDATE') {
             const payload = msg.payload || msg.content || msg;
-            const { symbol: barSymbol, timeframe, candle } = payload;
+            const { symbol: barSymbol, timeframe, candle, backtestId, botId } = payload;
+
             // Use symbol from payload if present, else routing symbol
             const targetSymbol = barSymbol || symbol;
+
+            // Determine explicit routing key (Backtest worker sends backtestId, Live worker sends botId)
+            let explicitRoutingKey = routingKey;
+            if (backtestId) {
+                explicitRoutingKey = `${backtestId}:TICK_SPY:${targetSymbol}`;
+            } else if (botId && !routingKey) {
+                explicitRoutingKey = `${botId}:TICK_SPY:${targetSymbol}`;
+            }
 
             if (targetSymbol && candle) {
                 let io = null;
@@ -1254,6 +1338,7 @@ class SystemOrchestrator {
 
                 if (io) {
                     const bar = {
+                        routingKey: explicitRoutingKey,
                         symbol: targetSymbol,
                         timeframe,
                         time: candle.time,
@@ -1268,7 +1353,9 @@ class SystemOrchestrator {
                     // Helper method assumed to exist or add it
                     if (this.updateServerTime) this.updateServerTime(bar.time);
 
-                    io.to(targetSymbol).emit('bar_update', bar);
+                    const roomName = explicitRoutingKey || targetSymbol;
+
+                    io.to(roomName).emit('bar_update', bar);
                 }
             }
         }
@@ -1280,7 +1367,9 @@ class SystemOrchestrator {
             const targetSymbol = hSymbol || symbol;
 
             if (this.socketServer && this.socketServer.io && candles && candles.length > 0) {
-                this.socketServer.io.to(targetSymbol).emit('history_update', {
+                const roomName = routingKey || targetSymbol;
+                this.socketServer.io.to(roomName).emit('history_update', {
+                    routingKey: routingKey,
                     symbol: targetSymbol,
                     timeframe,
                     candles
@@ -1295,18 +1384,26 @@ class SystemOrchestrator {
         }
         else if (msg.type === 'SYNC_UPDATE') {
             // Unify content access
-            const { symbol: sSymbol, timeframe, status, message } = msg.content || msg;
+            const payload = msg.content || msg.payload || msg;
+            const { symbol: sSymbol, timeframe, status, message } = payload;
             if (sSymbol && timeframe) {
                 this.updateSyncStatus(sSymbol, timeframe, status, message);
             } else {
-                this.updateSyncStatus(msg.symbol, msg.timeframe, msg.status);
+                this.updateSyncStatus(payload.symbol, payload.timeframe, payload.status);
             }
         }
         else if (msg.type === 'SYNC_COMPLETE') {
-            const { symbol: sSymbol, timeframe } = msg.content || msg;
+            const payload = msg.content || msg.payload || msg;
+            const { symbol: sSymbol, timeframe } = payload;
             if (this.socketServer && this.socketServer.io) {
                 this.socketServer.io.emit('SYNC_COMPLETE', { symbol: sSymbol, timeframe });
                 console.log(`[Sync] ✅ Worker Reports SYNC_COMPLETE for ${sSymbol} ${timeframe}`);
+            }
+        }
+        else if (msg.type === 'SYS_BACKTEST_STEP_OK') {
+            const { backtestId, newTime } = msg.payload || msg.content || msg;
+            if (this.socketServer && this.socketServer.io) {
+                this.socketServer.io.emit('BACKTEST_STEP_COMPLETE', { backtestId, newTime });
             }
         }
         else if (msg.type === 'DISCOVERY_UPDATE') {
@@ -2065,6 +2162,9 @@ class SystemOrchestrator {
             // and might not react to partial updates.
             this.socketServer.io.emit('all_symbols_list', this.availableSymbols);
         }
+
+        // Trigger dynamic migration of digits for configured symbols
+        this.migrateConfiguredSymbolsDigits(botId);
     }
 
     requestAvailableSymbols(targetBotId = null) {
@@ -2942,11 +3042,11 @@ class SystemOrchestrator {
         if (!exists) {
             this.configuredSymbols.push(symbolObj);
 
-            // 2. Persist to DB
-            db.setConfig('selected_symbols', this.configuredSymbols);
-
-            // 3. Rebuild Maps (Crucial for BotID resolution)
+            // 2. Rebuild Maps (Crucial for BotID resolution & Digits Hydration)
             this.rebuildSymbolMaps();
+
+            // 3. Persist to DB (Now with hydrated digits)
+            db.setConfig('selected_symbols', this.configuredSymbols);
 
             // 4. Spawn Worker Immediately
             if (true) {
@@ -3044,10 +3144,6 @@ class SystemOrchestrator {
         console.log(`[Sync] ✅ Startup Triggered for ${botsToSync.size} bots.`);
     }
 
-    /**
-     * Generic Worker Lookup
-     * Constructs standard Routing Key: BotID:Function:Symbol
-     */
     getWorker(botId, func, symbol) {
         if (!botId || !func || !symbol) return null;
 
@@ -3058,39 +3154,46 @@ class SystemOrchestrator {
             return this.workers.get(routingKey);
         }
 
+        // Fallback: If specific symbol channel isn't found, check if the bot registered an 'ALL' catch-all
+        const wildcardKey = `${botId}:${func}:ALL`;
+        if (this.workers.has(wildcardKey)) {
+            return this.workers.get(wildcardKey);
+        }
+
         return null;
     }
 
     /* triggerBackgroundSync REMOVED */
 
     // --- SUBSCRIPTION & HISTORY LOGIC (RESTORED) ---
-    async handleSubscribe(connectionId, symbol, timeframe, traceId) {
-        console.log(`[Sync] ➕ User Subscribed to ${symbol} ${timeframe}`);
+    async handleSubscribe(connectionId, routingKey, timeframe, traceId) {
+        if (!routingKey) return { history: [], hot: null };
 
-        const msg = { type: 'CMD_SUBSCRIBE_TICKS', content: { symbol, timeframe } };
+        const parts = routingKey.split(':');
+        const botId = parts.length > 0 ? parts[0] : null;
+        const targetFunc = parts.length > 1 ? parts[1] : null;
+        const targetSymbol = parts.length > 2 ? parts[2] : routingKey; // fallback
+
+        console.log(`[!!! ALARM-FLOW-TICKSPY 4 !!!] [Orchestrator] splittet '${routingKey}' -> BotId=${botId}, Func=${targetFunc}, Symbol=${targetSymbol}`);
+
+        console.log(`[Sync] ➕ User Subscribed to ${targetSymbol} ${timeframe} | Route: ${routingKey}`);
+
+        const msg = { type: 'CMD_SUBSCRIBE_TICKS', content: { symbol: targetSymbol, timeframe, routingKey } };
         let workerFound = false;
 
-        // Route to Active TICK_SPY Worker for this Symbol
-        const sw = this.getWorkerBySymbol('TICK_SPY', symbol);
-        if (sw) {
-            sw.postMessage(msg);
+        // DIRECT ROUTING WITHOUT FUZZY LOGIC
+        const worker = this.getWorker(botId, targetFunc, targetSymbol);
+        if (worker) {
+            console.log(`[!!! ALARM-FLOW-TICKSPY 5 !!!] [Orchestrator] Worker gefunden! Sende CMD_SUBSCRIBE_TICKS an RoutingKey=${routingKey}`);
+            worker.postMessage(msg);
             workerFound = true;
         } else {
-            console.log(`[Sync] ⚠️ Subscribe: TICK_SPY Worker not found for ${symbol}`);
-        }
-
-        // Route to Active HISTORY Worker for this Symbol
-        const hw = this.getWorkerBySymbol('HISTORY', symbol);
-        if (hw) {
-            hw.postMessage(msg);
-            workerFound = true;
-        } else {
-            console.log(`[Sync] ⚠️ Subscribe: HISTORY Worker not found for ${symbol}`);
+            console.log(`[Sync] ⚠️ Subscribe: Worker not found for ${routingKey}`);
         }
 
         // Record Subscription State
         if (!this.activeSubscriptions) this.activeSubscriptions = new Map();
-        const subKey = `${symbol}:${timeframe}`;
+        const subKey = `${routingKey}:${timeframe}`;
         if (!this.activeSubscriptions.has(subKey)) {
             this.activeSubscriptions.set(subKey, new Set());
         }
@@ -3098,24 +3201,31 @@ class SystemOrchestrator {
 
         // Update Overall UI Sync Status
         if (workerFound) {
-            this.updateSyncStatus(symbol, timeframe, 'READY', 'Connected');
+            this.updateSyncStatus(targetSymbol, timeframe, 'READY', 'Connected');
         } else {
-            this.updateSyncStatus(symbol, timeframe, 'OFFLINE', 'No Active Bot');
+            this.updateSyncStatus(targetSymbol, timeframe, 'OFFLINE', 'No Active Bot');
         }
 
         // Return Data Snapshot immediately
         const limit = 1000;
-        let history = this.db.getHistory(symbol, timeframe, limit);
-        let hot = this.hotCandles ? this.hotCandles.get(`${symbol}_${timeframe}`) : null;
+        let history = this.db.getHistory(targetSymbol, timeframe, limit);
+        let hot = this.hotCandles ? this.hotCandles.get(`${targetSymbol}_${timeframe}`) : null;
         return { history, hot };
     }
 
-    handleUnsubscribe(connectionId, symbol, timeframe) {
-        console.log(`[Sync] ➖ User Unsubscribed from ${symbol} ${timeframe}`);
+    handleUnsubscribe(connectionId, routingKey, timeframe) {
+        if (!routingKey) return false;
+
+        const parts = routingKey.split(':');
+        const botId = parts.length > 0 ? parts[0] : null;
+        const targetFunc = parts.length > 1 ? parts[1] : null;
+        const targetSymbol = parts.length > 2 ? parts[2] : routingKey; // fallback
+
+        console.log(`[Sync] ➖ User Unsubscribed from ${targetSymbol} ${timeframe} | Route: ${routingKey}`);
         let shouldLeaveRoom = false;
 
         if (this.activeSubscriptions) {
-            const subKey = `${symbol}:${timeframe}`;
+            const subKey = `${routingKey}:${timeframe}`;
             const subs = this.activeSubscriptions.get(subKey);
             if (subs) {
                 subs.delete(connectionId);
@@ -3123,41 +3233,44 @@ class SystemOrchestrator {
                 if (subs.size === 0) {
                     this.activeSubscriptions.delete(subKey);
 
-                    const msg = { type: 'CMD_UNSUBSCRIBE_TICKS', content: { symbol, timeframe } };
-
-                    // Route to Active TICK_SPY Worker
-                    const sw = this.getWorkerBySymbol('TICK_SPY', symbol);
-                    if (sw) sw.postMessage(msg);
-
-                    // Route to Active HISTORY Worker
-                    const hw = this.getWorkerBySymbol('HISTORY', symbol);
-                    if (hw) hw.postMessage(msg);
+                    const msg = { type: 'CMD_UNSUBSCRIBE_TICKS', content: { symbol: targetSymbol, timeframe, routingKey } };
+                    const worker = this.getWorker(botId, targetFunc, targetSymbol);
+                    if (worker) worker.postMessage(msg);
                 }
             }
 
             // Check if THIS SPECIFIC connectionId is still subscribed to ANY other timeframe for this symbol
             let hasOtherTFs = false;
+            const targetPrefix = `${routingKey}:`;
             for (const [key, users] of this.activeSubscriptions.entries()) {
-                if (key.startsWith(`${symbol}:`) && users.has(connectionId)) {
+                if (key.startsWith(targetPrefix) && users.has(connectionId)) {
                     hasOtherTFs = true;
                     break;
                 }
             }
 
-            // Only tell SocketServer to leave the global symbol room if they have no other TFs active
+            // Only tell SocketServer to leave the symbol room if they have no other TFs active
             shouldLeaveRoom = !hasOtherTFs;
         }
 
         return shouldLeaveRoom;
     }
 
-    fetchHistoryRange(symbol, timeframe, toTimestamp, limit) {
+    fetchHistoryRange(symbol, timeframe, toTimestamp, limit, preferredBotId = null) {
         return new Promise((resolve, reject) => {
-            const botId = this.resolveBotId(symbol);
+            // STOP GUESSING: The frontend now passes the botId or we extract it cleanly.
+            // If none provided, ONLY THEN do we fall back to resolving a live bot based on symbol.
+            let botId = preferredBotId;
+            if (!botId) {
+                // Legacy fallback for UI elements that only know the "Symbol" string
+                botId = this.resolveBotId(symbol);
+            }
+
             if (!botId) return reject(new Error('Bot Offline'));
 
-            const workerKey = `${botId}:TICK_SPY:${symbol}`; // Or HISTORY
-            const worker = this.getWorkerBySymbol('HISTORY', symbol) || this.getWorkerBySymbol('DATAFEED', symbol);
+            // Look up the worker using our new intelligent lookup (handles 'ALL' automatically)
+            const worker = this.getWorkerBySymbol('HISTORY', symbol, botId) || this.getWorkerBySymbol('DATAFEED', symbol, botId);
+
             if (!worker) return reject(new Error('Worker not found for history fetch'));
 
             worker.postMessage({
@@ -3248,6 +3361,7 @@ class SystemOrchestrator {
         this.botToSymbolsMap.clear();
 
         this.enrichConfiguredSymbols(); // Ensure datafeedSymbol is populated from DB
+        this.migrateConfiguredSymbolsDigits(); // Ensure digits and other properties are populated from availableSymbols
 
         for (const item of this.configuredSymbols) {
             const symbol = item.symbol || item.originalName || item;
@@ -3321,6 +3435,47 @@ class SystemOrchestrator {
 
         if (enrichedCount > 0) {
             console.log(`[Sync] ✨ Enriched ${enrichedCount} symbols with Asset Mapping Data.`);
+        }
+    }
+
+    // Task: Migrate missing digits to configured symbols dynamically
+    migrateConfiguredSymbolsDigits(botId = null) {
+        if (!this.configuredSymbols || this.configuredSymbols.length === 0) return;
+        if (!this.availableSymbols || this.availableSymbols.length === 0) return;
+
+        let modified = false;
+
+        this.configuredSymbols.forEach(conf => {
+            if (conf.digits === undefined) {
+                // If a specific botId update came in, only attempt migration for matching symbols
+                if (botId && conf.botId && conf.botId !== botId) return;
+
+                const internalName = conf.originalName || conf.symbol;
+                const match = this.availableSymbols.find(a =>
+                    (a.name === internalName || a.name === conf.symbol) &&
+                    ((!conf.botId && !a.botId) || (a.botId === conf.botId))
+                );
+
+                if (match && match.digits !== undefined) {
+                    conf.digits = match.digits;
+                    if (match.description !== undefined) conf.description = match.description;
+                    if (match.path !== undefined) conf.path = match.path;
+                    if (match.exchange !== undefined) conf.exchange = match.exchange;
+                    if (match.type !== undefined) conf.type = match.type;
+
+                    console.log(`[Sync] 🔼 Migrated missing properties for ${conf.symbol} (${conf.botId || 'Global'}): Digits=${conf.digits}`);
+                    modified = true;
+                }
+            }
+        });
+
+        if (modified) {
+            console.log(`[Sync] 💾 Saving ${this.configuredSymbols.length} configured symbols to DB after digits migration.`);
+            db.setConfig('selected_symbols', this.configuredSymbols);
+            if (this.socketServer && this.socketServer.io) {
+                // Ensure UI gets the completely enriched list immediately
+                this.socketServer.io.emit('symbols_updated', { symbols: this.configuredSymbols });
+            }
         }
     }
 

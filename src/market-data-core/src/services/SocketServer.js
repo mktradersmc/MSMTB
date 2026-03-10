@@ -10,11 +10,13 @@ const db = require('./DatabaseService');
 const assetMappingService = require('./AssetMappingService');
 const tradeDistributionService = require('./TradeDistributionService');
 const sessionEngine = require('./SessionEngine');
+const divergenceEngine = require('./DivergenceEngine');
 const AuthService = require('./AuthService');
 
 const { WebSocketServer } = require('ws');
 const botConfigService = require('./BotConfigService'); // Import Service
 const systemConfigService = require('./SystemConfigService');
+const replayEngine = require('./ReplayEngine'); // Backtest Replay Engine
 // ... imports
 const fs = require('fs');
 const path = require('path');
@@ -295,76 +297,11 @@ class SocketServer {
 
         // Symbols Endpoint (For SymbolBrowser)
         this.app.get('/api/symbols', (req, res) => {
-            // Return configured symbols enriched with metadata (digits, path, desc) from availableSymbols
+            // Task: Return configured symbols directly. 
+            // Enrichment (digits, description, botId) is now correctly handled and persisted 
+            // by SystemOrchestrator.migrateConfiguredSymbolsDigits() at startup/config time.
             const configured = systemOrchestrator.configuredSymbols || [];
-            const available = systemOrchestrator.availableSymbols || [];
-
-            const enriched = configured.map(conf => {
-                // RESOLVE MAPPING via AssetMappingService (Single Source of Truth)
-                const internalName = conf.originalName || conf.symbol;
-                const mapping = assetMappingService.cache.get(internalName);
-                const mappedName = mapping ? mapping.datafeed_symbol : (conf.datafeedSymbol || internalName);
-
-                // Find matching available symbol using the MAPPED name (Broker Name)
-                // Logic matches resolveBotId: Check name and botId
-                let brokerSymbolOnly = mappedName;
-                if (mappedName.includes(':')) {
-                    brokerSymbolOnly = mappedName.split(':')[1];
-                }
-
-                let match = available.find(s => {
-                    // 0. Check BotID first
-                    if (conf.botId && s.botId !== conf.botId) return false;
-
-                    const name = s.name;
-                    // 1. Exact Match
-                    if (name === mappedName || name === internalName || name === brokerSymbolOnly) return true;
-                    // 2. Suffix Match (e.g. "NDX100.pro" starts with "NDX100")
-                    if (name.startsWith(brokerSymbolOnly) && name.length > brokerSymbolOnly.length) return true;
-                    return false;
-                });
-
-                // Task 0142: Prepare Fallback Candidate
-                const matchBySymbolOnly = available.find(s => {
-                    const name = s.name;
-                    if (name === mappedName || name === internalName || name === brokerSymbolOnly) return true;
-                    if (name.startsWith(brokerSymbolOnly) && name.length > brokerSymbolOnly.length) return true;
-                    return false;
-                });
-
-                // DEBUG MATCHING
-                // Task 0142: Metadata Fallback (Fix for 'Match Result: NONE')
-                // If strict match fails (Bot is offline), try to find ANY bot with this symbol just for digits/desc.
-                if (!match && matchBySymbolOnly) {
-                    // console.log(`[API] ⚠️ Strict Match failed for ${conf.symbol}. Using Metadata Fallback from ${matchBySymbolOnly.botId}`);
-                    match = matchBySymbolOnly;
-                }
-
-                if (conf.symbol.includes('DE40') || conf.symbol.includes('GER40') || conf.symbol.includes('EURUSD') || conf.symbol.includes('US500') || conf.symbol.includes('US100')) {
-                    console.log(`[DEBUG] Matching ${conf.symbol} (Internal: ${internalName}) -> Mapped: ${mappedName}`);
-                    console.log(`[DEBUG] Match Result:`, match ? `${match.name} (Digits: ${match.digits})` : 'NONE');
-                }
-
-                if (match) {
-                    console.log(`[API] Enriched ${conf.symbol} with Digits: ${match.digits}`);
-                    return {
-                        ...conf,
-                        name: internalName, // Force display name
-                        digits: match.digits,
-                        path: match.path,
-                        desc: match.desc,
-                        // Ensure critical fields aren't overwritten if conf has them
-                    };
-                }
-                // console.warn(`[API] No enrichment match for ${conf.symbol}`);
-                return {
-                    ...conf,
-                    name: conf.originalName || conf.symbol
-                };
-            });
-
-            // console.log(`[API] Serving /symbols. Count: ${enriched.length}`);
-            res.json({ symbols: enriched });
+            res.json({ symbols: configured });
         });
 
         this.app.get('/api/available-symbols', (req, res) => {
@@ -377,8 +314,14 @@ class SocketServer {
                 console.log(`[API] ict-sessions REQ received: ${JSON.stringify(req.query)}`);
             }
             try {
-                let { symbol, timeframe, limit, settings, to } = req.query;
+                let { symbol, timeframe, limit, settings, to, backtestId } = req.query;
                 limit = parseInt(limit) || 1000;
+
+                let simTimeOffset = null;
+                if (backtestId) {
+                    simTimeOffset = replayEngine.getSimulationTime(backtestId);
+                    if (simTimeOffset) to = simTimeOffset;
+                }
 
                 let parsedSettings = {};
                 try {
@@ -414,6 +357,11 @@ class SocketServer {
                     // candles = db.getHistory(symbol, timeframe, limit);
                 }
 
+                // SPOOF: Override config namespace for Backtest isolation
+                if (backtestId) {
+                    parsedSettings._namespace = backtestId;
+                }
+
                 const sessions = await sessionEngine.calculateSessions(symbol, candles, parsedSettings);
                 res.json({ success: true, sessions });
 
@@ -423,13 +371,106 @@ class SocketServer {
             }
         });
 
+        // NEW: Divergence Indicator Endpoint
+        this.app.get('/api/indicators/divergence', async (req, res) => {
+            if (systemOrchestrator.getFeatures().ENABLE_INDICATOR_LOGGING) {
+                console.log(`[API] divergence REQ received: ${JSON.stringify(req.query)}`);
+            }
+            try {
+                let { symbol, timeframe, limit, settings, to, backtestId, targets } = req.query;
+                limit = parseInt(limit) || 1000;
+
+                let simTimeOffset = null;
+                if (backtestId) {
+                    simTimeOffset = replayEngine.getSimulationTime(backtestId);
+                    if (simTimeOffset) to = simTimeOffset;
+                }
+
+                let parsedSettings = {};
+                try {
+                    parsedSettings = settings ? JSON.parse(settings) : {};
+                } catch (e) {
+                    console.error("[API] Failed to parse divergence settings JSON", e);
+                }
+
+                // Default settings if undefined
+                if (!parsedSettings.timeframes) {
+                    const mappedHtfs = [];
+                    if (parsedSettings.show_MN1) mappedHtfs.push('MN1');
+                    if (parsedSettings.show_W1) mappedHtfs.push('W1');
+                    if (parsedSettings.show_D1) mappedHtfs.push('D1');
+                    if (parsedSettings.show_H8) mappedHtfs.push('H8');
+                    if (parsedSettings.show_H4) mappedHtfs.push('H4');
+                    if (parsedSettings.show_H1) mappedHtfs.push('H1');
+
+                    // Fallback to D1/H4 if nothing was selected or if frontend sent an empty object
+                    parsedSettings.timeframes = mappedHtfs.length > 0 ? mappedHtfs : ['D1', 'H4'];
+                }
+
+                if (targets) {
+                    parsedSettings.other_symbols = targets.split(',');
+                }
+
+                if (!parsedSettings.other_symbols || parsedSettings.other_symbols.length === 0) {
+                    return res.json({ success: true, divergences: [] });
+                }
+
+                const parsedTo = to ? parseInt(to) : null;
+                const toLog = parsedTo ? new Date(parsedTo).toISOString() : "LATEST";
+                let candles = db.getHistory(symbol, timeframe, limit, parsedTo);
+
+                // SPOOF: Override namespace to avoid caching leak
+                if (backtestId) {
+                    parsedSettings._namespace = backtestId;
+                }
+
+                const IndicatorDataProvider = require('./IndicatorDataProvider');
+                const dataProvider = new IndicatorDataProvider({
+                    mode: backtestId ? 'BACKTEST' : 'LIVE',
+                    backtestId: backtestId,
+                    simulationTime: simTimeOffset
+                });
+
+                const divergences = await divergenceEngine.calculateDivergences(symbol, timeframe, candles, parsedSettings, dataProvider);
+                res.json({ success: true, divergences });
+
+            } catch (e) {
+                console.error("[API] Divergence Error", e);
+                res.status(500).json({ success: false, error: e.message });
+            }
+        });
+
         // History Endpoint (For Charts)
         // ✅ PERFORMANCE FIX: Non-blocking with immediate response
         this.app.get('/api/history', async (req, res) => {
+            const { routingKey, timeframe, limit, beforeTime, backtestId } = req.query;
+            console.log(`[!!! ALARM-FLOW-BACKEND 1 - GET /api/history !!!] Received request: routingKey=${routingKey}, tf=${timeframe}`);
             try {
-                let { symbol, timeframe, limit, to } = req.query;
+                let { symbol, timeframe, limit, to, backtestId, routingKey } = req.query;
                 limit = parseInt(limit) || 10000;
-                to = to ? parseInt(to) : null;
+
+                // FIX: Extract symbol and backtestId from routingKey if not explicitly provided
+                if (routingKey) {
+                    const parts = routingKey.split(':');
+                    if (!symbol) symbol = parts[parts.length - 1];
+
+                    if (!backtestId && (parts[0].startsWith('SIM-') || parts[0].startsWith('bt_'))) {
+                        backtestId = parts[0];
+                    }
+                }
+
+                if (!symbol) {
+                    return res.status(400).json({ success: false, error: 'Symbol or RoutingKey is required' });
+                }
+
+                if (backtestId) {
+                    const simTime = replayEngine.getSimulationTime(backtestId);
+                    if (simTime) {
+                        to = simTime; // HARD OVERRIDE
+                    }
+                } else {
+                    to = to ? parseInt(to) : null;
+                }
 
                 const toLog = to ? new Date(to).toISOString() : "LATEST";
 
@@ -442,14 +483,61 @@ class SocketServer {
                 // Get from DB (what we have NOW)
                 let candles = db.getHistory(symbol, timeframe, limit, to);
 
-                // ✅ BACKFILL LOGIC: NON-BLOCKING - Respond immediately with partial data
-                if (candles.length < limit && to) {
-                    console.log(`[SocketServer] History Gap for ${symbol} ${timeframe}. Req: ${limit}, Found: ${candles.length}. Triggering BACKGROUND fetch from ${to}.`);
+                // --- BACKTEST FUTURE LEAK PREVENTION & HOT CANDLE SYNTHESIS ---
+                // In backtesting, the DB only contains completed candles (from the real past).
+                // But a DB candle with `time = 10:05` contains data up to `10:10`. 
+                // If `to = 10:06`, `time <= 10:06` pulls the 10:05 candle, leaking 4 mins of future data!
+                if (backtestId && to) {
+                    const tfMs = systemOrchestrator.getTfDurationMs(timeframe);
 
-                    // ✅ NON-BLOCKING: Trigger fetch in background
-                    // ✅ NON-BLOCKING: Trigger fetch in background via SymbolWorker
-                    // Legacy: systemOrchestrator.fetchHistoryRange(...) -> Removed.
-                    // New: Command SymbolWorker to fill the gap
+                    // 1. Hard Filter: Only keep candles that have FULLY CLOSED by `to`.
+                    // A candle is fully closed at `c.time + tfMs`.
+                    candles = candles.filter(c => c.time <= to - tfMs);
+
+                    // 2. Synthesize forming candle for HTF (M5, H1, etc.)
+                    if (timeframe !== 'M1') {
+                        const htfAnchor = Math.floor(to / tfMs) * tfMs;
+
+                        // CRITICAL: We only have a forming candle if we are strictly PAST the anchor.
+                        // If `to === htfAnchor` (e.g. at 10:05:00 exact), the M5 candle hasn't begun.
+                        if (to > htfAnchor) {
+                            // Fetch strictly closed M1 candles since the anchor
+                            const expectedM1s = Math.ceil((to - htfAnchor) / 60000);
+                            const partialM1Raw = db.getHistory(symbol, 'M1', expectedM1s + 5, to);
+
+                            // We only use M1 candles that have FULLY CLOSED before `to`.
+                            // This guarantees that an M1 candle exactly AT `to` (0 ms length) isn't aggregated.
+                            const partialM1 = partialM1Raw.filter(c => c.time >= htfAnchor && c.time < to);
+
+                            if (partialM1.length > 0) {
+                                const hotCandle = {
+                                    time: htfAnchor,
+                                    open: partialM1[0].open,
+                                    high: Math.max(...partialM1.map(c => c.high)),
+                                    low: Math.min(...partialM1.map(c => c.low)),
+                                    close: partialM1[partialM1.length - 1].close,
+                                    volume: partialM1.reduce((acc, c) => acc + (c.volume || 1), 0)
+                                };
+
+                                // Merge hotCandle into candles
+                                if (candles.length > 0) {
+                                    const last = candles[candles.length - 1];
+                                    if (last.time === hotCandle.time) {
+                                        candles[candles.length - 1] = hotCandle;
+                                    } else if (hotCandle.time > last.time) {
+                                        candles.push(hotCandle);
+                                    }
+                                } else {
+                                    candles.push(hotCandle);
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // ✅ BACKFILL LOGIC: NON-BLOCKING - Respond immediately with partial data
+                if (candles.length < limit && to && !backtestId) {
+                    console.log(`[SocketServer] History Gap for ${symbol} ${timeframe}. Req: ${limit}, Found: ${candles.length}. Triggering BACKGROUND fetch from ${to}.`);
 
                     // STRICT CHECK: Is Bot Online?
                     const targetBotId = systemOrchestrator.resolveBotId(symbol);
@@ -469,6 +557,8 @@ class SocketServer {
                     } else {
                         console.log(`[SocketServer] 🛑 Skipping Background Fetch (Bot ${targetBotId} Offline)`);
                     }
+                } else if (candles.length < limit && to && backtestId) {
+                    console.log(`[SocketServer] 🛑 Skipping Gap-Fill for ${symbol} ${timeframe} - Running in Backtest Sandbox.`);
                 }
 
                 // Append Hot Candle from In-Memory Cache if available AND we are fetching latest (no 'to')
@@ -524,10 +614,123 @@ class SocketServer {
 
         // Sync Status Endpoint
         this.app.get('/api/sync-status', (req, res) => {
-            const { symbol } = req.query;
+            const { symbol, backtestId } = req.query;
             if (!symbol) return res.json({});
+
+            // SPOOF: If backtest is active, data is ALWAYS ready locally
+            if (backtestId) {
+                return res.json({
+                    success: true,
+                    status: {
+                        'M1': { status: 'READY' },
+                        'M5': { status: 'READY' },
+                        'M15': { status: 'READY' },
+                        'H1': { status: 'READY' },
+                        'H4': { status: 'READY' },
+                        'D1': { status: 'READY' }
+                    }
+                });
+            }
+
             const status = systemOrchestrator.getStatusSnapshot(symbol);
             res.json({ success: true, status });
+        });
+
+        // --- BACKTEST API ENDPOINTS ---
+        this.app.get('/api/backtest/sessions', (req, res) => {
+            try {
+                res.json({ success: true, sessions: db.getBacktestSessions() });
+            } catch (e) {
+                res.status(500).json({ success: false, error: e.message });
+            }
+        });
+
+        this.app.delete('/api/backtest/sessions/:id', (req, res) => {
+            try {
+                const id = req.params.id;
+                db.deleteBacktestSession(id);
+                res.json({ success: true });
+            } catch (e) {
+                res.status(500).json({ success: false, error: e.message });
+            }
+        });
+
+        this.app.post('/api/backtest/start', (req, res) => {
+            try {
+                const session = replayEngine.startSession(req.body);
+                res.json({ success: true, session });
+            } catch (e) {
+                res.status(500).json({ success: false, error: e.message });
+            }
+        });
+
+        this.app.post('/api/backtest/stop', (req, res) => {
+            try {
+                replayEngine.stopSession(req.body.id);
+                res.json({ success: true });
+            } catch (e) {
+                res.status(500).json({ success: false, error: e.message });
+            }
+        });
+
+        this.app.post('/api/backtest/step', async (req, res) => {
+            try {
+                const { id, amountMs, symbols } = req.body;
+
+                // Advance Time
+                const result = await replayEngine.stepForward(id, amountMs, symbols || ['EURUSD', 'NDX']);
+
+                // Broadcast market data updates via Socket to specific clients
+                // For simplicity, emit to all, but frontend will filter by backtestId (handled in PaperTradeEngine or hook)
+                this.io.emit('BACKTEST_STEP_COMPLETE', {
+                    backtestId: id,
+                    newTime: result.newTime,
+                    updates: result.updatesBySymbol
+                });
+
+                res.json({ success: true, newTime: result.newTime });
+            } catch (e) {
+                res.status(500).json({ success: false, error: e.message });
+            }
+        });
+
+        this.app.post('/api/backtest/jump', async (req, res) => {
+            try {
+                const { id, targetTime } = req.body;
+
+                // Advance or revert Time (jump)
+                const newTime = await replayEngine.jumpTo(id, targetTime);
+
+                res.json({ success: true, newTime });
+            } catch (e) {
+                res.status(500).json({ success: false, error: e.message });
+            }
+        });
+
+        this.app.put('/api/backtest/workspace/:id', (req, res) => {
+            try {
+                const { id } = req.params;
+                const workspaceState = req.body;
+
+                const session = db.getBacktestSession(id);
+                if (!session) {
+                    return res.status(404).json({ success: false, error: 'Session not found' });
+                }
+
+                session.workspace_state = workspaceState;
+                db.saveBacktestSession(session);
+
+                // CRITICAL FIX: Update the memory cache in ReplayEngine to prevent stale overwrites on STOP
+                const activeReplay = replayEngine.activeReplays.get(id);
+                if (activeReplay && activeReplay.data) {
+                    activeReplay.data.workspace_state = workspaceState;
+                }
+
+                res.json({ success: true });
+            } catch (e) {
+                console.error("[API] Save Backtest Workspace Error", e);
+                res.status(500).json({ success: false, error: e.message });
+            }
         });
 
         // --- NEW: Polling Endpoint for Datafeed Status (500ms) ---
@@ -931,24 +1134,7 @@ class SocketServer {
         });
 
         // --- Trade Execution ---
-        this.app.post('/api/trade/execute', (req, res) => {
-            const { trade, accounts } = req.body;
-            console.log(`[API] Trade Execution Request: ${accounts?.length} accounts`);
-            if (accounts && accounts.length > 0) {
-                console.log(`[API] Account Sample: ID=${accounts[0].id}, BotID=${accounts[0].botId}, Login=${accounts[0].login}`);
-            } else {
-                console.warn(`[API] Trade Execution: No accounts provided!`);
-            }
-            const result = tradeDistributionService.executeTrade(trade, accounts);
-            res.json(result);
-        });
-
-        this.app.post('/api/trade/modify', (req, res) => {
-            const { modification, accounts } = req.body;
-            console.log(`[API] Trade Modification Request: ${modification?.action} on ${modification?.tradeId} for ${accounts?.length} accounts`);
-            const result = tradeDistributionService.modifyTrade(modification, accounts);
-            res.json(result);
-        });
+        // (Delegated to the advanced unified routing block below)
 
         // --- ICT Sessions Indicator ---
         this.app.get('/api/indicators/ict-sessions', async (req, res) => {
@@ -1011,6 +1197,13 @@ class SocketServer {
             try {
                 const { trade, accounts } = req.body;
 
+                if (trade && trade.backtestId) {
+                    const paperTradeEngine = require('./PaperTradeEngine');
+                    const tradeResult = paperTradeEngine.executeTrade(trade.backtestId, trade, accounts);
+                    this.io.emit('trades_update_signal', { source: 'backtest_execute' });
+                    return res.json({ tradeId: tradeResult.trade ? tradeResult.trade.id : null, ...tradeResult });
+                }
+
                 // USER REQUEST: IMMEDIATE & DETAILED LOG
                 console.log(`\n[API] >>> TRADE EXECUTION RECEIVED <<<`);
                 console.log(`[API] MasterID: ${trade?.id}`);
@@ -1030,7 +1223,32 @@ class SocketServer {
 
         this.app.post('/api/trade/modify', (req, res) => {
             try {
-                const { modification, accounts } = req.body; // modification: { action, tradeId, percent }
+                const { modification, accounts } = req.body;
+                console.log(`\n================================`);
+                console.log(`[BACKTEST] UI MODIFY PAYLOAD INCOMING:`);
+                console.log(JSON.stringify(modification, null, 2));
+                console.log(`================================\n`);
+
+                if (modification && modification.backtestId) {
+                    console.log(`[API] 🛑 INTERCEPTING MODIFICATION FOR BACKTEST: ${modification.backtestId}`);
+                    const paperEngine = require('./PaperTradeEngine');
+                    const tradeResult = paperEngine.modifyTrade(modification.backtestId, modification);
+
+                    // Explicitly broadcast new balance from DB to bypass orchestrator reference issues
+                    if (tradeResult.success && (modification.action === 'CLOSE' || modification.action === 'CLOSE_PARTIAL')) {
+                        const db = require('./DatabaseService');
+                        const session = db.getBacktestSession(modification.backtestId);
+                        if (session) {
+                            console.log(`[SocketServer] 🚀 Forcing WS Broadcast for session balance: ${session.current_balance}`);
+                            this.io.emit('backtest_balance_update', {
+                                sessionId: session.id,
+                                balance: session.current_balance
+                            });
+                        }
+                    }
+
+                    return res.json({ success: tradeResult.success, results: tradeResult.success ? [{ botId: `SIM-${modification.backtestId}`, status: 'MODIFIED_PAPER', ...tradeResult.trade }] : [] });
+                }
 
                 // USER REQUEST: IMMEDIATE & DETAILED LOG
                 console.log(`\n[API] >>> TRADE MODIFICATION RECEIVED <<<`);
@@ -1051,6 +1269,29 @@ class SocketServer {
         // Lightweight Positions Endpoint for High-Freq Polling (200ms)
         this.app.get('/api/positions', (req, res) => {
             try {
+                const backtestId = req.query.backtestId;
+                if (backtestId) {
+                    const db = require('./DatabaseService');
+                    const trades = db.getBacktestTrades(backtestId).filter(t => t.status === 'OPEN');
+                    const mapped = trades.map(t => ({
+                        id: t.id,
+                        ticket: t.id,
+                        botId: 'PAPER_BOT',
+                        brokerId: 'Backtest Engine',
+                        symbol: t.symbol,
+                        volume: t.volume,
+                        open: t.entry_price,
+                        current: t.current_price || t.entry_price, // Fallback if no true current is known, but PNL is managed directly
+                        profit: t.unrealized_pl || 0,
+                        status: 'RUNNING',
+                        type: t.direction,
+                        sl: t.sl,
+                        tp: t.tp,
+                        time: t.open_time
+                    }));
+                    return res.json({ success: true, positions: mapped });
+                }
+
                 const positions = [];
                 Object.entries(systemOrchestrator.botStatus || {}).forEach(([botId, status]) => {
                     if (status && status.openTrades && Array.isArray(status.openTrades)) {
@@ -1076,6 +1317,15 @@ class SocketServer {
 
                 const batch = req.body;
                 console.log(`[API] Executing Batch for Broker ${batch.brokerId}`);
+
+                // --- BACKTEST INTERCEPTION ---
+                if (batch.trade && batch.trade.backtestId) {
+                    const paperTradeEngine = require('./PaperTradeEngine');
+                    const tradeResult = paperTradeEngine.executeTrade(batch.trade.backtestId, batch.trade, batch.accounts);
+                    this.io.emit('trades_update_signal', { source: 'backtest_execute' });
+                    return res.json({ tradeId: tradeResult.trade ? tradeResult.trade.id : null, ...tradeResult });
+                }
+
                 const result = tradeDistributionService.executeBatch(batch.trade, batch.accounts);
                 res.json(result);
             } catch (e) {
@@ -1088,6 +1338,43 @@ class SocketServer {
         this.app.get('/api/active-trades', (req, res) => {
             try {
                 const env = req.query.env || 'test';
+                const backtestId = req.query.backtestId;
+
+                if (backtestId) {
+                    // Spoof responses using Backtest Engine
+                    const trades = db.getBacktestTrades(backtestId).filter(t => t.status === 'OPEN');
+                    const mapped = trades.map(t => ({
+                        id: t.id,
+                        symbol: t.symbol,
+                        direction: t.direction === 1 ? 'LONG' : 'SHORT',
+                        status: 'OPEN',
+                        entry_price: t.entry_price,
+                        sl: t.sl,
+                        tp: t.tp,
+                        totalVol: t.volume,
+                        profit: t.unrealized_pl || 0,
+                        executions: [{
+                            id: t.id,
+                            masterId: t.id,
+                            master_trade_id: t.id,
+                            bot_id: 'PAPER_BOT',
+                            broker_id: 'Backtest Engine',
+                            account_id: 'Backtest Account',
+                            status: 'RUNNING',
+                            magic_number: t.id,
+                            entry_price: t.entry_price,
+                            sl: t.sl,
+                            tp: t.tp,
+                            volume: t.volume,
+                            realized_pl: t.realized_pl || 0,
+                            unrealized_pl: t.unrealized_pl || 0,
+                            open_time: t.open_time,
+                            brokerName: 'Backtest Engine'
+                        }]
+                    }));
+                    return res.json({ success: true, trades: mapped });
+                }
+
                 const trades = db.getActiveTrades(env);
                 const brokers = db.getBrokers();
                 const accounts = db.getAccounts();
@@ -1154,6 +1441,42 @@ class SocketServer {
             try {
                 const limit = req.query.limit ? parseInt(req.query.limit) : 100;
                 const env = req.query.env || 'test';
+                const backtestId = req.query.backtestId;
+
+                if (backtestId) {
+                    const trades = db.getBacktestTrades(backtestId).filter(t => t.status === 'CLOSED');
+                    const history = trades.map(t => ({
+                        id: t.id,
+                        symbol: t.symbol,
+                        direction: t.direction === 1 ? 'LONG' : 'SHORT',
+                        status: 'CLOSED',
+                        entry_price: t.entry_price,
+                        exit_price: t.exit_price,
+                        volume: t.volume,
+                        profit: t.realized_pl || 0,
+                        open_time: t.open_time,
+                        close_time: t.close_time,
+                        strategy: 'Backtest',
+                        positions: [{
+                            id: t.id,
+                            master_trade_id: t.id,
+                            bot_id: 'PAPER_BOT',
+                            broker_id: 'Backtest Engine',
+                            account_id: 'Backtest Account',
+                            status: 'CLOSED',
+                            entry_price: t.entry_price,
+                            exit_price: t.exit_price,
+                            volume: t.volume,
+                            realized_pl: t.realized_pl || 0,
+                            unrealized_pl: 0,
+                            open_time: t.open_time,
+                            close_time: t.close_time,
+                            brokerName: 'Backtest Engine'
+                        }]
+                    }));
+                    return res.json({ success: true, history });
+                }
+
                 const history = db.getTradeHistory(limit, env);
                 res.json({ success: true, history });
             } catch (e) {

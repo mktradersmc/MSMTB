@@ -1,7 +1,7 @@
 import React from 'react';
-import { Plus, Layers, Zap, Briefcase, Shield } from 'lucide-react';
+import { Plus, Layers, Zap, Briefcase, Shield, Wallet } from 'lucide-react';
 import { useWorkspaceStore } from '../../stores/useWorkspaceStore';
-
+import { useBacktest } from '../../contexts/BacktestContext';
 interface FinancialToolbarProps {
     botId?: string;
     isOnline?: boolean;
@@ -20,6 +20,7 @@ export const FinancialToolbar: React.FC<FinancialToolbarProps> = ({
     isHistoryOpen
 }) => {
     const { activeWorkspaceId, workspaces } = useWorkspaceStore();
+    const { activeSession } = useBacktest();
 
     return (
         <div className="h-9 bg-white dark:bg-slate-950 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between px-2 shrink-0 z-[9999] shadow-sm relative select-none">
@@ -55,6 +56,14 @@ export const FinancialToolbar: React.FC<FinancialToolbarProps> = ({
                 </button>
 
             </div>
+
+            {/* Center: Simulation Balance (Only if Backtest) */}
+            {activeSession && (
+                <div className="absolute left-1/2 -translate-x-1/2 flex items-center gap-2 px-3 py-1 rounded bg-fuchsia-100 dark:bg-fuchsia-900/30 text-fuchsia-700 dark:text-fuchsia-400 font-mono text-xs font-bold shadow-sm">
+                    <Wallet size={12} />
+                    <span>${(activeSession.current_balance || activeSession.initial_balance || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                </div>
+            )}
 
             {/* Right Status */}
             <div className="flex items-center gap-4 text-[10px] text-slate-400 font-mono">

@@ -71,10 +71,22 @@ class DatabaseService {
                 open_time INTEGER, close_time INTEGER, unrealized_pl REAL DEFAULT 0, magic_number INTEGER, updated_at INTEGER,
                 FOREIGN KEY(master_trade_id) REFERENCES active_trades(id)
             );
+            CREATE TABLE IF NOT EXISTS backtest_sessions (
+                id TEXT PRIMARY KEY, name TEXT, main_symbol TEXT, strategy TEXT, start_time INTEGER, simulation_time INTEGER,
+                initial_balance REAL, current_balance REAL, status TEXT, workspace_state TEXT, created_at INTEGER, updated_at INTEGER
+            );
+            CREATE TABLE IF NOT EXISTS backtest_trades (
+                id TEXT PRIMARY KEY, session_id TEXT, symbol TEXT, direction INTEGER, status TEXT, entry_price REAL, exit_price REAL,
+                sl REAL, tp REAL, volume REAL, realized_pl REAL DEFAULT 0, open_time INTEGER, close_time INTEGER
+            );
         `);
 
         // Migrations
         try { this.marketDb.exec("ALTER TABLE active_trades ADD COLUMN params TEXT"); } catch (e) { }
+        // Backtest Trades Migrations
+        try { this.marketDb.exec("ALTER TABLE backtest_trades ADD COLUMN current_price REAL DEFAULT 0"); } catch (e) { }
+        try { this.marketDb.exec("ALTER TABLE backtest_trades ADD COLUMN unrealized_pl REAL DEFAULT 0"); } catch (e) { }
+        try { this.marketDb.exec("ALTER TABLE backtest_trades ADD COLUMN point_value REAL DEFAULT 0"); } catch (e) { }
         try { this.marketDb.exec("ALTER TABLE broker_executions ADD COLUMN magic_number INTEGER"); } catch (e) { }
         try { this.marketDb.exec("ALTER TABLE broker_executions ADD COLUMN open_time INTEGER DEFAULT 0"); } catch (e) { }
         try { this.marketDb.exec("ALTER TABLE broker_executions ADD COLUMN close_time INTEGER DEFAULT 0"); } catch (e) { }
@@ -92,6 +104,8 @@ class DatabaseService {
         try { this.marketDb.exec("ALTER TABLE broker_executions ADD COLUMN initial_sl REAL"); } catch (e) { }
         try { this.marketDb.exec("ALTER TABLE broker_executions ADD COLUMN initial_tp REAL"); } catch (e) { }
         try { this.marketDb.exec("ALTER TABLE accounts ADD COLUMN account_size REAL DEFAULT NULL"); } catch (e) { }
+        try { this.marketDb.exec("ALTER TABLE backtest_sessions ADD COLUMN main_symbol TEXT"); } catch (e) { }
+        try { this.marketDb.exec("ALTER TABLE backtest_sessions ADD COLUMN workspace_state TEXT"); } catch (e) { }
 
         // Trades DB Migrations (Fix for Task-0199 Crash)
         try { this.tradesDb.exec("ALTER TABLE messages ADD COLUMN isActive INTEGER DEFAULT 1"); } catch (e) { }
@@ -868,11 +882,20 @@ class DatabaseService {
             if (!db) return [];
 
             if (to) {
-                return db.prepare(`SELECT * FROM candles_${timeframe} WHERE time < ? ORDER BY time DESC LIMIT ?`).all(to, limit).reverse();
+                return db.prepare(`SELECT * FROM candles_${timeframe} WHERE time <= ? ORDER BY time DESC LIMIT ?`).all(to, limit).reverse();
             } else {
                 return db.prepare(`SELECT * FROM candles_${timeframe} ORDER BY time DESC LIMIT ?`).all(limit).reverse();
             }
         } catch (e) { return []; }
+    }
+    getNextCandleTime(symbol, timeframe, fromTime) {
+        try {
+            const db = this.getSymbolDb(symbol);
+            if (!db) return null;
+            // Fetch the very next tick/candle strictly greater than the given time (asc order limits to 1)
+            const row = db.prepare(`SELECT time FROM candles_${timeframe} WHERE time > ? ORDER BY time ASC LIMIT 1`).get(fromTime);
+            return row ? row.time : null;
+        } catch (e) { return null; }
     }
     getLastCandle(symbol, timeframe) {
         try {
@@ -1665,6 +1688,118 @@ class DatabaseService {
         } catch (e) {
             console.error(`[DB] getBrokerSymbols Failed:`, e.message);
             return [];
+        }
+    }
+    // --- BACKTEST ENGINE (Task-0201) ---
+    saveBacktestSession(session) {
+        try {
+            const stmt = this.marketDb.prepare(`
+                INSERT OR REPLACE INTO backtest_sessions (id, name, main_symbol, strategy, start_time, simulation_time, initial_balance, current_balance, status, workspace_state, created_at, updated_at)
+                VALUES (@id, @name, @main_symbol, @strategy, @start_time, @simulation_time, @initial_balance, @current_balance, @status, @workspace_state, @created_at, @updated_at)
+            `);
+            stmt.run({
+                id: session.id,
+                name: session.name,
+                main_symbol: session.main_symbol || 'EURUSD',
+                strategy: session.strategy || '',
+                start_time: session.start_time,
+                simulation_time: session.simulation_time,
+                initial_balance: session.initial_balance || 100000,
+                current_balance: session.current_balance || 100000,
+                status: session.status || 'ACTIVE',
+                workspace_state: session.workspace_state ? JSON.stringify(session.workspace_state) : null,
+                created_at: session.created_at || Date.now(),
+                updated_at: Date.now()
+            });
+            return true;
+        } catch (e) {
+            console.error("[DB] saveBacktestSession Error:", e);
+            return false;
+        }
+    }
+
+    getBacktestSessions() {
+        try {
+            const rows = this.marketDb.prepare("SELECT * FROM backtest_sessions ORDER BY created_at DESC").all();
+            return rows.map(r => ({
+                ...r,
+                workspace_state: r.workspace_state ? JSON.parse(r.workspace_state) : null,
+                start_time: r.start_time && r.start_time < 20000000000 ? r.start_time * 1000 : r.start_time,
+                simulation_time: r.simulation_time && r.simulation_time < 20000000000 ? r.simulation_time * 1000 : r.simulation_time
+            }));
+        } catch (e) { return []; }
+    }
+
+    getBacktestSession(id) {
+        try {
+            const row = this.marketDb.prepare("SELECT * FROM backtest_sessions WHERE id = ?").get(id);
+            if (row) {
+                row.workspace_state = row.workspace_state ? JSON.parse(row.workspace_state) : null;
+                if (row.start_time && row.start_time < 20000000000) row.start_time *= 1000;
+                if (row.simulation_time && row.simulation_time < 20000000000) row.simulation_time *= 1000;
+            }
+            return row;
+        } catch (e) { return null; }
+    }
+
+    deleteBacktestSession(id) {
+        try {
+            this.marketDb.prepare("DELETE FROM backtest_trades WHERE session_id = ?").run(id);
+            this.marketDb.prepare("DELETE FROM backtest_sessions WHERE id = ?").run(id);
+        } catch (e) { }
+    }
+
+    saveBacktestTrade(trade) {
+        try {
+            const stmt = this.marketDb.prepare(`
+                INSERT OR REPLACE INTO backtest_trades (id, session_id, symbol, direction, status, entry_price, current_price, exit_price, sl, tp, volume, realized_pl, unrealized_pl, point_value, open_time, close_time)
+                VALUES (@id, @session_id, @symbol, @direction, @status, @entry_price, @current_price, @exit_price, @sl, @tp, @volume, @realized_pl, @unrealized_pl, @point_value, @open_time, @close_time)
+            `);
+            stmt.run({
+                id: trade.id,
+                session_id: trade.session_id,
+                symbol: trade.symbol,
+                direction: (trade.direction === 'LONG' || trade.direction === 1) ? 1 : 0,
+                status: trade.status || 'PENDING',
+                entry_price: trade.entry_price || 0,
+                current_price: trade.current_price || trade.entry_price || 0,
+                exit_price: trade.exit_price || 0,
+                sl: trade.sl || 0,
+                tp: trade.tp || 0,
+                volume: trade.volume || 0,
+                realized_pl: trade.realized_pl || 0,
+                unrealized_pl: trade.unrealized_pl || 0,
+                point_value: trade.point_value || 0,
+                open_time: trade.open_time || 0,
+                close_time: trade.close_time || 0
+            });
+            return true;
+        } catch (e) {
+            console.error("[DB] saveBacktestTrade Error:", e);
+            return false;
+        }
+    }
+
+    getBacktestTrades(sessionId) {
+        try { return this.marketDb.prepare("SELECT * FROM backtest_trades WHERE session_id = ? ORDER BY open_time ASC").all(sessionId); } catch (e) { return []; }
+    }
+
+    revertBacktestTrades(sessionId, targetTime) {
+        try {
+            // 1. Delete trades opened AT or AFTER targetTime
+            this.marketDb.prepare("DELETE FROM backtest_trades WHERE session_id = ? AND open_time >= ?").run(sessionId, targetTime);
+
+            // 2. "Un-close" trades that were closed AT or AFTER targetTime
+            this.marketDb.prepare(`
+                UPDATE backtest_trades 
+                SET status = 'OPEN', close_time = 0, exit_price = 0, realized_pl = 0
+                WHERE session_id = ? AND status = 'CLOSED' AND close_time >= ?
+            `).run(sessionId, targetTime);
+
+            return true;
+        } catch (e) {
+            console.error("[DB] revertBacktestTrades Error:", e);
+            return false;
         }
     }
 }

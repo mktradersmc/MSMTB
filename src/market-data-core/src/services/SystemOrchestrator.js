@@ -186,6 +186,11 @@ class SystemOrchestrator {
 
         // TASK: System File Monitoring
         this.startSystemFileMonitor();
+
+        // TASK: Auto-Start Offline Terminals
+        setTimeout(() => {
+            this.autoStartInstances();
+        }, 5000); // 5 second delay to let the backend fully breathe and WMI to populate
     }
 
     // --- HELPER METHODS ---
@@ -282,6 +287,144 @@ class SystemOrchestrator {
                 this.activeProcesses.clear();
             }
         });
+    }
+
+    // --- AUTO-START TERMINALS ---
+    async autoStartInstances() {
+        console.log(`[SystemOrchestrator] 🚀 Initiating Auto-Start for offline Terminal Instances...`);
+        const accounts = this.db.getAccounts() || [];
+        const brokers = this.db.getBrokers() || [];
+
+        // Track what we need to start
+        let startNT8 = false;
+        const mt5InstancesToStart = [];
+
+        // 1. Analyze configured accounts against currently running processes
+        accounts.forEach(acc => {
+            // NT8 Check
+            if (acc.platform === 'NT8') {
+                if (!this.activeProcesses || !this.activeProcesses.has('NinjaTrader')) {
+                    startNT8 = true;
+                }
+                return;
+            }
+
+            // MT5 Check
+            if (acc.platform === 'MT5' && acc.id && !acc.id.startsWith("gen_") && !acc.id.startsWith("fix_") && acc.server !== 'Detected') {
+                const broker = brokers.find(b => b.id === acc.brokerId);
+                let folderName = `MT_${broker ? broker.shorthand.replace(/\s+/g, '') : 'UNKNOWN'}_${acc.login}`;
+                if (acc.accountType === 'DATAFEED' || acc.isDatafeed) {
+                    folderName += '_DATAFEED';
+                }
+
+                // Is it already running according to our WMI scan?
+                if (!this.activeProcesses || !this.activeProcesses.has(folderName)) {
+                    // Try the fallback logic if it has a specific instancePath 
+                    let p = acc.instancePath;
+                    if (!p) {
+                        const sysConfig = require('./SystemConfigService').getConfig();
+                        p = path.join(sysConfig.projectRoot, 'components', 'metatrader', 'instances', folderName);
+                    }
+                    mt5InstancesToStart.push({ folderName, path: p, acc });
+                } else {
+                    console.log(`[SystemOrchestrator] ⏩ MT5 Instance '${folderName}' is already running.`);
+                }
+            }
+        });
+
+        // 2. Execute NLP Auto-start for NinjaTrader
+        if (startNT8) {
+            const sysConfig = require('./SystemConfigService').getConfig();
+            if (sysConfig && sysConfig.ntUsername && sysConfig.ntPassword) {
+                console.log("[SystemOrchestrator] 🚀 Launching NinjaTrader UI Automation Startup...");
+                const managerPath = path.resolve(__dirname, '../bootstrapper/nt8-process-manager.js');
+                if (fs.existsSync(managerPath)) {
+                    const nt8Manager = require(managerPath);
+                    nt8Manager.startNinjaTrader(sysConfig.ntUsername, sysConfig.ntPassword).catch(e => {
+                        console.error("[SystemOrchestrator] ❌ Failed to auto-start NT8:", e.message);
+                    });
+                }
+            } else {
+                console.log("[SystemOrchestrator] ⏩ Skipping NinjaTrader start: No credentials found in system configuration.");
+            }
+        } else {
+            console.log(`[SystemOrchestrator] ⏩ NinjaTrader is already running or not configured.`);
+        }
+
+        // 3. Execute native spawn for MT5 Terminals
+        for (const instance of mt5InstancesToStart) {
+            console.log(`[SystemOrchestrator] 🚀 Starting offline MT5 Instance: ${instance.folderName}...`);
+            const terminalPath = path.join(instance.path, 'terminal64.exe');
+            if (fs.existsSync(terminalPath)) {
+                try {
+                    // Enforce WebRequest Configuration (MT5 wipes it on shutdown often)
+                    await this.updateCommonConfig(instance.path);
+
+                    const { spawn } = require('child_process');
+                    const child = spawn(terminalPath, ['/portable', '/config:login.ini'], {
+                        cwd: instance.path,
+                        detached: true,
+                        windowsHide: true,
+                        stdio: 'ignore'
+                    });
+                    child.unref();
+                    console.log(`[SystemOrchestrator] ✅ Spawned ${instance.folderName} (PID: ${child.pid})`);
+                } catch (e) {
+                    console.error(`[SystemOrchestrator] ❌ Failed to spawn ${instance.folderName}:`, e.message);
+                }
+            } else {
+                console.warn(`[SystemOrchestrator] ⚠️ Cannot start ${instance.folderName}: executable not found at ${terminalPath}`);
+            }
+
+            // Stagger startups mildly
+            await new Promise(resolve => setTimeout(resolve, 2000));
+        }
+
+        console.log(`[SystemOrchestrator] 🎉 Auto-Start sequence strictly completed.`);
+    }
+
+    // Ensure WebRequest is enabled before every start (Ported from process.ts)
+    async updateCommonConfig(instancePath) {
+        const fsPromises = require('fs/promises');
+        const commonPath = path.join(instancePath, 'config', 'common.ini');
+        try {
+            await fsPromises.mkdir(path.join(instancePath, 'config'), { recursive: true });
+
+            let content = '';
+            try {
+                // MT5 INIs are typically UTF-16LE.
+                content = await fsPromises.readFile(commonPath, 'utf16le');
+            } catch {
+                content = '';
+            }
+
+            if (!content.includes('[Experts]')) {
+                content += '\r\n[Experts]\r\n';
+            }
+
+            if (content.match(/WebRequest=\d+/)) {
+                content = content.replace(/WebRequest=\d+/, 'WebRequest=1');
+            } else {
+                content = content.replace(/\[Experts\]/, '[Experts]\r\nWebRequest=1');
+            }
+
+            const urls = 'http://127.0.0.1,http://localhost,http://127.0.0.1:80,http://localhost:80,http://127.0.0.1:3005,https://127.0.0.1:3005';
+            if (content.match(/WebRequestUrl=.*/)) {
+                content = content.replace(/WebRequestUrl=.*/, `WebRequestUrl=${urls}`);
+            } else {
+                content = content.replace(/\[Experts\]/, `[Experts]\r\nWebRequestUrl=${urls}`);
+            }
+
+            if (content.match(/Enabled=\d+/)) content = content.replace(/Enabled=\d+/, 'Enabled=1');
+            else content = content.replace(/\[Experts\]/, '[Experts]\r\nEnabled=1');
+
+            if (content.match(/AllowDllImport=\d+/)) content = content.replace(/AllowDllImport=\d+/, 'AllowDllImport=1');
+            else content = content.replace(/\[Experts\]/, '[Experts]\r\nAllowDllImport=1');
+
+            await fsPromises.writeFile(commonPath, content, 'utf16le');
+        } catch (e) {
+            console.warn(`[SystemOrchestrator] Failed to update common.ini at ${commonPath}:`, e.message);
+        }
     }
 
     // --- SYSTEM FILE MONITORING ---

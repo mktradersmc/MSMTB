@@ -337,10 +337,6 @@ function AccountCard({ acc, statuses, serverTime, loadingAction, onAction, onCon
                 </div>
                 <div className="flex flex-col items-end gap-0.5">
                     {acc.isTest ? <span className="text-[9px] font-bold text-amber-500 bg-amber-500/10 px-1 py-px rounded uppercase leading-none">TEST</span> : <span className="text-[9px] font-bold text-emerald-500 bg-emerald-500/10 px-1 py-px rounded uppercase leading-none">LIVE</span>}
-                    <div className="flex items-center gap-1 text-[10px] text-slate-400 font-mono">
-                        <div className={`w-1.5 h-1.5 rounded-full ${isRunning ? (isBotConnected ? 'bg-emerald-500' : 'bg-orange-500') : 'bg-slate-300'}`}></div>
-                        UTC
-                    </div>
                 </div>
             </div>
             <div className="flex items-center justify-between mt-auto">

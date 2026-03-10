@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { getBaseUrl } from '../lib/client-api';
+import { fetchDirect, getBaseUrl } from '../lib/client-api';
 import { socketService } from '../services/socket';
 
 interface BacktestSession {
@@ -64,7 +64,7 @@ export const BacktestProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
     const startSession = async (config: any) => {
         try {
-            const res = await fetch(`${getBaseUrl()}/api/backtest/start`, {
+            const res = await fetchDirect('/api/backtest/start', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(config)
@@ -81,7 +81,7 @@ export const BacktestProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
     const resumeSession = async (id: string) => {
         try {
-            const res = await fetch(`${getBaseUrl()}/api/backtest/start`, {
+            const res = await fetchDirect('/api/backtest/start', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ resumeId: id })
@@ -102,7 +102,7 @@ export const BacktestProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     const stopSession = async () => {
         if (!activeSession) return;
         try {
-            await fetch(`${getBaseUrl()}/api/backtest/stop`, {
+            await fetchDirect('/api/backtest/stop', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ id: activeSession.id })
@@ -121,7 +121,7 @@ export const BacktestProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
     const deleteSession = async (id: string) => {
         try {
-            await fetch(`${getBaseUrl()}/api/backtest/sessions/${id}`, {
+            await fetchDirect(`/api/backtest/sessions/${id}`, {
                 method: 'DELETE'
             });
             // If deleting the active session, clear it locally
@@ -137,7 +137,7 @@ export const BacktestProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     const stepForward = async (amountMs: number, symbols: string[]) => {
         if (!activeSession) return;
         try {
-            const res = await fetch(`${getBaseUrl()}/api/backtest/step`, {
+            const res = await fetchDirect('/api/backtest/step', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ id: activeSession.id, amountMs, symbols })
@@ -154,7 +154,7 @@ export const BacktestProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     const jumpToTime = async (targetTime: number) => {
         if (!activeSession) return;
         try {
-            const res = await fetch(`${getBaseUrl()}/api/backtest/jump`, {
+            const res = await fetchDirect('/api/backtest/jump', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ id: activeSession.id, targetTime })
@@ -171,7 +171,7 @@ export const BacktestProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
     const refreshSessions = async (): Promise<BacktestSession[]> => {
         try {
-            const res = await fetch(`${getBaseUrl()}/api/backtest/sessions`);
+            const res = await fetchDirect('/api/backtest/sessions');
             const data = await res.json();
             return data.success ? data.sessions : [];
         } catch (e) {

@@ -95,7 +95,7 @@ export default function BacktestChartPage({ onNavigate }: BacktestChartPageProps
 
         const checkStatus = async () => {
             try {
-                const res = await fetch(`${getBaseUrl()}/status/heartbeat`);
+                const res = await fetchDirect('/status/heartbeat');
                 const data = await res.json();
                 if (data.success) {
                     if (datafeedBotId) {

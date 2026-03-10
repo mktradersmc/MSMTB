@@ -1,7 +1,7 @@
 param(
     [string]$TargetDir = "C:\awesome-cockpit",
     [string]$SourceDir = "$TargetDir\.github_main",
-    [string]$Password = "",
+    [SecureString]$Password = $null,
     [string]$GithubPat = ""
 )
 

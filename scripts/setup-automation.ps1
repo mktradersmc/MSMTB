@@ -1,6 +1,6 @@
 param(
     [string]$TargetDir = "C:\awesome-cockpit",
-    [string]$WindowsPassword = ""
+    [SecureString]$WindowsPassword = $null
 )
 
 $isAdmin = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)

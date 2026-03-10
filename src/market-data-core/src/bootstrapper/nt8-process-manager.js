@@ -43,8 +43,10 @@ function startNinjaTrader(username, password) {
         // 1. Check if already running
         exec('tasklist /FI "IMAGENAME eq NinjaTrader.exe"', { windowsHide: true }, (err, stdout, stderr) => {
             if (stdout.includes("NinjaTrader.exe")) {
-                console.log("[Bootstrapper] ✅ NinjaTrader is already running. Skipping startup & login.");
-                return resolve(); // Resolve immediately
+                console.log("[Bootstrapper] ✅ NinjaTrader is already running. Attempting login injection just in case it's at the login screen...");
+                return performLogin(username, password)
+                    .then(() => resolve())
+                    .catch((err) => reject(err));
             }
 
             // 2. Not running, boot it up

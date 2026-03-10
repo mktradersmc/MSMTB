@@ -69,34 +69,31 @@ class CommunicationHub {
         return this.socket;
     }
 
-    public subscribe(symbol: string, timeframe: string = "M1") {
-        symbol = symbol.trim();
+    public subscribe(routingKey: string, timeframe: string = "M1") {
+        routingKey = routingKey.trim();
         timeframe = timeframe.trim();
-        // if (!this.socket) this.connect(); // Removed: Shared Socket is always present
 
         // Store unique key for re-subscription
-        const key = `${symbol}|${timeframe}`;
+        const key = `${routingKey}|${timeframe}`;
         this.subscribers.add(key);
 
         if (this.socket?.connected) {
-            if (this.socket?.connected) {
-                // Send as separate arguments matching SocketServer handler
-                const traceId = `TRC-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
-                console.log(`%c [Forensic] ${traceId} | 1. Frontend Emit | ${symbol} ${timeframe} | ${new Date().toISOString()}`, "color: yellow; background: red; font-weight: bold;");
+            // Send as separate arguments matching SocketServer handler
+            const traceId = `TRC-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+            console.log(`[!!! ALARM-FLOW-TICKSPY 2 !!!] [CommunicationHub] Frontend Emit | socket.emit('subscribe', '${routingKey}', '${timeframe}')`);
 
-                // Pass TraceID as 3rd arg (Backend must update signature)
-                this.socket.emit("subscribe", symbol, timeframe, traceId);
-            }
+            // Pass TraceID as 3rd arg
+            this.socket.emit("subscribe", routingKey, timeframe, traceId);
         }
     }
 
-    public unsubscribe(symbol: string, timeframe: string) {
-        const key = `${symbol}|${timeframe}`;
+    public unsubscribe(routingKey: string, timeframe: string) {
+        const key = `${routingKey}|${timeframe}`;
         this.subscribers.delete(key);
 
         if (this.socket?.connected) {
             // Send as object to support granular unsubscribe in Backend
-            this.socket.emit("unsubscribe", { symbol, timeframe });
+            this.socket.emit("unsubscribe", { routingKey, timeframe });
         }
     }
 

@@ -41,10 +41,10 @@ class DataSubscriptionOrchestrator {
      */
     private onDataReceived(payload: any) {
         // Trace Point B (Execution): Orchestrator received tick
-        // payload should have { symbol, timeframe, ...barData }
-        if (!payload || !payload.symbol || !payload.timeframe) return;
-        console.log(`[Orchestrator] Data received for ${payload.symbol} ${payload.timeframe}`);
-        const key = this.getKey(payload.symbol, payload.timeframe);
+        // payload should have { routingKey, symbol, timeframe, ...barData }
+        if (!payload || !payload.routingKey || !payload.timeframe) return;
+        console.log(`[Orchestrator] Data received for ${payload.routingKey} ${payload.timeframe} (Symbol: ${payload.symbol})`);
+        const key = this.getKey(payload.routingKey, payload.timeframe);
         const subscribers = this.subscriptions.get(key);
 
         if (subscribers && subscribers.size > 0) {
@@ -57,8 +57,8 @@ class DataSubscriptionOrchestrator {
         }
     }
 
-    public subscribe(symbol: string, timeframe: string, paneId: PaneId, callback: (bar: any) => void) {
-        const key = this.getKey(symbol, timeframe);
+    public subscribe(routingKey: string, timeframe: string, paneId: PaneId, callback: (bar: any) => void) {
+        const key = this.getKey(routingKey, timeframe);
 
         // DIAGNOSTIC LOG (Task: Fix Over-Subscription)
         console.log(`[Orchestrator] 📥 SUBSCRIBE Request: ${key} [Pane: ${paneId}] (Visible: ${this.isVisible})`);
@@ -74,7 +74,7 @@ class DataSubscriptionOrchestrator {
         if (!this.subscriptions.has(key)) {
             this.subscriptions.set(key, new Map());
             // New stream needed
-            this.initiateStream(symbol, timeframe);
+            this.initiateStream(routingKey, timeframe);
         }
 
         /* TRACE POINT C (Storage) */
@@ -83,12 +83,12 @@ class DataSubscriptionOrchestrator {
 
         // 3. Visibility Check logic
         if (!this.isVisible) {
-            this.pauseStream(symbol, timeframe);
+            this.pauseStream(routingKey, timeframe);
         }
     }
 
-    public unsubscribe(symbol: string, timeframe: string, paneId: PaneId) {
-        const key = this.getKey(symbol, timeframe);
+    public unsubscribe(routingKey: string, timeframe: string, paneId: PaneId) {
+        const key = this.getKey(routingKey, timeframe);
         const subscribers = this.subscriptions.get(key);
 
         if (!subscribers) return;
@@ -102,20 +102,20 @@ class DataSubscriptionOrchestrator {
             console.log(`[Orchestrator] ⏳ Starting Grace Period for ${key} (${this.GRACE_PERIOD_MS}ms)`);
 
             const timeout = setTimeout(() => {
-                this.terminateStream(symbol, timeframe);
+                this.terminateStream(routingKey, timeframe);
             }, this.GRACE_PERIOD_MS);
 
             this.pendingTerminations.set(key, timeout);
         }
     }
 
-    private initiateStream(symbol: string, timeframe: string) {
-        console.log(`[Orchestrator] 🚀 Initiating Stream: ${symbol} ${timeframe}`);
-        communicationHub.subscribe(symbol, timeframe);
+    private initiateStream(routingKey: string, timeframe: string) {
+        console.log(`[Orchestrator] 🚀 Initiating Stream: ${routingKey} ${timeframe}`);
+        communicationHub.subscribe(routingKey, timeframe);
     }
 
-    private terminateStream(symbol: string, timeframe: string) {
-        const key = this.getKey(symbol, timeframe);
+    private terminateStream(routingKey: string, timeframe: string) {
+        const key = this.getKey(routingKey, timeframe);
 
         // Double check no one re-subscribed in the meantime
         if (this.subscriptions.has(key) && this.subscriptions.get(key)!.size > 0) {
@@ -123,25 +123,25 @@ class DataSubscriptionOrchestrator {
             return;
         }
 
-        console.log(`[Orchestrator] 🛑 Terminating Stream: ${symbol} ${timeframe}`);
-        communicationHub.unsubscribe(symbol, timeframe);
+        console.log(`[Orchestrator] 🛑 Terminating Stream: ${routingKey} ${timeframe}`);
+        communicationHub.unsubscribe(routingKey, timeframe);
         this.subscriptions.delete(key);
         this.pendingTerminations.delete(key);
     }
 
-    private pauseStream(symbol: string, timeframe: string) {
+    private pauseStream(routingKey: string, timeframe: string) {
         const socket = communicationHub.getSocket();
         if (socket?.connected) {
-            console.log(`[Orchestrator] ⏸️ Pausing Stream: ${symbol} ${timeframe}`);
-            socket.emit('pause_stream', { symbol, timeframe });
+            console.log(`[Orchestrator] ⏸️ Pausing Stream: ${routingKey} ${timeframe}`);
+            socket.emit('pause_stream', { routingKey, timeframe });
         }
     }
 
-    private resumeStream(symbol: string, timeframe: string) {
+    private resumeStream(routingKey: string, timeframe: string) {
         const socket = communicationHub.getSocket();
         if (socket?.connected) {
-            console.log(`[Orchestrator] ▶️ Resuming Stream: ${symbol} ${timeframe}`);
-            socket.emit('resume_stream', { symbol, timeframe });
+            console.log(`[Orchestrator] ▶️ Resuming Stream: ${routingKey} ${timeframe}`);
+            socket.emit('resume_stream', { routingKey, timeframe });
         }
     }
 
@@ -158,8 +158,8 @@ class DataSubscriptionOrchestrator {
             if (!this.isVisible) {
                 this.isVisible = true;
                 this.subscriptions.forEach((_, key) => {
-                    const [symbol, timeframe] = this.decodeKey(key);
-                    this.resumeStream(symbol, timeframe);
+                    const decoded = this.decodeKey(key);
+                    this.resumeStream(decoded.routingKey, decoded.timeframe);
                 });
             } else {
                 console.log(`[Orchestrator] 🙈 Quick toggle detected, staying VISIBLE.`);
@@ -169,20 +169,20 @@ class DataSubscriptionOrchestrator {
                 this.isVisible = false;
                 console.log(`[Orchestrator] 🌑 Debounce elapsed. Throttling streams.`);
                 this.subscriptions.forEach((_, key) => {
-                    const [symbol, timeframe] = this.decodeKey(key);
-                    this.pauseStream(symbol, timeframe);
+                    const decoded = this.decodeKey(key);
+                    this.pauseStream(decoded.routingKey, decoded.timeframe);
                 });
             }, this.VISIBILITY_DEBOUNCE_MS);
         }
     }
 
-    private getKey(symbol: string, timeframe: string): string {
-        return `${symbol.trim()}|${timeframe.trim()}`;
+    private getKey(routingKey: string, timeframe: string): string {
+        return `${routingKey.trim()}|${timeframe.trim()}`;
     }
 
-    private decodeKey(key: string): [string, string] {
+    private decodeKey(key: string): { routingKey: string, timeframe: string } {
         const parts = key.split('|');
-        return [parts[0], parts[1]];
+        return { routingKey: parts[0], timeframe: parts[1] };
     }
 }
 

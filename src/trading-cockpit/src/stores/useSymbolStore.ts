@@ -8,6 +8,7 @@ export interface SymbolInfo {
     path?: string[];
     exchange?: string;
     type?: string;
+    botId?: string;
 }
 
 interface SymbolStore {
@@ -81,7 +82,8 @@ export const useSymbolStore = create<SymbolStore>((set, get) => ({
                             digits: item.digits !== undefined ? item.digits : 5,
                             path: item.path,
                             exchange: item.exchange,
-                            type: item.type
+                            type: item.type,
+                            botId: item.botId
                         });
                     }
                 }

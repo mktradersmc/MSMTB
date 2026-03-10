@@ -86,6 +86,7 @@ export const SymbolBrowser = React.forwardRef<SymbolBrowserHandle, SymbolBrowser
 
     const handleSelect = (sym: string) => {
         const info = symbolMap.get(sym);
+        console.log(`[!!! ALARM-FLOW-FRONTEND 1 - SymbolBrowser !!!] User clicked: ${sym}. Info extracted from Map:`, info);
         onSelectSymbol(sym, info);
         setFilter('');
         setDropdownSearch('');
@@ -129,7 +130,7 @@ export const SymbolBrowser = React.forwardRef<SymbolBrowserHandle, SymbolBrowser
             {variant === 'button' && (
                 <button
                     onClick={() => setIsOpen(!isOpen)}
-                    className="flex items-center gap-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded px-2 py-1 transition-colors group"
+                    className="flex items-center justify-between w-full gap-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded px-2 py-1 transition-colors group"
                 >
                     <div className="flex flex-col items-start">
                         <span className={`text-sm font-bold ${currentSymbol ? 'text-slate-700 dark:text-slate-100' : 'text-slate-500 dark:text-slate-400'}`}>

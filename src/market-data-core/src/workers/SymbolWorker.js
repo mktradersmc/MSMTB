@@ -64,8 +64,9 @@ class SymbolWorker extends AbstractWorker {
             const payload = msg.content || msg;
             this.handleSynchronizedUpdate(payload);
         } else if (msg.type === 'SUBSCRIBE' || msg.type === 'CMD_SUBSCRIBE_TICKS') {
-            const payload = msg.content || msg;
-            this.subscribe(payload.timeframe);
+            const subPayload = msg.content || msg;
+            console.log(`[!!! ALARM-FLOW-TICKSPY 6 !!!] [SymbolWorker:${this.botId}:${this.func}:${this.symbol}] hat Subscribe Command für RoutingKey='${subPayload.routingKey}' empfangen!`);
+            this.subscribe((msg.content || msg).timeframe);
         } else if (msg.type === 'UNSUBSCRIBE' || msg.type === 'CMD_UNSUBSCRIBE_TICKS') {
             const payload = msg.content || msg;
             this.unsubscribe(payload.timeframe);

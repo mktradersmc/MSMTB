@@ -16,11 +16,15 @@ export interface IDatafeed {
 export class MT5Datafeed implements IDatafeed {
     private subscriptions: Map<string, any> = new Map();
     private availableSymbols: string[] = [];
+    private botId?: string;
+    private backtestId?: string;
 
     private initializationPromise: Promise<void>;
     private initializationResolver: () => void = () => { };
 
-    constructor() {
+    constructor(botId?: string, backtestId?: string) {
+        this.botId = botId;
+        this.backtestId = backtestId;
         // Initialize the promise immediately
         this.initializationPromise = new Promise((resolve) => {
             this.initializationResolver = resolve;
@@ -29,6 +33,11 @@ export class MT5Datafeed implements IDatafeed {
         // Ensure hub is connected
         communicationHub.connect();
         this.loadSymbols();
+    }
+
+    public setBotId(botId: string, backtestId?: string) {
+        this.botId = botId;
+        this.backtestId = backtestId;
     }
 
     private async loadSymbols() {
@@ -93,6 +102,8 @@ export class MT5Datafeed implements IDatafeed {
             name: symbolName,
             full_name: symbolName,
             description: symbolName,
+            botId: this.botId,
+            backtestId: this.backtestId,
             type: 'forex',
             session: '24x7',
             timezone: 'Etc/UTC',
@@ -119,11 +130,15 @@ export class MT5Datafeed implements IDatafeed {
         const { from, to, countBack, firstDataRequest } = periodParams;
         const tf = this.resolutionToTimeframe(resolution);
         const symbol = symbolInfo.name;
+        // UX FIX: If we are in a backtest session, our data provider is ALWAYS PAPER_BOT.
+        const botId = symbolInfo.backtestId ? 'PAPER_BOT' : (symbolInfo.botId || this.botId);
+        const routingKey = botId ? `${botId}:HISTORY:${symbol}` : symbol;
+        console.log(`[!!! ALARM-FLOW-FRONTEND 6.1 - MT5Datafeed getBars] symbolInfo.botId=${symbolInfo.botId}, this.botId=${this.botId}, resolvedBotId=${botId}, RoutingKey=${routingKey}`);
 
         if (!firstDataRequest) {
             console.log(`%c [MT5Datafeed] (a) SCROLL DETECTED | (b) NEED HISTORY | To: ${to} (${new Date(to * 1000).toISOString()})`, "color: cyan; font-weight: bold; background: #333; padding: 4px;");
         } else {
-            console.log(`%c >>> GETBARS START: ${symbol} ${resolution} <<<`, "background: red; color: white;");
+            console.log(`%c >>> GETBARS START: ${routingKey} ${resolution} <<<`, "background: red; color: white;");
         }
 
         try {
@@ -136,10 +151,14 @@ export class MT5Datafeed implements IDatafeed {
             // Start light (1k) to get Chart visible instantly. Pagination fills the rest.
             const reqLimit = firstDataRequest ? 1000 : 20000;
 
-            let url = `${getBaseUrl()}/api/history?symbol=${symbol}&timeframe=${tf}&limit=${reqLimit}`;
+            let url = `${getBaseUrl()}/api/history?routingKey=${routingKey}&timeframe=${tf}&limit=${reqLimit}`;
             if (!firstDataRequest && to) {
                 // Pagination: Load OLDER than 'to'
                 url += `&to=${Math.floor(to * 1000)}`;
+            }
+            if (this.backtestId) {
+                // ARCHITECTURE FIX: Ensure backend knows about backtest sandbox during pagination to avoid future leaks!
+                url += `&backtestId=${this.backtestId}`;
             }
             // Cache Buster
             url += `&_=${Date.now()}`;
@@ -229,8 +248,13 @@ export class MT5Datafeed implements IDatafeed {
     subscribeBars(symbolInfo: any, resolution: string, onRealtimeCallback: (bar: any) => void, subscribeUID: string, onResetCacheNeededCallback: () => void): void {
         const symbol = symbolInfo.name.trim(); // PURE SYMBOL
         const expectedTf = this.resolutionToTimeframe(resolution).trim();
+        const backtestId = symbolInfo.backtestId;
+        // UX FIX: If we are in a backtest session, our streaming provider is ALWAYS PAPER_BOT.
+        const botId = backtestId ? 'PAPER_BOT' : (symbolInfo.botId || this.botId);
+        const routingKey = botId ? `${botId}:TICK_SPY:${symbol}` : symbol;
 
-        console.log(`[MT5Datafeed] Subscribe Realtime: ${symbol} [${subscribeUID} / TF: ${expectedTf}]`);
+        console.log(`[!!! ALARM-FLOW-TICKSPY 1 !!!] [MT5Datafeed] generiert RoutingKey: '${routingKey}' für TF: ${expectedTf}`);
+        console.log(`[MT5Datafeed] Subscribe Realtime: ${routingKey} [${subscribeUID} / TF: ${expectedTf}]`);
 
         const periodMs = this.resolutionToMs(resolution);
         const periodSec = periodMs / 1000;
@@ -302,11 +326,11 @@ export class MT5Datafeed implements IDatafeed {
 
         // Use Orchestrator to manage subscription lifecycle AND distribution
         // subscribeUID serves as the paneId. Pass the listener to be registered.
-        dataSubscriptionOrchestrator.subscribe(symbol, expectedTf, subscribeUID, orchestratedListener);
+        dataSubscriptionOrchestrator.subscribe(routingKey, expectedTf, subscribeUID, orchestratedListener);
 
         const historyListener = (data: any) => {
             if (data.symbol === symbol && data.timeframe === expectedTf) {
-                console.log(`[MT5Datafeed] History Update detected for ${symbol}. Resetting Cache.`);
+                console.log(`[MT5Datafeed] History Update detected for ${routingKey}. Resetting Cache.`);
                 onResetCacheNeededCallback();
             }
         };
@@ -315,17 +339,20 @@ export class MT5Datafeed implements IDatafeed {
         communicationHub.on('history_update', historyListener);
 
         this.subscriptions.set(subscribeUID, {
+            routingKey: routingKey,
             symbol: symbol,
             orchestratedListener: orchestratedListener,
             historyListener: historyListener,
-            timeframe: expectedTf
+            timeframe: expectedTf,
+            backtestId: backtestId,
+            paneId: subscribeUID
         });
     }
 
     unsubscribeBars(subscriberUID: string): void {
         const sub = this.subscriptions.get(subscriberUID);
         if (sub) {
-            console.log(`[MT5Datafeed] Unsubscribe: ${sub.symbol} [${subscriberUID}]`);
+            console.log(`[MT5Datafeed] Unsubscribe Realtime: ${subscriberUID}`);
 
             // Remove local listeners
             // communicationHub.off('bar_update', sub.listener); // Removed, handled by orchestrator
@@ -334,7 +361,7 @@ export class MT5Datafeed implements IDatafeed {
             }
 
             // Tell Orchestrator to release this subscription
-            dataSubscriptionOrchestrator.unsubscribe(sub.symbol, sub.timeframe, subscriberUID);
+            dataSubscriptionOrchestrator.unsubscribe(sub.routingKey, sub.timeframe || "M1", sub.paneId);
 
             this.subscriptions.delete(subscriberUID);
         }

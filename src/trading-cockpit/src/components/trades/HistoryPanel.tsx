@@ -4,11 +4,13 @@ import { ChevronRight, ChevronDown, CheckCircle, XCircle, Shield, Briefcase, Pla
 import { AggregatedTrade } from '../../hooks/useTradeMonitor'; // Reuse Type
 import { useWorkspaceStore } from '../../stores/useWorkspaceStore';
 import { fetchDirect } from '../../lib/client-api';
+import { useBacktest } from '../../contexts/BacktestContext';
 
 export const HistoryPanel: React.FC<{
     onClose: () => void;
 }> = ({ onClose }) => {
     const isTestMode = useWorkspaceStore(state => state.isTestMode);
+    const { activeSession } = useBacktest();
     const [trades, setTrades] = useState<AggregatedTrade[]>([]);
     const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
     const [isLoading, setIsLoading] = useState(false);
@@ -50,7 +52,8 @@ export const HistoryPanel: React.FC<{
         setIsLoading(true);
         try {
             const envParam = isTestMode ? 'test' : 'live';
-            const res = await fetchDirect(`/api/trade-history?limit=50&env=${envParam}`);
+            const url = activeSession ? `/api/trade-history?limit=100&backtestId=${activeSession.id}` : `/api/trade-history?limit=50&env=${envParam}`;
+            const res = await fetchDirect(url);
             const body = await res.json();
             if (body.success) {
                 const mapped: AggregatedTrade[] = body.history.map((h: any) => ({
@@ -101,7 +104,7 @@ export const HistoryPanel: React.FC<{
     // Reload when Environment Toggles or Mounts
     useEffect(() => {
         loadHistory();
-    }, [isTestMode]);
+    }, [isTestMode, activeSession?.id]);
 
     const [panelHeight, setPanelHeight] = useState(300);
 
@@ -172,8 +175,8 @@ export const HistoryPanel: React.FC<{
             {/* Header */}
             <div className="h-8 bg-slate-100 dark:bg-slate-800 flex items-center justify-between px-2 shrink-0 border-b border-slate-200 dark:border-slate-700/50">
                 <div className="flex items-center gap-2">
-                    <span className="text-xs font-bold text-slate-700 dark:text-slate-300">
-                        Trade History ({isTestMode ? 'TEST' : 'LIVE'})
+                    <span className={`text-xs font-bold px-1.5 py-0.5 rounded ${activeSession ? 'bg-fuchsia-100 text-fuchsia-700 dark:bg-fuchsia-900/30 dark:text-fuchsia-400' : 'text-slate-700 dark:text-slate-300'}`}>
+                        Trade History {activeSession ? '(BACKTEST)' : (isTestMode ? '(TEST)' : '(LIVE)')}
                     </span>
 
                     {/* Quick Filters */}

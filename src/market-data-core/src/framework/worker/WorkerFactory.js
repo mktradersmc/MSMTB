@@ -59,6 +59,9 @@ class WorkerFactory {
             case 'DISCOVERY':
                 scriptName = 'workers/NT8DiscoveryWorker.js';
                 break;
+            case 'BACKTEST':
+                scriptName = 'workers/BacktestWorker.js';
+                break;
             default:
                 throw new Error(`[WorkerFactory] ❌ Unknown Worker Function: ${func}`);
         }

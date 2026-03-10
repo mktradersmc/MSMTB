@@ -16,11 +16,12 @@ export interface ChartOverlayProps {
     timeframe: string;
     timezone: string;
 
-    onSymbolChange: (s: string) => void;
+    onSymbolChange: (s: string, botId?: string) => void;
     onTimeframeChange: (tf: string) => void;
     onTimezoneChange: (tz: string) => void;
     onAddIndicator?: (id: string) => void;
     botId?: string;
+    backtestId?: string;
     ohlc?: { open: number, high: number, low: number, close: number } | null;
     precision?: number;
     status: SyncStatus; // New Prop
@@ -37,6 +38,7 @@ export const ChartOverlay = React.forwardRef<ChartOverlayHandle, ChartOverlayPro
     onTimezoneChange,
     onAddIndicator,
     botId,
+    backtestId,
     ohlc,
     precision = 5,
     status = 'OFFLINE',
@@ -221,8 +223,9 @@ export const ChartOverlay = React.forwardRef<ChartOverlayHandle, ChartOverlayPro
                         ref={symbolBrowserRef}
                         variant="button"
                         currentSymbol={symbol}
-                        onSelectSymbol={(s) => {
-                            onSymbolChange(s);
+                        onSelectSymbol={(s, info) => {
+                            console.log(`[!!! ALARM-FLOW-FRONTEND 2 - ChartOverlay !!!] Received from Browser: ${s}, info:`, info);
+                            onSymbolChange(s, info?.botId);
                             setIsHovered(false);
                         }}
                         botId={botId}

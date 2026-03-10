@@ -75,6 +75,7 @@ export interface AggregatedTrade {
     anySlAtBe?: boolean; // NEW: UI Handle Control
     allSlAtBe?: boolean; // NEW: UI Action Button Control
     type?: string;
+    entryPrice?: number; // EXPLICIT RAW FALLBACK for Charts
 }
 
 import { socketService } from '../services/socket';

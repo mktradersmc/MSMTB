@@ -119,7 +119,7 @@ Set-ItemProperty -Path $RegPath -Name "RemoteDesktop_SuppressWhenMinimized" -Val
 $DesktopPath = [Environment]::GetFolderPath("Desktop")
 $DisconnectBat = Join-Path $DesktopPath "🚀 RDP Sicher Verlassen.bat"
 
-$BatContent = @"
+$BatContent = @'
 @echo off
 color 0b
 echo ========================================================
@@ -130,10 +130,8 @@ echo Ihre RDP-Sitzung wird auf die unsichtbare Hardware-Konsole verschoben.
 echo GUI-Automatisierungen (.z.B. MetaTrader) rendern danach fehlerfrei weiter.
 echo Dieses Fenster schliesst sich nun.
 echo.
-timeout /t 3 /nobreak >nul
-for /f "tokens=3" %%s in ('query user %USERNAME% ^| findstr /i "Active"') do set SESSIONID=%%s
-tscon %SESSIONID% /dest:console
-"@
+powershell.exe -NoProfile -WindowStyle Hidden -Command "Start-Sleep -Seconds 3; $session = (Get-Process -Id $PID).SessionId; tscon.exe $session /dest:console"
+'@
 Set-Content -Path $DisconnectBat -Value $BatContent -Encoding ascii
 Write-Log "  Desktop-Verknuepfung ($DisconnectBat) erstellt." "Green"
 

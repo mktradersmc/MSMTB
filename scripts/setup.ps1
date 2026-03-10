@@ -289,6 +289,20 @@ Push-Location $TargetDir
 node scripts/set-sequence.js 100000 *>> $LogFile
 Pop-Location
 
+Write-Log "`n[7/7] Richte persistente UI-Automatisierung (Autologon, IddaCX) ein..." "Cyan"
+$AutoScriptPath = Join-Path $TargetDir "scripts\setup-automation.ps1"
+if (Test-Path $AutoScriptPath) {
+    Write-Host "`n=======================================================" -ForegroundColor Cyan
+    Write-Host " FUER AUTOLOGON WIRD DEIN WINDOWS-KENNWORT BENOETIGT" -ForegroundColor Yellow
+    Write-Host "=======================================================" -ForegroundColor Cyan
+    $secpasswd = Read-Host "Bitte gib das Windows-Kennwort fuer '$env:USERNAME' ein" -AsSecureString
+    $BSTR = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($secpasswd)
+    $WinPassword = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto($BSTR)
+    [System.Runtime.InteropServices.Marshal]::ZeroFreeBSTR($BSTR)
+    
+    & $AutoScriptPath -TargetDir $TargetDir -WindowsPassword $WinPassword *>> $LogFile
+}
+
 Write-Log "`n=========================================" "Green"
 Write-Log "   SETUP ERFOLGREICH ABGESCHLOSSEN       " "Green"
 Write-Log "=========================================" "Green"

@@ -20,6 +20,7 @@ import Link from "next/link";
 import { MainSidebar, ViewType } from "../components/navigation/MainSidebar";
 import DataHistoryPage from "./data-history/page";
 import { EconomicCalendarView } from "../components/dashboard/EconomicCalendarView";
+import { ProfitDashboard } from "../components/dashboard/ProfitDashboard";
 import { fetchDirect } from "../lib/client-api";
 
 // SIMPLE UTILS
@@ -63,7 +64,7 @@ export default function Dashboard() {
       localStorage.setItem('lastMsgTimestamp', lastTimestamp.toString());
     }
   }, [lastTimestamp]);
-  const [activeView, setActiveView] = useState<ViewType>('LIVE_CHART');
+  const [activeView, setActiveView] = useState<ViewType>('PROFIT_DASHBOARD');
   const [isFeedCollapsed, setIsFeedCollapsed] = useState(false);
   const [isLiveFeedCollapsed, setIsLiveFeedCollapsed] = useState(false);
   const [selectedSetupId, setSelectedSetupId] = useState<string | null>(null);
@@ -490,6 +491,9 @@ export default function Dashboard() {
                   </div>
                 )
               }
+
+              {/* --- VIEW: PROFIT DASHBOARD --- */}
+              {activeView === 'PROFIT_DASHBOARD' && <ProfitDashboard />}
 
               {/* --- VIEW: ACCOUNTS --- */}
               {activeView === 'ACCOUNTS' && <AccountsView />}

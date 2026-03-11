@@ -15,11 +15,12 @@ import {
     PanelLeftOpen,
     LogOut,
     CalendarDays,
-    PlaySquare
+    PlaySquare,
+    TrendingUp
 } from 'lucide-react';
 
 // Define ViewType locally or import if it's shared (currently local in page.tsx, so we'll redefine or just use string)
-export type ViewType = 'DASHBOARD' | 'LIVE_COCKPIT' | 'LIVE_CHART' | 'ACCOUNTS' | 'SETTINGS' | 'STRATEGY_LAB' | 'DATAFEED' | 'ASSET_MAPPINGS' | 'DISTRIBUTION' | 'DATA_HISTORY' | 'SYSTEM' | 'ECONOMIC_CALENDAR' | 'BACKTEST';
+export type ViewType = 'DASHBOARD' | 'PROFIT_DASHBOARD' | 'LIVE_COCKPIT' | 'LIVE_CHART' | 'ACCOUNTS' | 'SETTINGS' | 'STRATEGY_LAB' | 'DATAFEED' | 'ASSET_MAPPINGS' | 'DISTRIBUTION' | 'DATA_HISTORY' | 'SYSTEM' | 'ECONOMIC_CALENDAR' | 'BACKTEST';
 
 interface MainSidebarProps {
     activeView: ViewType;
@@ -146,6 +147,7 @@ export const MainSidebar: React.FC<MainSidebarProps> = ({ activeView, onNavigate
 
 
                     <SectionHeader label="System" />
+                    <SidebarItem id="PROFIT_DASHBOARD" icon={TrendingUp} label="Dashboard" />
                     <SidebarItem id="SYSTEM" icon={Cpu} label="System" badge={badges?.update} />
 
                     <SectionHeader label="Environment" />

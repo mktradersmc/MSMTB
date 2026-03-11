@@ -18,7 +18,7 @@ export const registerIndicators = () => {
         }, {}),
         pluginFactory: (settings) => new ICTSessionsPlugin(settings),
         settingsSchema: ICTSessionsSchema,
-        dataFetcher: async ({ symbol, timeframe, from, to, settings }) => {
+        dataFetcher: async ({ symbol, timeframe, from, to, settings, liveCandle, signal }) => {
             // Transform Flat Settings to Engine Config
             const engineSettings = {
                 mitigation_enabled: settings.mitigation_enabled,
@@ -35,9 +35,11 @@ export const registerIndicators = () => {
                 timeframe,
                 from: from.toString(),
                 to: to.toString(),
-                settings: JSON.stringify(engineSettings)
+                settings: JSON.stringify(engineSettings),
+                t: Date.now().toString() // Browser Cache Buster
             });
-            const res = await fetchDirect(`/indicators/ict-sessions?${params.toString()}`);
+
+            const res = await fetchDirect(`/indicators/ict-sessions?${params.toString()}`, { signal });
             const data = await res.json();
             return data.sessions || [];
         }
@@ -92,14 +94,15 @@ export const registerIndicators = () => {
         }, {}),
         pluginFactory: (settings) => new DivergencePlugin(settings),
         settingsSchema: DivergenceSchema,
-        dataFetcher: async ({ symbol, timeframe, from, to, settings, backtestId }) => {
+        dataFetcher: async ({ symbol, timeframe, from, to, settings, backtestId, liveCandle, signal }) => {
             // Forward calculation to Market Data Core
             const params = new URLSearchParams({
                 symbol,
                 timeframe,
                 from: from.toString(),
                 to: to.toString(),
-                settings: JSON.stringify(settings)
+                settings: JSON.stringify(settings),
+                t: Date.now().toString() // Browser Cache Buster
             });
 
             if (settings.other_symbols && settings.other_symbols.length > 0) {
@@ -111,12 +114,15 @@ export const registerIndicators = () => {
             }
 
             try {
-                const res = await fetchDirect(`/indicators/divergence?${params.toString()}`);
+                const res = await fetchDirect(`/indicators/divergence?${params.toString()}`, { signal });
                 if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
                 const data = await res.json();
                 return data; // Returns { divergences: [...] }
-            } catch (error) {
-                console.error("[DivergencePlugin] Fetch error", error);
+            } catch (error: any) {
+                // Ignore AbortError for clean cancellations
+                if (error.name !== 'AbortError') {
+                    console.error("[DivergencePlugin] Fetch error", error);
+                }
                 return { divergences: [] };
             }
         }

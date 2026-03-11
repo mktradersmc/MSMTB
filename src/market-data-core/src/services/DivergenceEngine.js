@@ -74,7 +74,7 @@ class DivergenceEngine {
 
         for (const targetSymbol of otherSymbols) {
             const targetSymbolDb = db.getSymbolDb(targetSymbol);
-            let targetCandles = db.getHistory(targetSymbol, currentTf, sortedCandles.length + 500, (endTimeSec + 86400) * 1000);
+            let targetCandles = dataProvider.getHistory(targetSymbol, currentTf, sortedCandles.length + 500, (endTimeSec + 86400) * 1000);
             if (!targetCandles) targetCandles = [];
 
             const targetPrices = new Map();
@@ -89,8 +89,8 @@ class DivergenceEngine {
                 const htfSeconds = htf === 'MN1' ? 86400 * 30 : htf === 'W1' ? 86400 * 7 : htf === 'D1' ? 86400 : htf === 'H8' ? 28800 : htf === 'H4' ? 14400 : htf === 'H1' ? 3600 : 0;
 
                 const limit = Math.max(2000, sortedCandles.length);
-                const pHTF = db.getHistory(symbol, htf, limit, (endTimeSec + 86400) * 1000);
-                const tHTF = db.getHistory(targetSymbol, htf, limit, (endTimeSec + 86400) * 1000);
+                const pHTF = dataProvider.getHistory(symbol, htf, limit, (endTimeSec + 86400) * 1000);
+                const tHTF = dataProvider.getHistory(targetSymbol, htf, limit, (endTimeSec + 86400) * 1000);
 
                 if (!pHTF || !tHTF) continue;
 
@@ -155,8 +155,8 @@ class DivergenceEngine {
                             const highCovered = highPOIs.some(p => p.htfTime <= pSec && pSec < (p.htfTime + p.htfSeconds) && p.primaryPrice === pc.high);
 
                             if (!highCovered) {
-                                const exactPrimary = this.getExactPeakTime(symbolDb, currentTf, pSec, htfSeconds, pc.high, true);
-                                const exactTarget = this.getExactPeakTime(targetSymbolDb, currentTf, pSec, htfSeconds, tc.high, true);
+                                const exactPrimary = dataProvider.getExactPeakTime(symbol, currentTf, pSec, htfSeconds, pc.high, true);
+                                const exactTarget = dataProvider.getExactPeakTime(targetSymbol, currentTf, pSec, htfSeconds, tc.high, true);
 
                                 highPOIs.push({
                                     id: `${htf}_HIGH_${pSec}_${symbol}_vs_${targetSymbol}`,
@@ -173,8 +173,8 @@ class DivergenceEngine {
                         if ((isLowPOI || targetIsLowPOI) && !isInvalidatedLow) {
                             const lowCovered = lowPOIs.some(p => p.htfTime <= pSec && pSec < (p.htfTime + p.htfSeconds) && p.primaryPrice === pc.low);
                             if (!lowCovered) {
-                                const exactPrimary = this.getExactPeakTime(symbolDb, currentTf, pSec, htfSeconds, pc.low, false);
-                                const exactTarget = this.getExactPeakTime(targetSymbolDb, currentTf, pSec, htfSeconds, tc.low, false);
+                                const exactPrimary = dataProvider.getExactPeakTime(symbol, currentTf, pSec, htfSeconds, pc.low, false);
+                                const exactTarget = dataProvider.getExactPeakTime(targetSymbol, currentTf, pSec, htfSeconds, tc.low, false);
 
                                 lowPOIs.push({
                                     id: `${htf}_LOW_${pSec}_${symbol}_vs_${targetSymbol}`,

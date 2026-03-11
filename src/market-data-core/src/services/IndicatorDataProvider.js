@@ -22,6 +22,24 @@ class IndicatorDataProvider {
     }
 
     /**
+     * Helper to get the total milliseconds logic for a timeframe string
+     * e.g., 'M5' -> 5 * 60 * 1000
+     */
+    getTfDurationMs(timeframe) {
+        if (!timeframe) return 0;
+        const value = parseInt(timeframe.substring(1)) || 1;
+        const unit = timeframe.charAt(0).toUpperCase();
+
+        switch (unit) {
+            case 'M': return value * 60 * 1000;
+            case 'H': return value * 3600 * 1000;
+            case 'D': return value * 86400 * 1000;
+            case 'W': return value * 86400 * 1000 * 7;
+            default: return 0;
+        }
+    }
+
+    /**
      * Gets absolute history bounded by simulation time, ensuring no future peeking.
      */
     getHistory(symbol, timeframe, limit, toTime) {
@@ -32,7 +50,19 @@ class IndicatorDataProvider {
                 maxTime = this.simulationTime;
             }
         }
-        return db.getHistory(symbol, timeframe, limit, maxTime);
+
+        let candles = db.getHistory(symbol, timeframe, limit, maxTime);
+
+        // STRICT FILTERING: Prevent Backtesting "Future Leak"
+        if (this.mode === 'BACKTEST' && this.simulationTime) {
+            const tfMs = this.getTfDurationMs(timeframe);
+            // In a backtest, a DB candle is ONLY valid if it has FULLY formed relative to simulationTime.
+            // If the candle time (open time) + duration > simulationTime, it hasn't closed yet in the simulation,
+            // but the DB array has the future close price. We MUST strip it. The frontend's liveCandle will replace it.
+            candles = candles.filter(c => (c.time + tfMs) <= this.simulationTime);
+        }
+
+        return candles;
     }
 
     /**

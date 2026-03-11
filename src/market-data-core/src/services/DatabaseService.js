@@ -1046,7 +1046,7 @@ class DatabaseService {
         try {
             const db = this.getSymbolDb(symbol);
             if (!db) return null;
-            return db.prepare(`SELECT * FROM candles_${timeframe} ORDER BY time DESC LIMIT 1`).get();
+            return db.prepare(`SELECT * FROM candles_${timeframe} WHERE is_complete = 1 ORDER BY time DESC LIMIT 1`).get();
         } catch (e) { return null; }
     }
     getLatestCandles(symbol) { return {}; }
@@ -1054,7 +1054,7 @@ class DatabaseService {
         try {
             const db = this.getSymbolDb(symbol);
             if (!db) return 0;
-            const row = db.prepare(`SELECT time FROM candles_${timeframe} ORDER BY time DESC LIMIT 1`).get();
+            const row = db.prepare(`SELECT time FROM candles_${timeframe} WHERE is_complete = 1 ORDER BY time DESC LIMIT 1`).get();
             return row ? row.time : 0;
         } catch (e) { return 0; }
     }
@@ -1062,7 +1062,8 @@ class DatabaseService {
         try {
             const db = this.getSymbolDb(symbol);
             if (!db) return 0;
-            const row = db.prepare(`SELECT time FROM candles_${timeframe} ORDER BY time ASC LIMIT 1`).get();
+            // First timestamp usually doesn't have an incomplete candle issue, but making it consistent.
+            const row = db.prepare(`SELECT time FROM candles_${timeframe} WHERE is_complete = 1 ORDER BY time ASC LIMIT 1`).get();
             return row ? row.time : 0;
         } catch (e) { return 0; }
     }

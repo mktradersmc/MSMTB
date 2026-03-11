@@ -125,6 +125,8 @@ export const ChartContainer = React.forwardRef<ChartContainerHandle, ChartContai
     const containerRefA = useRef<HTMLDivElement>(null);
     const containerRefB = useRef<HTMLDivElement>(null);
 
+    const pendingFetchesRef = useRef<Map<string, AbortController>>(new Map());
+
     const { theme } = useChartTheme();
     const { isTestMode, activeDrawingTool, workspaces, activeWorkspaceId } = useWorkspaceStore();
     const { activeSession, isCutModeActive, setIsCutModeActive, jumpToTime } = useBacktest();
@@ -1874,10 +1876,7 @@ export const ChartContainer = React.forwardRef<ChartContainerHandle, ChartContai
                 pluginAsAny.updateData(dataARef.current);
             }
             // NEW: Push Live Candle Update explicitly
-            if (pluginAsAny && pluginAsAny.updateLiveCandle && dataARef.current.length > 0) {
-                const latestCandle = dataARef.current[dataARef.current.length - 1];
-                pluginAsAny.updateLiveCandle(latestCandle);
-            }
+            // Removing updateLiveCandle logic entirely as it's now integrated via updateData
 
             // NEW: Push Visibility
             if (pluginAsAny && typeof pluginAsAny.setVisible === 'function') {
@@ -1909,14 +1908,26 @@ export const ChartContainer = React.forwardRef<ChartContainerHandle, ChartContai
                         enrichedSettings.other_symbols = Array.from(new Set(otherSymbols));
                     }
 
+                    // Abort previous
+                    if (pendingFetchesRef.current.has(ind.instanceId)) {
+                        pendingFetchesRef.current.get(ind.instanceId)?.abort();
+                    }
+                    const controller = new AbortController();
+                    pendingFetchesRef.current.set(ind.instanceId, controller);
+
                     def.dataFetcher({
                         symbol: symbol,
                         timeframe: timeframe,
                         from: (fromTime as number) * 1000,
                         to: (toTime as number) * 1000,
                         settings: enrichedSettings,
-                        backtestId: activeSession?.id
+                        backtestId: activeSession?.id,
+                        signal: controller.signal
                     }).then(data => {
+                        if (pendingFetchesRef.current.get(ind.instanceId) === controller) {
+                            pendingFetchesRef.current.delete(ind.instanceId);
+                        }
+
                         if (plugin.updateSessions) {
                             plugin.updateSessions(data);
                         }
@@ -1929,8 +1940,9 @@ export const ChartContainer = React.forwardRef<ChartContainerHandle, ChartContai
                         if (onIndicatorLoadStatesChange) onIndicatorLoadStatesChange({ ...indicatorLoadingStatesRef.current });
 
                     }).catch(e => {
-                        console.error("Indicator Data Fetch Failed", e);
-
+                        if (e.name !== 'AbortError') {
+                            console.error("Indicator Data Fetch Failed", e);
+                        }
                         // NEW: Update Loading State (Failed/Finished)
                         indicatorLoadingStatesRef.current[ind.instanceId] = false;
                         if (onIndicatorLoadStatesChange) onIndicatorLoadStatesChange({ ...indicatorLoadingStatesRef.current });
@@ -1942,6 +1954,8 @@ export const ChartContainer = React.forwardRef<ChartContainerHandle, ChartContai
     }, [activeIndicators, symbol, timeframe, chartReady, dataVersion]);
 
     // --- PUSH DATA TO PLUGINS ON TICK ---
+    const prevLiveCandleRef = useRef<{ time: number, high: number, low: number, close: number } | null>(null);
+
     useEffect(() => {
         if (!chartReady || dataA.length === 0) return;
         const plugins = indicatorPluginsRef.current;
@@ -1956,10 +1970,86 @@ export const ChartContainer = React.forwardRef<ChartContainerHandle, ChartContai
             if (pluginAsAny.updateData) {
                 pluginAsAny.updateData(dataA);
             }
-            if (pluginAsAny.updateLiveCandle) {
-                pluginAsAny.updateLiveCandle(latestCandle);
-            }
+            // updateLiveCandle plugin interface is deprecated.
+            // The latest candle is intrinsically in dataA and DB.
         });
+
+        // --- REAL-TIME BACKEND SYNC (STATELESS HIGH/LOW FILTER) ---
+        const prev = prevLiveCandleRef.current;
+
+        // stateless trigger condition: new candle or expand high/low
+        const isNewCandle = !prev || prev.time !== latestCandle.time;
+        const expandedHigh = latestCandle.close === latestCandle.high;
+        const expandedLow = latestCandle.close === latestCandle.low;
+
+        if (isNewCandle || expandedHigh || expandedLow) {
+
+            // update ref
+            prevLiveCandleRef.current = {
+                time: latestCandle.time,
+                high: latestCandle.high,
+                low: latestCandle.low,
+                close: latestCandle.close
+            };
+
+            activeIndicators.forEach(ind => {
+                if (!ind.visible) return;
+                const plugin = plugins.get(ind.instanceId);
+                const def = indicatorRegistry.get(ind.defId);
+
+                if (plugin && def && def.dataFetcher) {
+
+                    if (pendingFetchesRef.current.has(ind.instanceId)) {
+                        pendingFetchesRef.current.get(ind.instanceId)?.abort();
+                    }
+                    const controller = new AbortController();
+                    pendingFetchesRef.current.set(ind.instanceId, controller);
+
+                    // Fetch Data logic
+                    const currentDataA = dataARef.current;
+                    const fromTime = currentDataA.length > 0 ? currentDataA[0].time : Math.floor(Date.now() / 1000) - 86400 * 30;
+                    const toTime = currentDataA.length > 0 ? currentDataA[currentDataA.length - 1].time : Math.floor(Date.now() / 1000);
+
+                    // Inject other_symbols automatically from workspace
+                    let enrichedSettings = { ...ind.settings };
+                    const activeWs = workspaces.find(w => w.id === activeWorkspaceId);
+                    if (activeWs) {
+                        const otherSymbols = activeWs.panes
+                            .filter(p => p.symbol && p.symbol !== symbol)
+                            .map(p => p.symbol);
+                        enrichedSettings.other_symbols = Array.from(new Set(otherSymbols));
+                    }
+
+                    def.dataFetcher({
+                        symbol: symbol,
+                        timeframe: timeframe,
+                        from: (fromTime as number) * 1000,
+                        to: (toTime as number) * 1000,
+                        settings: enrichedSettings,
+                        backtestId: activeSession?.id,
+                        signal: controller.signal
+                    }).then(data => {
+                        // clear abort controller tracking
+                        if (pendingFetchesRef.current.get(ind.instanceId) === controller) {
+                            pendingFetchesRef.current.delete(ind.instanceId);
+                        }
+
+                        const pluginAsAny = plugin as any;
+                        if (pluginAsAny.updateSessions) {
+                            pluginAsAny.updateSessions(data);
+                        }
+                        if (pluginAsAny.updateDivergences) {
+                            pluginAsAny.updateDivergences(data);
+                        }
+                    }).catch(e => {
+                        if (e.name !== 'AbortError') {
+                            console.error("Indicator Tick Data Fetch Failed", e);
+                        }
+                    });
+                }
+            });
+        }
+
     }, [dataA, chartReady]);
 
     // Cleanup Plugins on Unmount

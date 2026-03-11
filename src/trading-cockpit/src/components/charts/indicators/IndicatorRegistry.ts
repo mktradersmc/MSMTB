@@ -7,7 +7,7 @@ export interface IndicatorDefinition {
     // We store the Plugin Class constructor or factory
     pluginFactory: (settings: any) => any;
     settingsSchema?: any; // To be defined for generic settings
-    dataFetcher?: (params: { symbol: string, timeframe: string, from: number, to: number, settings: any, backtestId?: string }) => Promise<any>;
+    dataFetcher?: (params: { symbol: string, timeframe: string, from: number, to: number, settings: any, backtestId?: string, liveCandle?: any, signal?: AbortSignal }) => Promise<any>;
     /**
      * Optional function to transform chart data (e.g. for repainting candles).
      * Returns a new array of data items with style overrides.

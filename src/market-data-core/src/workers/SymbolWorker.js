@@ -175,7 +175,7 @@ class SymbolWorker extends AbstractWorker {
         // 2. GAP DETECTION (Only check on CLOSED bars or strictly sequential updates)
         // (Simplified for V3: Only check on Closed or if time jumped significantly)
         if (isComplete) {
-            const lastCandle = this.getLastCandle(timeframe);
+            const lastCandle = this.getLastCandle(timeframe); // getLastCandle will be updated to only fetch is_complete=1
             if (lastCandle) {
                 const tfMs = this.getPeriodMs(timeframe);
                 if (timeMS > lastCandle.time + tfMs + 500) {
@@ -185,13 +185,15 @@ class SymbolWorker extends AbstractWorker {
                     return; // Don't save gap data yet? Or save and fill? Usually fill first.
                 }
             }
-            // 3. PERSIST (Only Closed)
-            this.saveCandle(timeframe, dbCandle);
             this.updateStatus(timeframe, this.STATUS.READY);
             if (this.features && this.features.ENABLE_BAR_DATA_LOGGING) {
                 this.log(`[BarData] 💾 Saved COMPLETE ${timeframe} Bar: ${new Date(timeMS).toISOString()}`);
             }
         }
+
+        // 3. PERSIST ALWAYS (Both Live and Closed)
+        // We write every incoming tick to the DB. `isComplete` flag determines if it's forming or finalized.
+        this.saveCandle(timeframe, dbCandle);
 
         // 4. BROADCAST (Both Live and Closed)
         // Map to internal event names for Hub if needed, or keep 1:1
@@ -415,7 +417,8 @@ class SymbolWorker extends AbstractWorker {
         for (const [tf, status] of this.syncState) {
             try {
                 const tableName = `candles_${tf}`;
-                const last = this.db.prepare(`SELECT time FROM ${tableName} ORDER BY time DESC LIMIT 1`).get();
+                // MUST filter by is_complete = 1 so we don't gap-anchor onto a forming live candle
+                const last = this.db.prepare(`SELECT time FROM ${tableName} WHERE is_complete = 1 ORDER BY time DESC LIMIT 1`).get();
 
                 if (!last) {
                     this.log(`[Sync] 📉 ${tf}: Missing Data. Requesting Initial Protocol.`);
@@ -662,7 +665,8 @@ class SymbolWorker extends AbstractWorker {
     getLastCandle(tf) {
         try {
             const tableName = `candles_${tf}`;
-            return this.db.prepare(`SELECT * FROM ${tableName} ORDER BY time DESC LIMIT 1`).get();
+            // Gap Checks rely on fully closed history. Ignore forming candles.
+            return this.db.prepare(`SELECT * FROM ${tableName} WHERE is_complete = 1 ORDER BY time DESC LIMIT 1`).get();
         } catch (e) {
             return null;
         }

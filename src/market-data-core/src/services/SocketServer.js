@@ -16,6 +16,7 @@ const AuthService = require('./AuthService');
 const { WebSocketServer } = require('ws');
 const botConfigService = require('./BotConfigService'); // Import Service
 const systemConfigService = require('./SystemConfigService');
+const IndicatorDataProvider = require('./IndicatorDataProvider'); // NEW: Import IndicatorDataProvider
 const replayEngine = require('./ReplayEngine'); // Backtest Replay Engine
 // ... imports
 const fs = require('fs');
@@ -330,22 +331,27 @@ class SocketServer {
                     ];
                 }
 
-                // Fetch History
-                // Note: Sessions need deeper history than visible? Maybe.
-                // For now, use the same limit.
+                // Fetch History via DataProvider (Secure Backtest Wrap)
+                const dataProvider = new IndicatorDataProvider({
+                    mode: backtestId ? 'BACKTEST' : 'LIVE',
+                    backtestId: backtestId,
+                    simulationTime: simTimeOffset
+                });
+
                 const toLog = to ? new Date(parseInt(to)).toISOString() : "LATEST";
                 if (systemOrchestrator.getFeatures().ENABLE_INDICATOR_LOGGING) {
                     console.log(`[API] Fetching history for ${symbol}... To=${toLog}`);
                 }
-                let candles = db.getHistory(symbol, timeframe, limit, to);
+
+                let candles = dataProvider.getHistory(symbol, timeframe, limit, to);
                 if (systemOrchestrator.getFeatures().ENABLE_INDICATOR_LOGGING) {
-                    console.log(`[API] History fetched. Count: ${candles.length}`);
+                    console.log(`[API] History fetched (clamped). Count: ${candles.length}`);
                 }
 
                 if (candles.length === 0) {
                     // Try fetching if empty?
                     // await systemOrchestrator.ensureFreshHistory(symbol, timeframe);
-                    // candles = db.getHistory(symbol, timeframe, limit);
+                    // candles = dataProvider.getHistory(symbol, timeframe, limit);
                 }
 
                 // SPOOF: Override config namespace for Backtest isolation
@@ -408,19 +414,19 @@ class SocketServer {
 
                 const parsedTo = to ? parseInt(to) : null;
                 const toLog = parsedTo ? new Date(parsedTo).toISOString() : "LATEST";
-                let candles = db.getHistory(symbol, timeframe, limit, parsedTo);
 
-                // SPOOF: Override namespace to avoid caching leak
-                if (backtestId) {
-                    parsedSettings._namespace = backtestId;
-                }
-
-                const IndicatorDataProvider = require('./IndicatorDataProvider');
                 const dataProvider = new IndicatorDataProvider({
                     mode: backtestId ? 'BACKTEST' : 'LIVE',
                     backtestId: backtestId,
                     simulationTime: simTimeOffset
                 });
+
+                let candles = dataProvider.getHistory(symbol, timeframe, limit, parsedTo);
+
+                // SPOOF: Override namespace to avoid caching leak
+                if (backtestId) {
+                    parsedSettings._namespace = backtestId;
+                }
 
                 const divergences = await divergenceEngine.calculateDivergences(symbol, timeframe, candles, parsedSettings, dataProvider);
                 res.json({ success: true, divergences });
@@ -1127,51 +1133,8 @@ class SocketServer {
         // --- Trade Execution ---
         // (Delegated to the advanced unified routing block below)
 
-        // --- ICT Sessions Indicator ---
-        this.app.get('/api/indicators/ict-sessions', async (req, res) => {
-            try {
-                const { symbol, from, to, settings } = req.query;
-
-                if (!symbol || !settings) {
-                    return res.status(400).json({ error: "Missing symbol or settings" });
-                }
-
-                const parsedSettings = typeof settings === 'string' ? JSON.parse(settings) : settings;
-                const configHash = sessionEngine.getConfigHash(parsedSettings);
-
-                // 1. Try Cache (DB)
-                let sessions = db.getSessions(symbol, parseInt(from), parseInt(to), configHash);
-
-                // 2. If empty or force refresh (logic could be smarter), Calculate
-                if (!sessions || sessions.length === 0) {
-                    // Fetch required history
-                    // We need enough context? 
-                    // Let's grab what we have in the requested range + buffer?
-                    // For now, simple fetch of the range.
-
-                    const candles = db.getHistory(symbol, 'M1', 10000, null); // Simplified: Load latest 10k M1 bars
-                    // NOTE: Real implementation might need to be smarter about Timeframe source (e.g. M5 for sessions?)
-                    // The Indicator usually runs on the chart TF. But session logic (High/Low) usually needs lower TF precision?
-                    // "ICT Killzones" usually work on the displayed chart data in Pine.
-                    // Let's use M5 or M1 if available, or just use what's requested? 
-                    // The user prompt didn't specify source data TF. Pine script runs on Chart TF.
-
-                    // Optimization: Use `from` and `to` to fetch candles
-                    // db.getHistory uses `limit` and `to` (end time).
-                    // We might need a range fetcher in DB service for precise windows.
-
-                    // For this MVP, let's use the DB's `getHistory` with a reasonable limit.
-
-                    // Calc
-                    sessions = await sessionEngine.calculateSessions(symbol, candles, parsedSettings);
-                }
-
-                res.json({ success: true, sessions });
-            } catch (e) {
-                console.error("[API] ICT Sessions Error:", e);
-                res.status(500).json({ error: e.message });
-            }
-        });
+        // --- Legacy ICT Sessions Indicator Route Removed ---
+        // (Replaced by the active one at the top of the file)
 
         this.app.get('/api/distribution/config', (req, res) => {
             res.json(tradeDistributionService.getConfig());

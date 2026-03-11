@@ -43,16 +43,27 @@ class TimezoneNormalizationService {
         if (!botId) return false;
 
         try {
-            // Check broker table
-            const broker = db.marketDb.prepare("SELECT type, timezone FROM brokers WHERE id = ?").get(botId);
-            if (broker && (broker.type === 'NT8' || broker.timezone === 'UTC')) return true;
-
-            // Check accounts table (if botId maps to an account)
             const cleanBotId = botId.replace('_DATAFEED', '').replace('_TRADING', '');
-            const acc = db.marketDb.prepare("SELECT platform FROM accounts WHERE bot_id = ? OR name = ?").get(botId, cleanBotId);
-            if (acc && acc.platform === 'NT8') return true;
+
+            // 1. Resolve Account by BotId or cleaned Name (actually bot_id fallback, since 'name' column doesn't exist in accounts)
+            const acc = db.marketDb.prepare("SELECT platform, broker_id FROM accounts WHERE bot_id = ? OR bot_id = ?").get(botId, cleanBotId);
+
+            if (acc) {
+                if (acc.platform === 'NT8') return true;
+
+                // 2. Resolve matching Broker for that Account
+                if (acc.broker_id) {
+                    const brokerFromAcc = db.marketDb.prepare("SELECT type, timezone FROM brokers WHERE id = ?").get(acc.broker_id);
+                    if (brokerFromAcc && (brokerFromAcc.type === 'NT8' || brokerFromAcc.timezone === 'UTC')) return true;
+                }
+            } else {
+                // Fallback: Check if botId is directly a Broker ID or Name (some legacy configurations)
+                const broker = db.marketDb.prepare("SELECT type, timezone FROM brokers WHERE id = ? OR name = ?").get(botId, cleanBotId);
+                if (broker && (broker.type === 'NT8' || broker.timezone === 'UTC')) return true;
+            }
+
         } catch (e) {
-            // Ignore DB errors during initialization
+            console.error(`[Timezone] Error resolving natively true UTC status for _isNativeUtc(botId: ${botId}):`, e.message);
         }
         return false;
     }

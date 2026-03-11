@@ -42,8 +42,8 @@ export const useTradeStats = (calendarDate: Date = new Date()) => {
         const loadHistory = async () => {
             setIsLoading(true);
             try {
-                // Fetch up to 5000 trades to ensure we cover the month
-                const res = await fetchDirect('/trade-history?limit=5000');
+                // Fetch up to 5000 trades to ensure we cover the month (forcing env=live)
+                const res = await fetchDirect('/trade-history?limit=5000&env=live');
                 if (res.ok) {
                     const data = await res.json();
                     if (data.success && data.history) {

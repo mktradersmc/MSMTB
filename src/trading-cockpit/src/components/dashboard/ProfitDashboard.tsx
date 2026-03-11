@@ -21,6 +21,10 @@ export const ProfitDashboard: React.FC = () => {
         return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(val);
     };
 
+    const formatMoneyFlat = (val: number) => {
+        return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(val);
+    };
+
     const formatPercent = (val: number) => {
         return `${val.toFixed(1)}%`;
     };
@@ -187,8 +191,8 @@ export const ProfitDashboard: React.FC = () => {
 
                                                             {day.isCurrentMonth && (day.wins > 0 || day.losses > 0) && (
                                                                 <div className="mt-1 flex flex-col items-end">
-                                                                    <div className={`text-sm font-bold ${textClass}`}>
-                                                                        {day.monetaryPnL > 0 ? '+' : ''}{formatMoney(day.monetaryPnL)}
+                                                                    <div className={`text-xs font-bold ${textClass}`}>
+                                                                        {day.monetaryPnL > 0 ? '+' : ''}{formatMoneyFlat(day.monetaryPnL)}
                                                                     </div>
                                                                     <div className="flex gap-1.5 text-[9px] mt-0.5 font-bold uppercase tracking-wider">
                                                                         {day.wins > 0 && <span className="text-emerald-600 dark:text-emerald-500 bg-emerald-500/10 px-1 rounded">{day.wins}W</span>}
@@ -202,8 +206,8 @@ export const ProfitDashboard: React.FC = () => {
 
                                                 {/* Weekly Summary Tile */}
                                                 <div className="min-h-[80px] p-2 rounded-sm bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-800/40 flex flex-col justify-center items-center">
-                                                    <div className={`text-sm font-bold ${weekPnl >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
-                                                        {weekPnl > 0 ? '+' : ''}{formatMoney(weekPnl)}
+                                                    <div className={`text-xs font-bold ${weekPnl >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
+                                                        {weekPnl > 0 ? '+' : ''}{formatMoneyFlat(weekPnl)}
                                                     </div>
                                                 </div>
                                             </React.Fragment>

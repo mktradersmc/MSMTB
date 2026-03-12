@@ -2431,3 +2431,1212 @@
 [2026-03-12T17:29:34.039Z] [BLOCKING] Event Loop Lag: 31ms
 [2026-03-12T17:29:52.796Z] [BLOCKING] Event Loop Lag: 23ms
 [2026-03-12T17:30:00.898Z] [BLOCKING] Event Loop Lag: 23ms
+[2026-03-12T17:32:10.687Z] === FORENSIC LOGGER ATTACHED ===
+[LOG] [2026-03-12T17:32:10.712Z] [LogService] 📝 Redirecting High-Frequency Logs to: C:\Users\Michael\IdeaProjects\MSMTB\src\market-data-core\logs\traffic.log
+[LOG] [2026-03-12T17:32:10.715Z] [AssetMapping] Loaded 4 mappings.
+[LOG] [2026-03-12T17:32:10.716Z] [WebSocketManager] 🆕 Instance Created: xectm
+[LOG] [2026-03-12T17:32:10.718Z] [SystemOrchestrator] 🆕 Creating FRESH Instance(v1773336730718)
+[LOG] [2026-03-12T17:32:10.718Z] [SystemOrchestrator] 🏗️ CONSTRUCTOR CALLED (Instance yf9b0g)
+[LOG] [2026-03-12T17:32:10.718Z] [SystemOrchestrator:yf9b0g] Loaded state: 0 available, 4 configured.
+[LOG] [2026-03-12T17:32:10.718Z] [Sync] 🛑 Global Provisioning DISABLED. Waiting for TickSpy...
+[LOG] [2026-03-12T17:32:10.719Z] [SyncManager] 🎛️ Loaded Features: {
+  "ENABLE_STARTUP_SANITY_CHECK": false,
+  "ENABLE_PERIODIC_SANITY_CHECK": true,
+  "ENABLE_REGISTRATION_SANITY_CHECK": false,
+  "ENABLE_CONSISTENCY_SCHEDULER": false,
+  "ENABLE_DEEP_HISTORY_SYNC": true,
+  "ENABLE_TICK_LOGGING": false,
+  "ENABLE_BAR_DATA_LOGGING": false,
+  "ENABLE_INDICATOR_LOGGING": false,
+  "ENABLE_DETAILED_PROTOCOL_LOGGING": false
+}
+[LOG] [2026-03-12T17:32:10.722Z] [SystemOrchestrator] 🔄 Refreshing Available Symbols (Direct DB Fetch)...
+[LOG] [2026-03-12T17:32:10.726Z] [SystemOrchestrator] 🔄 Refreshed Available Symbols. Total Count: 1922
+[LOG] [2026-03-12T17:32:10.726Z] [Sync] 🗺️ Rebuilt Symbol Maps: 2 bots, 8 reverse mappings.
+[LOG] [2026-03-12T17:32:10.727Z] [WorkerFactory] 🏭 Creating BACKTEST for PAPER_BOT:ALL:ALL (Script: BacktestWorker.js)
+[LOG] [2026-03-12T17:32:10.730Z] [SystemOrchestrator] 🚀 Virtual Broker PAPER_BOT registered for DATAFEED, TICK_SPY, HISTORY, and TRADING.
+[LOG] [2026-03-12T17:32:10.730Z] [SystemOrchestrator] 📂 Starting System File Monitor...
+[LOG] [2026-03-12T17:32:10.730Z] [SystemOrchestrator] 📂 Starting System File Monitor...
+[LOG] [2026-03-12T17:32:10.877Z] [TradeDist] Loaded Config from DB: 8 brokers configured.
+[LOG] [2026-03-12T17:32:10.927Z] [SocketServer] Starting with standard HTTP (No SSL configuration found).
+[LOG] [2026-03-12T17:32:10.933Z] Starting market-data-core...
+[LOG] [2026-03-12T17:32:10.941Z] [Gateway] WebSocket Server started on port 3000
+[LOG] [2026-03-12T17:32:10.942Z] [Framework] One-Time Route Initialization...
+[LOG] [2026-03-12T17:32:10.943Z] [Framework] Routes initialized (Empty - Protocol handled by UnifiedBotProtocol)
+[LOG] [2026-03-12T17:32:10.943Z] [Index] Linking SocketServer to SystemOrchestrator... Has Method: function
+[LOG] [2026-03-12T17:32:10.943Z] [Index] SystemOrchestrator Instance ID: yf9b0g
+[LOG] [2026-03-12T17:32:10.943Z] [SystemOrchestrator] ✅ SocketServer Linked Successfully.
+[LOG] [2026-03-12T17:32:10.943Z] [Index] Link Call Complete.
+[LOG] [2026-03-12T17:32:10.944Z] [EconomicCalendar] 🗓️ Starting Service...
+[LOG] [2026-03-12T17:32:10.951Z] [EconomicCalendar] Proactive fetching next month: apr.2026
+[LOG] [2026-03-12T17:32:10.988Z] MarketDataCore Services initialized.
+[LOG] [2026-03-12T17:32:10.991Z] [SocketServer] Listening on 0.0.0.0:3005 (IPv4 Explicit)
+[2026-03-12T17:32:11.762Z] [BLOCKING] Event Loop Lag: 74ms
+[LOG] [2026-03-12T17:32:11.767Z] [!!! ALARM-FLOW-BACKEND 1 - GET /api/history !!!] Received request: routingKey=FN_13885827_DATAFEED:HISTORY:EURUSD, tf=M1
+[LOG] [2026-03-12T17:32:11.800Z] [DB] 💾 Saved 370 calendar events.
+[LOG] [2026-03-12T17:32:11.800Z] [EconomicCalendar] 🟢 Next month loaded successfully.
+[LOG] [2026-03-12T17:32:15.393Z] [SocketServer] Upgrade Request: /socket.io/?EIO=4&transport=websocket from 127.0.0.1
+[LOG] [2026-03-12T17:32:15.408Z] [Socket] Client connected: YvAZ_1TkLDZIgzQIAAAB (User: admin)
+[LOG] [2026-03-12T17:32:15.411Z] [Sync] ⚠️ Subscribe: Worker not found for FN_13885827_DATAFEED:TICK_SPY:GBPUSD
+[LOG] [2026-03-12T17:32:15.412Z] [Sync] ⚠️ Subscribe: Worker not found for FN_13885827_DATAFEED:TICK_SPY:EURUSD
+[LOG] [2026-03-12T17:32:15.414Z] [StatusFlow] 📥 RX: Client Subscribe FN_13885827_DATAFEED:TICK_SPY:GBPUSD M5 (Status: UNKNOWN)
+[LOG] [2026-03-12T17:32:15.414Z] [StatusFlow] 📥 RX: Client Subscribe FN_13885827_DATAFEED:TICK_SPY:EURUSD M1 (Status: UNKNOWN)
+[LOG] [2026-03-12T17:32:15.418Z] [!!! ALARM-FLOW-BACKEND 1 - GET /api/history !!!] Received request: routingKey=FN_13885827_DATAFEED:HISTORY:GBPUSD, tf=M5
+[LOG] [2026-03-12T17:32:15.736Z] [SystemOrchestrator] ⏩ Auto-Start logic is disabled in system configuration.
+[LOG] [2026-03-12T17:32:20.101Z] [API] POST /accounts received. ID=9b5d147a-13c5-4001-957c-faaf6f1da092 Status=RUNNING PID=49144
+[LOG] [2026-03-12T17:32:21.305Z] [!!! ALARM-FLOW-BACKEND 1 - GET /api/history !!!] Received request: routingKey=FN_13885827_DATAFEED:HISTORY:EURUSD, tf=M1
+[LOG] [2026-03-12T17:32:21.307Z] [!!! ALARM-FLOW-BACKEND 1 - GET /api/history !!!] Received request: routingKey=FN_13885827_DATAFEED:HISTORY:GBPUSD, tf=M5
+[LOG] [2026-03-12T17:32:21.310Z] [!!! ALARM-FLOW-BACKEND 1 - GET /api/history !!!] Received request: routingKey=FN_13885827_DATAFEED:HISTORY:EURUSD, tf=M1
+[LOG] [2026-03-12T17:32:21.311Z] [!!! ALARM-FLOW-BACKEND 1 - GET /api/history !!!] Received request: routingKey=FN_13885827_DATAFEED:HISTORY:GBPUSD, tf=M5
+[LOG] [2026-03-12T17:32:24.902Z] [Gateway] New Connection: 556501c5-ccbc-49ed-ae03-767411c98ffd
+[LOG] [2026-03-12T17:32:24.981Z] [UnifiedBotProtocol] 📝 REGISTER REQUEST: Payload={"header":{"command":"REGISTER","botId":"FN_13885827_DATAFEED","func":"DATAFEED","symbol":"ALL","timestamp":1773347544},"botId":"FN_13885827_DATAFEED","func":"DATAFEED","symbol":"ALL","type":"REGISTER"}
+[LOG] [2026-03-12T17:32:24.981Z] [UnifiedBotProtocol] ✅ REGISTERING: FN_13885827_DATAFEED | DATAFEED | ALL
+[LOG] [2026-03-12T17:32:24.982Z] [WebSocketManager] 🔑 REGISTERED: FN_13885827_DATAFEED:DATAFEED:ALL (Transport: 556501c5-ccbc-49ed-ae03-767411c98ffd)
+[LOG] [2026-03-12T17:32:24.982Z] [SysOrch:Connect] 🟢 NEW CONNECTION: RoutingKey=FN_13885827_DATAFEED:DATAFEED:ALL, ID=FN_13885827_DATAFEED, Func=DATAFEED, Sym=ALL
+[LOG] [2026-03-12T17:32:24.982Z] [SysOrch:Connect] Registered NEW Bot Status: FN_13885827_DATAFEED:DATAFEED:ALL
+[LOG] [2026-03-12T17:32:24.983Z] [SystemOrchestrator] 🔌 Bot Connected: FN_13885827_DATAFEED (DATAFEED) [ALL]
+[LOG] [2026-03-12T17:32:24.983Z] [Sync] 🤝 Sending Configuration Handshake to FN_13885827_DATAFEED...
+[LOG] [2026-03-12T17:32:24.984Z] [Sync] ♻️ Resending Active Subscriptions for Reconnected Bot: FN_13885827_DATAFEED:DATAFEED:ALL
+[LOG] [2026-03-12T17:32:24.984Z] [WorkerFactory] 🏭 Creating DATAFEED for FN_13885827_DATAFEED:DATAFEED:ALL (Script: DatafeedWorker.js)
+[LOG] [2026-03-12T17:32:24.985Z] [SystemOrchestrator] 🚀 Spawned Worker: DATAFEED for FN_13885827_DATAFEED:DATAFEED:ALL
+[LOG] [2026-03-12T17:32:24.985Z] [SystemOrchestrator] ⏩ Symbol Discovery delegated to DatafeedWorker for FN_13885827_DATAFEED
+[LOG] [2026-03-12T17:32:25.095Z] [SyncManager] syncSubscriptions called.Active Subs: 2.TargetBot: FN_13885827_DATAFEED:DATAFEED:ALL TargetSym: ALL 
+[LOG] [2026-03-12T17:32:25.095Z] [SyncManager] Current Active Subscriptions: FN_13885827_DATAFEED:TICK_SPY:GBPUSD:M5, FN_13885827_DATAFEED:TICK_SPY:EURUSD:M1 
+[LOG] [2026-03-12T17:32:25.103Z] [Worker:FN_13885827_DATAFEED:DATAFEED:ALL] [18:32:25.102] [Init] 🚀 Worker Spawned for FN_13885827_DATAFEED:DATAFEED:ALL
+[LOG] [2026-03-12T17:32:25.109Z] [Worker:FN_13885827_DATAFEED:DATAFEED:ALL] [18:32:25.106] [DatafeedWorker] ✅ Found 76 existing symbols for Broker '504e20aa-403f-41ff-9d55-aeed39648955'.
+[LOG] [2026-03-12T17:32:25.111Z] [Worker:FN_13885827_DATAFEED:DATAFEED:ALL] [18:32:25.110] ℹ️ Sending CMD_CONFIG_SYMBOLS for 2 configured symbols (RPC)...
+[LOG] [2026-03-12T17:32:25.113Z] [Worker:FN_13885827_DATAFEED:DATAFEED:ALL] [18:32:25.111] [DatafeedWorker] 🔄 Triggering Auto-Subscriptions (Stub)...
+[LOG] [2026-03-12T17:32:25.262Z] [Worker:FN_13885827_DATAFEED:DATAFEED:ALL] [18:32:25.261] ✅ Config RPC Confirmed by Bot (150ms). Status: OK
+[2026-03-12T17:32:29.552Z] [BLOCKING] Event Loop Lag: 130ms
+[LOG] [2026-03-12T17:32:30.294Z] [Gateway] New Connection: e9f20eb6-e456-44ed-9f69-5193456fb3ab
+[LOG] [2026-03-12T17:32:30.295Z] [Gateway] New Connection: 4fdd65c5-e99f-4126-a02e-62eb348a1dea
+[LOG] [2026-03-12T17:32:30.296Z] [Gateway] New Connection: c9551bc7-7c9b-48de-9361-382ad772580b
+[LOG] [2026-03-12T17:32:30.297Z] [Gateway] New Connection: b09d95ba-2d31-45a4-b643-3cea17657e7e
+[LOG] [2026-03-12T17:32:30.355Z] [UnifiedBotProtocol] 📝 REGISTER REQUEST: Payload={"header":{"command":"REGISTER","botId":"FN_13885827_DATAFEED","func":"TICK_SPY","symbol":"EURUSD","timestamp":1773347550},"botId":"FN_13885827_DATAFEED","func":"TICK_SPY","symbol":"EURUSD","type":"REGISTER"}
+[LOG] [2026-03-12T17:32:30.356Z] [UnifiedBotProtocol] ✅ REGISTERING: FN_13885827_DATAFEED | TICK_SPY | EURUSD
+[LOG] [2026-03-12T17:32:30.356Z] [WebSocketManager] 🔑 REGISTERED: FN_13885827_DATAFEED:TICK_SPY:EURUSD (Transport: b09d95ba-2d31-45a4-b643-3cea17657e7e)
+[LOG] [2026-03-12T17:32:30.356Z] [SysOrch:Connect] 🟢 NEW CONNECTION: RoutingKey=FN_13885827_DATAFEED:TICK_SPY:EURUSD, ID=FN_13885827_DATAFEED, Func=TICK_SPY, Sym=EURUSD
+[LOG] [2026-03-12T17:32:30.357Z] [SysOrch:Connect] Registered NEW Bot Status: FN_13885827_DATAFEED:TICK_SPY:EURUSD
+[LOG] [2026-03-12T17:32:30.357Z] [SystemOrchestrator] 🔌 Bot Connected: FN_13885827_DATAFEED (TICK_SPY) [EURUSD]
+[LOG] [2026-03-12T17:32:30.359Z] [Sync] ♻️ Resending Active Subscriptions for Reconnected Bot: FN_13885827_DATAFEED:TICK_SPY:EURUSD
+[LOG] [2026-03-12T17:32:30.360Z] [WorkerFactory] 🏭 Creating TICK_SPY for FN_13885827_DATAFEED:TICK_SPY:EURUSD (Script: SymbolWorker.js)
+[LOG] [2026-03-12T17:32:30.361Z] [SystemOrchestrator] 🚀 Spawned Worker: TICK_SPY for FN_13885827_DATAFEED:TICK_SPY:EURUSD
+[LOG] [2026-03-12T17:32:30.362Z] [UnifiedBotProtocol] 📝 REGISTER REQUEST: Payload={"header":{"command":"REGISTER","botId":"FN_13885827_DATAFEED","func":"TICK_SPY","symbol":"GBPUSD","timestamp":1773347550},"botId":"FN_13885827_DATAFEED","func":"TICK_SPY","symbol":"GBPUSD","type":"REGISTER"}
+[LOG] [2026-03-12T17:32:30.363Z] [UnifiedBotProtocol] ✅ REGISTERING: FN_13885827_DATAFEED | TICK_SPY | GBPUSD
+[LOG] [2026-03-12T17:32:30.363Z] [WebSocketManager] 🔑 REGISTERED: FN_13885827_DATAFEED:TICK_SPY:GBPUSD (Transport: c9551bc7-7c9b-48de-9361-382ad772580b)
+[LOG] [2026-03-12T17:32:30.363Z] [SysOrch:Connect] 🟢 NEW CONNECTION: RoutingKey=FN_13885827_DATAFEED:TICK_SPY:GBPUSD, ID=FN_13885827_DATAFEED, Func=TICK_SPY, Sym=GBPUSD
+[LOG] [2026-03-12T17:32:30.363Z] [SysOrch:Connect] Registered NEW Bot Status: FN_13885827_DATAFEED:TICK_SPY:GBPUSD
+[LOG] [2026-03-12T17:32:30.363Z] [SystemOrchestrator] 🔌 Bot Connected: FN_13885827_DATAFEED (TICK_SPY) [GBPUSD]
+[LOG] [2026-03-12T17:32:30.364Z] [Sync] ♻️ Resending Active Subscriptions for Reconnected Bot: FN_13885827_DATAFEED:TICK_SPY:GBPUSD
+[LOG] [2026-03-12T17:32:30.365Z] [WorkerFactory] 🏭 Creating TICK_SPY for FN_13885827_DATAFEED:TICK_SPY:GBPUSD (Script: SymbolWorker.js)
+[LOG] [2026-03-12T17:32:30.366Z] [SystemOrchestrator] 🚀 Spawned Worker: TICK_SPY for FN_13885827_DATAFEED:TICK_SPY:GBPUSD
+[LOG] [2026-03-12T17:32:30.411Z] [UnifiedBotProtocol] 📝 REGISTER REQUEST: Payload={"header":{"command":"REGISTER","botId":"FN_13885827_DATAFEED","func":"HISTORY","symbol":"EURUSD","timestamp":1773347550},"botId":"FN_13885827_DATAFEED","func":"HISTORY","symbol":"EURUSD","type":"REGISTER"}
+[LOG] [2026-03-12T17:32:30.413Z] [UnifiedBotProtocol] ✅ REGISTERING: FN_13885827_DATAFEED | HISTORY | EURUSD
+[LOG] [2026-03-12T17:32:30.413Z] [WebSocketManager] 🔑 REGISTERED: FN_13885827_DATAFEED:HISTORY:EURUSD (Transport: 4fdd65c5-e99f-4126-a02e-62eb348a1dea)
+[LOG] [2026-03-12T17:32:30.413Z] [SysOrch:Connect] 🟢 NEW CONNECTION: RoutingKey=FN_13885827_DATAFEED:HISTORY:EURUSD, ID=FN_13885827_DATAFEED, Func=HISTORY, Sym=EURUSD
+[LOG] [2026-03-12T17:32:30.414Z] [SysOrch:Connect] Registered NEW Bot Status: FN_13885827_DATAFEED:HISTORY:EURUSD
+[LOG] [2026-03-12T17:32:30.414Z] [SystemOrchestrator] 🔌 Bot Connected: FN_13885827_DATAFEED (HISTORY) [EURUSD]
+[LOG] [2026-03-12T17:32:30.417Z] [WorkerFactory] 🏭 Creating HISTORY for FN_13885827_DATAFEED:HISTORY:EURUSD (Script: HistoryWorker.js)
+[LOG] [2026-03-12T17:32:30.422Z] [SystemOrchestrator] 🚀 Spawned Worker: HISTORY for FN_13885827_DATAFEED:HISTORY:EURUSD
+[LOG] [2026-03-12T17:32:30.427Z] [UnifiedBotProtocol] 📝 REGISTER REQUEST: Payload={"header":{"command":"REGISTER","botId":"FN_13885827_DATAFEED","func":"HISTORY","symbol":"GBPUSD","timestamp":1773347550},"botId":"FN_13885827_DATAFEED","func":"HISTORY","symbol":"GBPUSD","type":"REGISTER"}
+[LOG] [2026-03-12T17:32:30.430Z] [UnifiedBotProtocol] ✅ REGISTERING: FN_13885827_DATAFEED | HISTORY | GBPUSD
+[LOG] [2026-03-12T17:32:30.432Z] [WebSocketManager] 🔑 REGISTERED: FN_13885827_DATAFEED:HISTORY:GBPUSD (Transport: e9f20eb6-e456-44ed-9f69-5193456fb3ab)
+[LOG] [2026-03-12T17:32:30.434Z] [SysOrch:Connect] 🟢 NEW CONNECTION: RoutingKey=FN_13885827_DATAFEED:HISTORY:GBPUSD, ID=FN_13885827_DATAFEED, Func=HISTORY, Sym=GBPUSD
+[LOG] [2026-03-12T17:32:30.435Z] [SysOrch:Connect] Registered NEW Bot Status: FN_13885827_DATAFEED:HISTORY:GBPUSD
+[LOG] [2026-03-12T17:32:30.436Z] [SystemOrchestrator] 🔌 Bot Connected: FN_13885827_DATAFEED (HISTORY) [GBPUSD]
+[LOG] [2026-03-12T17:32:30.437Z] [WorkerFactory] 🏭 Creating HISTORY for FN_13885827_DATAFEED:HISTORY:GBPUSD (Script: HistoryWorker.js)
+[LOG] [2026-03-12T17:32:30.438Z] [SystemOrchestrator] 🚀 Spawned Worker: HISTORY for FN_13885827_DATAFEED:HISTORY:GBPUSD
+[LOG] [2026-03-12T17:32:30.461Z] [SyncManager] syncSubscriptions called.Active Subs: 2.TargetBot: FN_13885827_DATAFEED:TICK_SPY:EURUSD TargetSym: ALL 
+[LOG] [2026-03-12T17:32:30.464Z] [SyncManager] Current Active Subscriptions: FN_13885827_DATAFEED:TICK_SPY:GBPUSD:M5, FN_13885827_DATAFEED:TICK_SPY:EURUSD:M1 
+[LOG] [2026-03-12T17:32:30.465Z] [SyncManager] syncSubscriptions called.Active Subs: 2.TargetBot: FN_13885827_DATAFEED:TICK_SPY:GBPUSD TargetSym: ALL 
+[LOG] [2026-03-12T17:32:30.468Z] [SyncManager] Current Active Subscriptions: FN_13885827_DATAFEED:TICK_SPY:GBPUSD:M5, FN_13885827_DATAFEED:TICK_SPY:EURUSD:M1 
+[LOG] [2026-03-12T17:32:30.472Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [18:32:30.471] [Init] 🚀 Worker Spawned for FN_13885827_DATAFEED:TICK_SPY:EURUSD
+[LOG] [2026-03-12T17:32:30.479Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:GBPUSD] [18:32:30.475] [Init] 🚀 Worker Spawned for FN_13885827_DATAFEED:TICK_SPY:GBPUSD
+[LOG] [2026-03-12T17:32:30.486Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [18:32:30.486] DB Connected: EURUSD.db
+[LOG] [2026-03-12T17:32:30.492Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [18:32:30.488] [Lifecycle] Bot Connected: FN_13885827_DATAFEED (CID: undefined). Triggering Gap Check...
+[LOG] [2026-03-12T17:32:30.493Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:GBPUSD] [18:32:30.487] DB Connected: GBPUSD.db
+[LOG] [2026-03-12T17:32:30.502Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:GBPUSD] [18:32:30.489] [Lifecycle] Bot Connected: FN_13885827_DATAFEED (CID: undefined). Triggering Gap Check...
+[LOG] [2026-03-12T17:32:30.507Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:GBPUSD] [18:32:30.489] [Sync] 📉 M1: Missing Data. Requesting Initial Protocol.
+[LOG] [2026-03-12T17:32:30.510Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:GBPUSD] [18:32:30.494] [Sync] 🆕 Requesting Initial Data (RPC): GBPUSD M1 (Count: 100 [Reduced from 1000])
+[LOG] [2026-03-12T17:32:30.514Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:GBPUSD] [18:32:30.501] [Sync] 📉 M2: Missing Data. Requesting Initial Protocol.
+[LOG] [2026-03-12T17:32:30.515Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:GBPUSD] [18:32:30.501] [Sync] 📉 M3: Missing Data. Requesting Initial Protocol.
+[LOG] [2026-03-12T17:32:30.515Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:GBPUSD] [18:32:30.502] [Sync] 📉 M5: Missing Data. Requesting Initial Protocol.
+[LOG] [2026-03-12T17:32:30.517Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:GBPUSD] [18:32:30.502] [Sync] 📉 M10: Missing Data. Requesting Initial Protocol.
+[LOG] [2026-03-12T17:32:30.517Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:GBPUSD] [18:32:30.504] [Sync] 📉 M15: Missing Data. Requesting Initial Protocol.
+[LOG] [2026-03-12T17:32:30.519Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:GBPUSD] [18:32:30.504] [Sync] 📉 M30: Missing Data. Requesting Initial Protocol.
+[LOG] [2026-03-12T17:32:30.520Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:GBPUSD] [18:32:30.504] [Sync] 📉 H1: Missing Data. Requesting Initial Protocol.
+[LOG] [2026-03-12T17:32:30.520Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:GBPUSD] [18:32:30.505] [Sync] 📉 H2: Missing Data. Requesting Initial Protocol.
+[LOG] [2026-03-12T17:32:30.525Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:GBPUSD] [18:32:30.505] [Sync] 📉 H3: Missing Data. Requesting Initial Protocol.
+[LOG] [2026-03-12T17:32:30.529Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:GBPUSD] [18:32:30.505] [Sync] 📉 H4: Missing Data. Requesting Initial Protocol.
+[LOG] [2026-03-12T17:32:30.532Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:GBPUSD] [18:32:30.505] [Sync] 📉 H6: Missing Data. Requesting Initial Protocol.
+[LOG] [2026-03-12T17:32:30.537Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:GBPUSD] [18:32:30.506] [Sync] 📉 H8: Missing Data. Requesting Initial Protocol.
+[LOG] [2026-03-12T17:32:30.544Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:GBPUSD] [18:32:30.506] [Sync] 📉 H12: Missing Data. Requesting Initial Protocol.
+[LOG] [2026-03-12T17:32:30.550Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:GBPUSD] [18:32:30.506] [Sync] 📉 D1: Missing Data. Requesting Initial Protocol.
+[LOG] [2026-03-12T17:32:30.552Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:GBPUSD] [18:32:30.507] [Sync] 📉 W1: Missing Data. Requesting Initial Protocol.
+[LOG] [2026-03-12T17:32:30.552Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:GBPUSD] [18:32:30.508] [Sync] 📉 MN1: Missing Data. Requesting Initial Protocol.
+[LOG] [2026-03-12T17:32:30.554Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [18:32:30.493] [Sync] 📉 M1: Missing Data. Requesting Initial Protocol.
+[LOG] [2026-03-12T17:32:30.558Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [18:32:30.494] [Sync] 🆕 Requesting Initial Data (RPC): EURUSD M1 (Count: 100 [Reduced from 1000])
+[LOG] [2026-03-12T17:32:30.562Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [18:32:30.503] [Sync] 📉 M2: Missing Data. Requesting Initial Protocol.
+[LOG] [2026-03-12T17:32:30.567Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [18:32:30.503] [Sync] 📉 M3: Missing Data. Requesting Initial Protocol.
+[LOG] [2026-03-12T17:32:30.568Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [18:32:30.504] [Sync] 📉 M5: Missing Data. Requesting Initial Protocol.
+[LOG] [2026-03-12T17:32:30.569Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [18:32:30.504] [Sync] 📉 M10: Missing Data. Requesting Initial Protocol.
+[LOG] [2026-03-12T17:32:30.570Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [18:32:30.505] [Sync] 📉 M15: Missing Data. Requesting Initial Protocol.
+[LOG] [2026-03-12T17:32:30.570Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [18:32:30.505] [Sync] 📉 M30: Missing Data. Requesting Initial Protocol.
+[LOG] [2026-03-12T17:32:30.571Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [18:32:30.507] [Sync] 📉 H1: Missing Data. Requesting Initial Protocol.
+[LOG] [2026-03-12T17:32:30.573Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [18:32:30.508] [Sync] 📉 H2: Missing Data. Requesting Initial Protocol.
+[LOG] [2026-03-12T17:32:30.579Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [18:32:30.508] [Sync] 📉 H3: Missing Data. Requesting Initial Protocol.
+[LOG] [2026-03-12T17:32:30.580Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [18:32:30.508] [Sync] 📉 H4: Missing Data. Requesting Initial Protocol.
+[LOG] [2026-03-12T17:32:30.583Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [18:32:30.509] [Sync] 📉 H6: Missing Data. Requesting Initial Protocol.
+[LOG] [2026-03-12T17:32:30.585Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [18:32:30.509] [Sync] 📉 H8: Missing Data. Requesting Initial Protocol.
+[LOG] [2026-03-12T17:32:30.585Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [18:32:30.509] [Sync] 📉 H12: Missing Data. Requesting Initial Protocol.
+[LOG] [2026-03-12T17:32:30.592Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [18:32:30.509] [Sync] 📉 D1: Missing Data. Requesting Initial Protocol.
+[LOG] [2026-03-12T17:32:30.593Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [18:32:30.509] [Sync] 📉 W1: Missing Data. Requesting Initial Protocol.
+[LOG] [2026-03-12T17:32:30.594Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [18:32:30.510] [Sync] 📉 MN1: Missing Data. Requesting Initial Protocol.
+[2026-03-12T17:32:30.596Z] [BLOCKING] Event Loop Lag: 39ms
+[LOG] [2026-03-12T17:32:30.598Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:30.580] [Init] 🚀 Worker Spawned for FN_13885827_DATAFEED:HISTORY:EURUSD
+[LOG] [2026-03-12T17:32:30.599Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:30.582] [History] 🟢 Connected for EURUSD. Starting history initialization.
+[LOG] [2026-03-12T17:32:30.600Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:30.583] [History] ➕ Added 17 TFs to Low Priority Queue.
+[LOG] [2026-03-12T17:32:30.600Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:30.586] [History] 🆕 No data exists for EURUSD M1 yet. Initializing fetch from Date.now().
+[LOG] [2026-03-12T17:32:30.601Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:30.595] [Init] 🚀 Worker Spawned for FN_13885827_DATAFEED:HISTORY:GBPUSD
+[LOG] [2026-03-12T17:32:30.603Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:30.598] [History] 🟢 Connected for GBPUSD. Starting history initialization.
+[LOG] [2026-03-12T17:32:30.606Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:30.598] [History] ➕ Added 17 TFs to Low Priority Queue.
+[LOG] [2026-03-12T17:32:30.609Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:30.600] [History] 🆕 No data exists for GBPUSD M1 yet. Initializing fetch from Date.now().
+[LOG] [2026-03-12T17:32:30.612Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [18:32:30.600] [Sync] 📥 Ingesting 100 bars from RPC for M1.
+[LOG] [2026-03-12T17:32:30.613Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [18:32:30.612] [Sync] 💾 Persisted 100 bars for M1
+[LOG] [2026-03-12T17:32:30.620Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [18:32:30.613] [Sync] 🆕 Requesting Initial Data (RPC): EURUSD M2 (Count: 100 [Reduced from 1000])
+[LOG] [2026-03-12T17:32:30.623Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [18:32:30.613] [Queue] ✅ No pending tasks for M1. Sending SYNC_COMPLETE.
+[LOG] [2026-03-12T17:32:30.624Z] [Sync] ✅ Worker Reports SYNC_COMPLETE for EURUSD M1
+[LOG] [2026-03-12T17:32:30.624Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:GBPUSD] [18:32:30.600] [Sync] 📥 Ingesting 100 bars from RPC for M1.
+[LOG] [2026-03-12T17:32:30.625Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:GBPUSD] [18:32:30.610] [Sync] 💾 Persisted 100 bars for M1
+[LOG] [2026-03-12T17:32:30.664Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:GBPUSD] [18:32:30.612] [Sync] 🆕 Requesting Initial Data (RPC): GBPUSD M2 (Count: 100 [Reduced from 1000])
+[LOG] [2026-03-12T17:32:30.679Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:GBPUSD] [18:32:30.613] [Queue] ✅ No pending tasks for M1. Sending SYNC_COMPLETE.
+[LOG] [2026-03-12T17:32:30.690Z] [Sync] ✅ Worker Reports SYNC_COMPLETE for GBPUSD M1
+[LOG] [2026-03-12T17:32:30.724Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:30.719] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:30.744Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [18:32:30.720] [Sync] 📥 Ingesting 100 bars from RPC for M2.
+[LOG] [2026-03-12T17:32:30.761Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [18:32:30.746] [Sync] 💾 Persisted 100 bars for M2
+[LOG] [2026-03-12T17:32:30.798Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [18:32:30.746] [Sync] 🆕 Requesting Initial Data (RPC): EURUSD M3 (Count: 100 [Reduced from 1000])
+[LOG] [2026-03-12T17:32:30.823Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [18:32:30.747] [Queue] ✅ No pending tasks for M2. Sending SYNC_COMPLETE.
+[LOG] [2026-03-12T17:32:30.835Z] [Sync] ✅ Worker Reports SYNC_COMPLETE for EURUSD M2
+[LOG] [2026-03-12T17:32:30.843Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:GBPUSD] [18:32:30.723] [Sync] 📥 Ingesting 100 bars from RPC for M2.
+[LOG] [2026-03-12T17:32:30.844Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:GBPUSD] [18:32:30.744] [Sync] 💾 Persisted 100 bars for M2
+[LOG] [2026-03-12T17:32:30.852Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:GBPUSD] [18:32:30.744] [Sync] 🆕 Requesting Initial Data (RPC): GBPUSD M3 (Count: 100 [Reduced from 1000])
+[LOG] [2026-03-12T17:32:30.872Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:GBPUSD] [18:32:30.753] [Queue] ✅ No pending tasks for M2. Sending SYNC_COMPLETE.
+[LOG] [2026-03-12T17:32:30.885Z] [Sync] ✅ Worker Reports SYNC_COMPLETE for GBPUSD M2
+[LOG] [2026-03-12T17:32:30.897Z] [!!! ALARM-FLOW-BACKEND 1 - GET /api/history !!!] Received request: routingKey=FN_13885827_DATAFEED:HISTORY:EURUSD, tf=M1
+[LOG] [2026-03-12T17:32:30.925Z] [!!! ALARM-FLOW-BACKEND 1 - GET /api/history !!!] Received request: routingKey=FN_13885827_DATAFEED:HISTORY:EURUSD, tf=M1
+[LOG] [2026-03-12T17:32:30.957Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:30.734] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:30.987Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [18:32:30.971] [Sync] 📥 Ingesting 100 bars from RPC for M3.
+[LOG] [2026-03-12T17:32:30.995Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [18:32:30.987] [Sync] 💾 Persisted 100 bars for M3
+[LOG] [2026-03-12T17:32:31.001Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [18:32:30.992] [Sync] 🆕 Requesting Initial Data (RPC): EURUSD M5 (Count: 100 [Reduced from 1000])
+[LOG] [2026-03-12T17:32:31.003Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [18:32:30.993] [Queue] ✅ No pending tasks for M3. Sending SYNC_COMPLETE.
+[LOG] [2026-03-12T17:32:31.004Z] [Sync] ✅ Worker Reports SYNC_COMPLETE for EURUSD M3
+[LOG] [2026-03-12T17:32:31.007Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:GBPUSD] [18:32:30.972] [Sync] 📥 Ingesting 100 bars from RPC for M3.
+[LOG] [2026-03-12T17:32:31.009Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:GBPUSD] [18:32:30.991] [Sync] 💾 Persisted 100 bars for M3
+[LOG] [2026-03-12T17:32:31.015Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:GBPUSD] [18:32:30.991] [Sync] 🆕 Requesting Initial Data (RPC): GBPUSD M5 (Count: 100 [Reduced from 1000])
+[LOG] [2026-03-12T17:32:31.017Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:GBPUSD] [18:32:30.992] [Queue] ✅ No pending tasks for M3. Sending SYNC_COMPLETE.
+[LOG] [2026-03-12T17:32:31.018Z] [Sync] ✅ Worker Reports SYNC_COMPLETE for GBPUSD M3
+[LOG] [2026-03-12T17:32:31.110Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:GBPUSD] [18:32:31.108] [Sync] 📥 Ingesting 100 bars from RPC for M5.
+[LOG] [2026-03-12T17:32:31.123Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:GBPUSD] [18:32:31.119] [Sync] 💾 Persisted 100 bars for M5
+[LOG] [2026-03-12T17:32:31.129Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:GBPUSD] [18:32:31.120] [Sync] 🆕 Requesting Initial Data (RPC): GBPUSD M10 (Count: 100 [Reduced from 1000])
+[LOG] [2026-03-12T17:32:31.131Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:GBPUSD] [18:32:31.120] [Queue] ✅ No pending tasks for M5. Sending SYNC_COMPLETE.
+[LOG] [2026-03-12T17:32:31.132Z] [Sync] ✅ Worker Reports SYNC_COMPLETE for GBPUSD M5
+[LOG] [2026-03-12T17:32:31.132Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [18:32:31.108] [Sync] 📥 Ingesting 100 bars from RPC for M5.
+[LOG] [2026-03-12T17:32:31.133Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [18:32:31.123] [Sync] 💾 Persisted 100 bars for M5
+[LOG] [2026-03-12T17:32:31.137Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [18:32:31.124] [Sync] 🆕 Requesting Initial Data (RPC): EURUSD M10 (Count: 100 [Reduced from 1000])
+[LOG] [2026-03-12T17:32:31.142Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [18:32:31.124] [Queue] ✅ No pending tasks for M5. Sending SYNC_COMPLETE.
+[LOG] [2026-03-12T17:32:31.143Z] [Sync] ✅ Worker Reports SYNC_COMPLETE for EURUSD M5
+[LOG] [2026-03-12T17:32:31.145Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:31.111] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:31.148Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:31.112] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:31.153Z] [!!! ALARM-FLOW-BACKEND 1 - GET /api/history !!!] Received request: routingKey=FN_13885827_DATAFEED:HISTORY:GBPUSD, tf=M5
+[LOG] [2026-03-12T17:32:31.164Z] [!!! ALARM-FLOW-BACKEND 1 - GET /api/history !!!] Received request: routingKey=FN_13885827_DATAFEED:HISTORY:GBPUSD, tf=M5
+[LOG] [2026-03-12T17:32:31.170Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:GBPUSD] [18:32:31.168] [Sync] 📥 Ingesting 100 bars from RPC for M10.
+[LOG] [2026-03-12T17:32:31.177Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [18:32:31.168] [Sync] 📥 Ingesting 100 bars from RPC for M10.
+[LOG] [2026-03-12T17:32:31.180Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [18:32:31.180] [Sync] 💾 Persisted 100 bars for M10
+[LOG] [2026-03-12T17:32:31.185Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [18:32:31.180] [Sync] 🆕 Requesting Initial Data (RPC): EURUSD M15 (Count: 100 [Reduced from 1000])
+[LOG] [2026-03-12T17:32:31.186Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [18:32:31.181] [Queue] ✅ No pending tasks for M10. Sending SYNC_COMPLETE.
+[LOG] [2026-03-12T17:32:31.187Z] [Sync] ✅ Worker Reports SYNC_COMPLETE for EURUSD M10
+[LOG] [2026-03-12T17:32:31.193Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:GBPUSD] [18:32:31.179] [Sync] 💾 Persisted 100 bars for M10
+[LOG] [2026-03-12T17:32:31.197Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:GBPUSD] [18:32:31.179] [Sync] 🆕 Requesting Initial Data (RPC): GBPUSD M15 (Count: 100 [Reduced from 1000])
+[LOG] [2026-03-12T17:32:31.198Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:GBPUSD] [18:32:31.180] [Queue] ✅ No pending tasks for M10. Sending SYNC_COMPLETE.
+[LOG] [2026-03-12T17:32:31.199Z] [Sync] ✅ Worker Reports SYNC_COMPLETE for GBPUSD M10
+[LOG] [2026-03-12T17:32:31.228Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [18:32:31.226] [Sync] 📥 Ingesting 100 bars from RPC for M15.
+[LOG] [2026-03-12T17:32:31.232Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:GBPUSD] [18:32:31.227] [Sync] 📥 Ingesting 100 bars from RPC for M15.
+[LOG] [2026-03-12T17:32:31.236Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:GBPUSD] [18:32:31.234] [Sync] 💾 Persisted 100 bars for M15
+[LOG] [2026-03-12T17:32:31.245Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:GBPUSD] [18:32:31.234] [Sync] 🆕 Requesting Initial Data (RPC): GBPUSD M30 (Count: 100 [Reduced from 1000])
+[LOG] [2026-03-12T17:32:31.246Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:GBPUSD] [18:32:31.234] [Queue] ✅ No pending tasks for M15. Sending SYNC_COMPLETE.
+[LOG] [2026-03-12T17:32:31.246Z] [Sync] ✅ Worker Reports SYNC_COMPLETE for GBPUSD M15
+[LOG] [2026-03-12T17:32:31.247Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [18:32:31.234] [Sync] 💾 Persisted 100 bars for M15
+[LOG] [2026-03-12T17:32:31.250Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [18:32:31.234] [Sync] 🆕 Requesting Initial Data (RPC): EURUSD M30 (Count: 100 [Reduced from 1000])
+[LOG] [2026-03-12T17:32:31.251Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [18:32:31.234] [Queue] ✅ No pending tasks for M15. Sending SYNC_COMPLETE.
+[LOG] [2026-03-12T17:32:31.252Z] [Sync] ✅ Worker Reports SYNC_COMPLETE for EURUSD M15
+[LOG] [2026-03-12T17:32:31.278Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:GBPUSD] [18:32:31.276] [Sync] 📥 Ingesting 100 bars from RPC for M30.
+[LOG] [2026-03-12T17:32:31.280Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [18:32:31.276] [Sync] 📥 Ingesting 100 bars from RPC for M30.
+[LOG] [2026-03-12T17:32:31.283Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:GBPUSD] [18:32:31.283] [Sync] 💾 Persisted 100 bars for M30
+[LOG] [2026-03-12T17:32:31.293Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:GBPUSD] [18:32:31.283] [Sync] 🆕 Requesting Initial Data (RPC): GBPUSD H1 (Count: 100 [Reduced from 1000])
+[LOG] [2026-03-12T17:32:31.297Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:GBPUSD] [18:32:31.283] [Queue] ✅ No pending tasks for M30. Sending SYNC_COMPLETE.
+[LOG] [2026-03-12T17:32:31.297Z] [Sync] ✅ Worker Reports SYNC_COMPLETE for GBPUSD M30
+[LOG] [2026-03-12T17:32:31.298Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [18:32:31.284] [Sync] 💾 Persisted 100 bars for M30
+[LOG] [2026-03-12T17:32:31.314Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [18:32:31.285] [Sync] 🆕 Requesting Initial Data (RPC): EURUSD H1 (Count: 100 [Reduced from 1000])
+[LOG] [2026-03-12T17:32:31.315Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [18:32:31.285] [Queue] ✅ No pending tasks for M30. Sending SYNC_COMPLETE.
+[LOG] [2026-03-12T17:32:31.316Z] [Sync] ✅ Worker Reports SYNC_COMPLETE for EURUSD M30
+[LOG] [2026-03-12T17:32:31.329Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:GBPUSD] [18:32:31.326] [Sync] 📥 Ingesting 100 bars from RPC for H1.
+[LOG] [2026-03-12T17:32:31.341Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:31.329] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:31.351Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:31.330] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:31.361Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:GBPUSD] [18:32:31.343] [Sync] 💾 Persisted 100 bars for H1
+[LOG] [2026-03-12T17:32:31.369Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:GBPUSD] [18:32:31.344] [Sync] 🆕 Requesting Initial Data (RPC): GBPUSD H2 (Count: 100 [Reduced from 1000])
+[LOG] [2026-03-12T17:32:31.382Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:GBPUSD] [18:32:31.344] [Queue] ✅ No pending tasks for H1. Sending SYNC_COMPLETE.
+[LOG] [2026-03-12T17:32:31.396Z] [Sync] ✅ Worker Reports SYNC_COMPLETE for GBPUSD H1
+[LOG] [2026-03-12T17:32:31.399Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [18:32:31.361] [Sync] 📥 Ingesting 100 bars from RPC for H1.
+[LOG] [2026-03-12T17:32:31.400Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [18:32:31.367] [Sync] 💾 Persisted 100 bars for H1
+[LOG] [2026-03-12T17:32:31.403Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [18:32:31.367] [Sync] 🆕 Requesting Initial Data (RPC): EURUSD H2 (Count: 100 [Reduced from 1000])
+[LOG] [2026-03-12T17:32:31.407Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [18:32:31.367] [Queue] ✅ No pending tasks for H1. Sending SYNC_COMPLETE.
+[LOG] [2026-03-12T17:32:31.410Z] [Sync] ✅ Worker Reports SYNC_COMPLETE for EURUSD H1
+[LOG] [2026-03-12T17:32:31.418Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:GBPUSD] [18:32:31.414] [Sync] 📥 Ingesting 100 bars from RPC for H2.
+[LOG] [2026-03-12T17:32:31.426Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:GBPUSD] [18:32:31.419] [Sync] 💾 Persisted 100 bars for H2
+[LOG] [2026-03-12T17:32:31.436Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:GBPUSD] [18:32:31.420] [Sync] 🆕 Requesting Initial Data (RPC): GBPUSD H3 (Count: 100 [Reduced from 1000])
+[LOG] [2026-03-12T17:32:31.442Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:GBPUSD] [18:32:31.425] [Queue] ✅ No pending tasks for H2. Sending SYNC_COMPLETE.
+[LOG] [2026-03-12T17:32:31.447Z] [Sync] ✅ Worker Reports SYNC_COMPLETE for GBPUSD H2
+[LOG] [2026-03-12T17:32:31.469Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [18:32:31.452] [Sync] 📥 Ingesting 100 bars from RPC for H2.
+[LOG] [2026-03-12T17:32:31.469Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [18:32:31.464] [Sync] 💾 Persisted 100 bars for H2
+[LOG] [2026-03-12T17:32:31.483Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [18:32:31.465] [Sync] 🆕 Requesting Initial Data (RPC): EURUSD H3 (Count: 100 [Reduced from 1000])
+[LOG] [2026-03-12T17:32:31.485Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [18:32:31.465] [Queue] ✅ No pending tasks for H2. Sending SYNC_COMPLETE.
+[LOG] [2026-03-12T17:32:31.487Z] [Sync] ✅ Worker Reports SYNC_COMPLETE for EURUSD H2
+[LOG] [2026-03-12T17:32:31.497Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:GBPUSD] [18:32:31.494] [Sync] 📥 Ingesting 100 bars from RPC for H3.
+[LOG] [2026-03-12T17:32:31.502Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [18:32:31.499] [Sync] 📥 Ingesting 100 bars from RPC for H3.
+[LOG] [2026-03-12T17:32:31.511Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [18:32:31.510] [Sync] 💾 Persisted 100 bars for H3
+[LOG] [2026-03-12T17:32:31.518Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [18:32:31.510] [Sync] 🆕 Requesting Initial Data (RPC): EURUSD H4 (Count: 100 [Reduced from 1000])
+[LOG] [2026-03-12T17:32:31.521Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [18:32:31.511] [Queue] ✅ No pending tasks for H3. Sending SYNC_COMPLETE.
+[LOG] [2026-03-12T17:32:31.526Z] [Sync] ✅ Worker Reports SYNC_COMPLETE for EURUSD H3
+[LOG] [2026-03-12T17:32:31.529Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:31.500] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:31.532Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:GBPUSD] [18:32:31.501] [Sync] 💾 Persisted 100 bars for H3
+[LOG] [2026-03-12T17:32:31.540Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:GBPUSD] [18:32:31.502] [Sync] 🆕 Requesting Initial Data (RPC): GBPUSD H4 (Count: 100 [Reduced from 1000])
+[LOG] [2026-03-12T17:32:31.546Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:GBPUSD] [18:32:31.502] [Queue] ✅ No pending tasks for H3. Sending SYNC_COMPLETE.
+[LOG] [2026-03-12T17:32:31.547Z] [Sync] ✅ Worker Reports SYNC_COMPLETE for GBPUSD H3
+[LOG] [2026-03-12T17:32:31.548Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:31.508] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:31.552Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [18:32:31.550] [Sync] 📥 Ingesting 100 bars from RPC for H4.
+[LOG] [2026-03-12T17:32:31.558Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [18:32:31.557] [Sync] 💾 Persisted 100 bars for H4
+[LOG] [2026-03-12T17:32:31.567Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [18:32:31.562] [Sync] 🆕 Requesting Initial Data (RPC): EURUSD H6 (Count: 100 [Reduced from 1000])
+[LOG] [2026-03-12T17:32:31.578Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [18:32:31.563] [Queue] ✅ No pending tasks for H4. Sending SYNC_COMPLETE.
+[LOG] [2026-03-12T17:32:31.581Z] [Sync] ✅ Worker Reports SYNC_COMPLETE for EURUSD H4
+[LOG] [2026-03-12T17:32:31.597Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:GBPUSD] [18:32:31.596] [Sync] 📥 Ingesting 100 bars from RPC for H4.
+[LOG] [2026-03-12T17:32:31.601Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [18:32:31.597] [Sync] 📥 Ingesting 100 bars from RPC for H6.
+[LOG] [2026-03-12T17:32:31.612Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:GBPUSD] [18:32:31.607] [Sync] 💾 Persisted 100 bars for H4
+[LOG] [2026-03-12T17:32:31.616Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:GBPUSD] [18:32:31.607] [Sync] 🆕 Requesting Initial Data (RPC): GBPUSD H6 (Count: 100 [Reduced from 1000])
+[LOG] [2026-03-12T17:32:31.617Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:GBPUSD] [18:32:31.608] [Queue] ✅ No pending tasks for H4. Sending SYNC_COMPLETE.
+[LOG] [2026-03-12T17:32:31.618Z] [Sync] ✅ Worker Reports SYNC_COMPLETE for GBPUSD H4
+[LOG] [2026-03-12T17:32:31.618Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [18:32:31.614] [Sync] 💾 Persisted 100 bars for H6
+[LOG] [2026-03-12T17:32:31.627Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [18:32:31.614] [Sync] 🆕 Requesting Initial Data (RPC): EURUSD H8 (Count: 100 [Reduced from 1000])
+[LOG] [2026-03-12T17:32:31.629Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [18:32:31.615] [Queue] ✅ No pending tasks for H6. Sending SYNC_COMPLETE.
+[LOG] [2026-03-12T17:32:31.630Z] [Sync] ✅ Worker Reports SYNC_COMPLETE for EURUSD H6
+[LOG] [2026-03-12T17:32:31.633Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:31.632] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:31.636Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:31.633] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:31.642Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:GBPUSD] [18:32:31.634] [Sync] 📥 Ingesting 100 bars from RPC for H6.
+[LOG] [2026-03-12T17:32:31.652Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:GBPUSD] [18:32:31.649] [Sync] 💾 Persisted 100 bars for H6
+[LOG] [2026-03-12T17:32:31.662Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:GBPUSD] [18:32:31.651] [Sync] 🆕 Requesting Initial Data (RPC): GBPUSD H8 (Count: 100 [Reduced from 1000])
+[LOG] [2026-03-12T17:32:31.665Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:GBPUSD] [18:32:31.651] [Queue] ✅ No pending tasks for H6. Sending SYNC_COMPLETE.
+[LOG] [2026-03-12T17:32:31.668Z] [Sync] ✅ Worker Reports SYNC_COMPLETE for GBPUSD H6
+[LOG] [2026-03-12T17:32:31.674Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [18:32:31.674] [Sync] 📥 Ingesting 100 bars from RPC for H8.
+[LOG] [2026-03-12T17:32:31.683Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [18:32:31.682] [Sync] 💾 Persisted 100 bars for H8
+[LOG] [2026-03-12T17:32:31.686Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [18:32:31.683] [Sync] 🆕 Requesting Initial Data (RPC): EURUSD H12 (Count: 100 [Reduced from 1000])
+[LOG] [2026-03-12T17:32:31.691Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [18:32:31.683] [Queue] ✅ No pending tasks for H8. Sending SYNC_COMPLETE.
+[LOG] [2026-03-12T17:32:31.692Z] [Sync] ✅ Worker Reports SYNC_COMPLETE for EURUSD H8
+[LOG] [2026-03-12T17:32:31.695Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:GBPUSD] [18:32:31.694] [Sync] 📥 Ingesting 100 bars from RPC for H8.
+[LOG] [2026-03-12T17:32:31.709Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:GBPUSD] [18:32:31.708] [Sync] 💾 Persisted 100 bars for H8
+[LOG] [2026-03-12T17:32:31.714Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:GBPUSD] [18:32:31.709] [Sync] 🆕 Requesting Initial Data (RPC): GBPUSD H12 (Count: 100 [Reduced from 1000])
+[LOG] [2026-03-12T17:32:31.715Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:GBPUSD] [18:32:31.709] [Queue] ✅ No pending tasks for H8. Sending SYNC_COMPLETE.
+[LOG] [2026-03-12T17:32:31.716Z] [Sync] ✅ Worker Reports SYNC_COMPLETE for GBPUSD H8
+[LOG] [2026-03-12T17:32:31.717Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [18:32:31.709] [Sync] 📥 Ingesting 100 bars from RPC for H12.
+[LOG] [2026-03-12T17:32:31.717Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [18:32:31.714] [Sync] 💾 Persisted 100 bars for H12
+[LOG] [2026-03-12T17:32:31.720Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [18:32:31.715] [Sync] 🆕 Requesting Initial Data (RPC): EURUSD D1 (Count: 100 [Reduced from 1000])
+[LOG] [2026-03-12T17:32:31.724Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [18:32:31.716] [Queue] ✅ No pending tasks for H12. Sending SYNC_COMPLETE.
+[LOG] [2026-03-12T17:32:31.725Z] [Sync] ✅ Worker Reports SYNC_COMPLETE for EURUSD H12
+[LOG] [2026-03-12T17:32:31.743Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [18:32:31.741] [Sync] 📥 Ingesting 100 bars from RPC for D1.
+[LOG] [2026-03-12T17:32:31.745Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [18:32:31.742] [Sync] 💾 Persisted 100 bars for D1
+[LOG] [2026-03-12T17:32:31.749Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [18:32:31.743] [Sync] 🆕 Requesting Initial Data (RPC): EURUSD W1 (Count: 100 [Reduced from 1000])
+[LOG] [2026-03-12T17:32:31.750Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [18:32:31.743] [Queue] ✅ No pending tasks for D1. Sending SYNC_COMPLETE.
+[LOG] [2026-03-12T17:32:31.750Z] [Sync] ✅ Worker Reports SYNC_COMPLETE for EURUSD D1
+[LOG] [2026-03-12T17:32:31.751Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:GBPUSD] [18:32:31.743] [Sync] 📥 Ingesting 100 bars from RPC for H12.
+[LOG] [2026-03-12T17:32:31.751Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:GBPUSD] [18:32:31.749] [Sync] 💾 Persisted 100 bars for H12
+[LOG] [2026-03-12T17:32:31.757Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:GBPUSD] [18:32:31.749] [Sync] 🆕 Requesting Initial Data (RPC): GBPUSD D1 (Count: 100 [Reduced from 1000])
+[LOG] [2026-03-12T17:32:31.762Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:GBPUSD] [18:32:31.750] [Queue] ✅ No pending tasks for H12. Sending SYNC_COMPLETE.
+[LOG] [2026-03-12T17:32:31.763Z] [Sync] ✅ Worker Reports SYNC_COMPLETE for GBPUSD H12
+[LOG] [2026-03-12T17:32:31.768Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [18:32:31.768] [Sync] 📥 Ingesting 100 bars from RPC for W1.
+[LOG] [2026-03-12T17:32:31.775Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [18:32:31.769] [Sync] 💾 Persisted 100 bars for W1
+[LOG] [2026-03-12T17:32:31.784Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [18:32:31.774] [Sync] 🆕 Requesting Initial Data (RPC): EURUSD MN1 (Count: 100 [Reduced from 1000])
+[LOG] [2026-03-12T17:32:31.785Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [18:32:31.777] [Queue] ✅ No pending tasks for W1. Sending SYNC_COMPLETE.
+[LOG] [2026-03-12T17:32:31.786Z] [Sync] ✅ Worker Reports SYNC_COMPLETE for EURUSD W1
+[LOG] [2026-03-12T17:32:31.787Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:GBPUSD] [18:32:31.774] [Sync] 📥 Ingesting 100 bars from RPC for D1.
+[LOG] [2026-03-12T17:32:31.787Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:GBPUSD] [18:32:31.777] [Sync] 💾 Persisted 100 bars for D1
+[LOG] [2026-03-12T17:32:31.793Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:GBPUSD] [18:32:31.777] [Sync] 🆕 Requesting Initial Data (RPC): GBPUSD W1 (Count: 100 [Reduced from 1000])
+[LOG] [2026-03-12T17:32:31.794Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:GBPUSD] [18:32:31.778] [Queue] ✅ No pending tasks for D1. Sending SYNC_COMPLETE.
+[LOG] [2026-03-12T17:32:31.795Z] [Sync] ✅ Worker Reports SYNC_COMPLETE for GBPUSD D1
+[LOG] [2026-03-12T17:32:31.809Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:GBPUSD] [18:32:31.808] [Sync] 📥 Ingesting 100 bars from RPC for W1.
+[LOG] [2026-03-12T17:32:31.811Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:GBPUSD] [18:32:31.810] [Sync] 💾 Persisted 100 bars for W1
+[LOG] [2026-03-12T17:32:31.814Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:GBPUSD] [18:32:31.810] [Sync] 🆕 Requesting Initial Data (RPC): GBPUSD MN1 (Count: 100 [Reduced from 1000])
+[LOG] [2026-03-12T17:32:31.815Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:GBPUSD] [18:32:31.810] [Queue] ✅ No pending tasks for W1. Sending SYNC_COMPLETE.
+[LOG] [2026-03-12T17:32:31.815Z] [Sync] ✅ Worker Reports SYNC_COMPLETE for GBPUSD W1
+[LOG] [2026-03-12T17:32:31.816Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [18:32:31.807] [Sync] 📥 Ingesting 100 bars from RPC for MN1.
+[LOG] [2026-03-12T17:32:31.816Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [18:32:31.810] [Sync] 💾 Persisted 100 bars for MN1
+[LOG] [2026-03-12T17:32:31.819Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [18:32:31.811] [Queue] ✅ No pending tasks for MN1. Sending SYNC_COMPLETE.
+[LOG] [2026-03-12T17:32:31.819Z] [Sync] ✅ Worker Reports SYNC_COMPLETE for EURUSD MN1
+[LOG] [2026-03-12T17:32:31.844Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:GBPUSD] [18:32:31.844] [Sync] 📥 Ingesting 100 bars from RPC for MN1.
+[LOG] [2026-03-12T17:32:31.846Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:GBPUSD] [18:32:31.844] [Sync] 💾 Persisted 100 bars for MN1
+[LOG] [2026-03-12T17:32:31.848Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:GBPUSD] [18:32:31.845] [Queue] ✅ No pending tasks for MN1. Sending SYNC_COMPLETE.
+[LOG] [2026-03-12T17:32:31.849Z] [Sync] ✅ Worker Reports SYNC_COMPLETE for GBPUSD MN1
+[LOG] [2026-03-12T17:32:31.849Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:31.844] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:31.849Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:31.844] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:31.981Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:31.980] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:31.987Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:31.987] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:32.191Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:32.190] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:32.191Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:32.191] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:32.291Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:32.291] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:32.292Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:32.292] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:32.407Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:32.406] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:32.408Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:32.407] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:32.509Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:32.508] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:32.510Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:32.509] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:32.628Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:32.627] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:32.628Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:32.627] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:32.731Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:32.726] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:32.735Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:32.728] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:32.842Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:32.841] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:32.844Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:32.842] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:32.961Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:32.961] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:32.963Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:32.961] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:33.080Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:33.079] [History] 🛑 End of Data for GBPUSD W1. Flagging max_history. (RawBin Length: none, Type: none, Buffer? false)
+[LOG] [2026-03-12T17:32:33.081Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:33.080] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:33.190Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:33.189] [History] 🛑 End of Data for EURUSD MN1. Flagging max_history. (RawBin Length: none, Type: none, Buffer? false)
+[LOG] [2026-03-12T17:32:33.192Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:33.189] [History] 🛑 End of Data for GBPUSD MN1. Flagging max_history. (RawBin Length: none, Type: none, Buffer? false)
+[LOG] [2026-03-12T17:32:33.292Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:33.292] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:33.315Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:33.314] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:33.407Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:33.406] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:33.411Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:33.411] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:33.507Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:33.507] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:33.510Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:33.507] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:33.609Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:33.608] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:33.626Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:33.625] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:33.734Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:33.728] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:33.743Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:33.729] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:33.842Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:33.841] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:33.843Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:33.841] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:33.943Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:33.941] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:33.944Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:33.942] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:34.058Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:34.057] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:34.059Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:34.058] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:34.158Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:34.158] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:34.159Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:34.158] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:34.277Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:34.276] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:34.277Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:34.276] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:34.392Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:34.391] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:34.395Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:34.393] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:34.492Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:34.492] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:34.495Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:34.492] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:34.609Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:34.608] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:34.610Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:34.608] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:34.708Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:34.708] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:34.710Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:34.708] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:34.762Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:34.758] [History] 🛑 Post-Fetch Boundary Reached for EURUSD H12. Flagging max_history.
+[LOG] [2026-03-12T17:32:34.764Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:34.758] [History] 🛑 Post-Fetch Boundary Reached for GBPUSD H12. Flagging max_history.
+[LOG] [2026-03-12T17:32:34.828Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:34.828] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:34.830Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:34.829] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:34.943Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:34.942] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:34.943Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:34.943] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:34.944Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:34.943] [History] ⚠️ Batch contained only filtered (1970) data. Pausing fetch for this TF.
+[LOG] [2026-03-12T17:32:35.057Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:35.057] [History] 🛑 End of Data for GBPUSD M2. Flagging max_history. (RawBin Length: none, Type: none, Buffer? false)
+[LOG] [2026-03-12T17:32:35.059Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:35.058] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:35.141Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:35.141] [History] 🛑 End of Data for EURUSD M2. Flagging max_history. (RawBin Length: none, Type: none, Buffer? false)
+[LOG] [2026-03-12T17:32:35.157Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:35.156] [History] 🛑 End of Data for GBPUSD M3. Flagging max_history. (RawBin Length: none, Type: none, Buffer? false)
+[LOG] [2026-03-12T17:32:35.274Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:35.274] [History] 🛑 End of Data for GBPUSD M5. Flagging max_history. (RawBin Length: none, Type: none, Buffer? false)
+[LOG] [2026-03-12T17:32:35.277Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:35.275] [History] 🛑 End of Data for EURUSD M3. Flagging max_history. (RawBin Length: none, Type: none, Buffer? false)
+[LOG] [2026-03-12T17:32:35.392Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:35.392] [History] 🛑 End of Data for EURUSD M5. Flagging max_history. (RawBin Length: none, Type: none, Buffer? false)
+[LOG] [2026-03-12T17:32:35.394Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:35.392] [History] 🛑 End of Data for GBPUSD M10. Flagging max_history. (RawBin Length: none, Type: none, Buffer? false)
+[LOG] [2026-03-12T17:32:35.491Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:35.490] [History] 🛑 End of Data for GBPUSD M15. Flagging max_history. (RawBin Length: none, Type: none, Buffer? false)
+[LOG] [2026-03-12T17:32:35.491Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:35.490] [History] 🛑 End of Data for EURUSD M10. Flagging max_history. (RawBin Length: none, Type: none, Buffer? false)
+[LOG] [2026-03-12T17:32:35.590Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:35.589] [History] 🛑 End of Data for EURUSD M15. Flagging max_history. (RawBin Length: none, Type: none, Buffer? false)
+[LOG] [2026-03-12T17:32:35.591Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:35.589] [History] 🛑 End of Data for GBPUSD M30. Flagging max_history. (RawBin Length: none, Type: none, Buffer? false)
+[LOG] [2026-03-12T17:32:35.710Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:35.709] [History] 🛑 End of Data for EURUSD M30. Flagging max_history. (RawBin Length: none, Type: none, Buffer? false)
+[LOG] [2026-03-12T17:32:35.710Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:35.710] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:35.827Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:35.827] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:35.829Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:35.828] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:35.941Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:35.940] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:35.941Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:35.940] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:36.058Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:36.058] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:36.059Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:36.059] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:36.175Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:36.174] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:36.175Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:36.175] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:36.280Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:36.280] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:36.292Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:36.291] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:36.403Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:36.403] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:36.405Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:36.403] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:36.508Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:36.508] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:36.510Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:36.508] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:36.613Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:36.613] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:36.614Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:36.613] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:36.726Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:36.725] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:36.732Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:36.726] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:36.841Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:36.841] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:36.842Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:36.841] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:36.943Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:36.942] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:36.944Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:36.942] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:37.058Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:37.057] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:37.060Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:37.058] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:37.157Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:37.157] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:37.158Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:37.157] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:37.224Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:37.219] [History] 🛑 Post-Fetch Boundary Reached for GBPUSD H8. Flagging max_history.
+[LOG] [2026-03-12T17:32:37.277Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:37.276] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:37.278Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:37.277] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:37.332Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:37.329] [History] 🛑 Post-Fetch Boundary Reached for EURUSD H8. Flagging max_history.
+[LOG] [2026-03-12T17:32:37.392Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:37.392] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:37.393Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:37.392] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:37.478Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:37.477] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:37.479Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:37.477] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:37.608Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:37.608] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:37.612Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:37.609] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:37.707Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:37.707] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:37.709Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:37.706] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:37.834Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:37.833] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:37.835Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:37.834] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:37.943Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:37.942] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:37.944Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:37.942] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:37.993Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:37.991] [History] 🛑 Post-Fetch Boundary Reached for GBPUSD H6. Flagging max_history.
+[LOG] [2026-03-12T17:32:38.058Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:38.057] [History] 💾 Decoded 428 bars from rawBin (Length: 20544).
+[LOG] [2026-03-12T17:32:38.058Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:38.058] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:38.113Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:38.110] [History] 🛑 Post-Fetch Boundary Reached for EURUSD H6. Flagging max_history.
+[LOG] [2026-03-12T17:32:38.174Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:38.173] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:38.175Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:38.174] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:38.292Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:38.291] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:38.292Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:38.291] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:38.394Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:38.394] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:38.394Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:38.394] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:38.510Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:38.509] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:38.510Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:38.510] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:38.627Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:38.627] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:38.629Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:38.629] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:38.727Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:38.726] [History] 💾 Decoded 1 bars from rawBin (Length: 48).
+[LOG] [2026-03-12T17:32:38.728Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:38.726] [History] 🏁 Reached maximum available broker history for GBPUSD D1 (minTime 1220486400000 >= oldestTime 1220486400000). Proceeding to next timeframe.
+[LOG] [2026-03-12T17:32:38.731Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:38.727] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:38.843Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:38.842] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:38.843Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:38.842] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:38.844Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:38.842] [History] ⚠️ Batch contained only filtered (1970) data. Pausing fetch for this TF.
+[LOG] [2026-03-12T17:32:38.940Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:38.939] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:38.941Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:38.941] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:39.058Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:39.058] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:39.060Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:39.059] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:39.175Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:39.174] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:39.176Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:39.175] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:39.274Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:39.274] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:39.275Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:39.274] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:39.330Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:39.320] [History] 🛑 Post-Fetch Boundary Reached for GBPUSD H4. Flagging max_history.
+[LOG] [2026-03-12T17:32:39.597Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:39.587] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:39.598Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:39.593] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:39.664Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:39.657] [History] 🛑 Post-Fetch Boundary Reached for EURUSD H4. Flagging max_history.
+[LOG] [2026-03-12T17:32:39.720Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:39.718] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:39.725Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:39.720] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:39.844Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:39.844] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:39.845Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:39.844] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:39.958Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:39.958] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:39.959Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:39.958] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:40.077Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:40.075] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:40.079Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:40.079] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:40.190Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:40.189] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:40.191Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:40.189] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:40.290Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:40.290] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:40.307Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:40.305] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:40.423Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:40.421] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:40.424Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:40.422] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:40.470Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:40.465] [History] 🛑 Post-Fetch Boundary Reached for GBPUSD H3. Flagging max_history.
+[LOG] [2026-03-12T17:32:40.525Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:40.524] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:40.525Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:40.524] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:40.567Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:40.564] [History] 🛑 Post-Fetch Boundary Reached for EURUSD H3. Flagging max_history.
+[LOG] [2026-03-12T17:32:40.637Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:40.637] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:40.638Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:40.637] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:40.722Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:40.721] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:40.740Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:40.740] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:40.856Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:40.856] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:40.857Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:40.856] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:40.970Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:40.969] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:40.970Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:40.969] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:41.076Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:41.075] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:41.079Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:41.076] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:41.175Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:41.174] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:41.177Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:41.175] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:41.290Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:41.289] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:41.290Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:41.290] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:41.402Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:41.401] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:41.403Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:41.402] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:41.501Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:41.501] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:41.504Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:41.501] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:41.626Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:41.622] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:41.630Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:41.627] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:41.734Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:41.733] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:41.734Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:41.733] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:41.776Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:41.776] [History] 🛑 Post-Fetch Boundary Reached for GBPUSD H2. Flagging max_history.
+[LOG] [2026-03-12T17:32:41.840Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:41.840] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:41.842Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:41.841] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:41.886Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:41.886] [History] 🛑 Post-Fetch Boundary Reached for EURUSD H2. Flagging max_history.
+[LOG] [2026-03-12T17:32:41.931Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:41.931] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:41.932Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:41.931] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:42.058Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:42.057] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:42.059Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:42.058] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:42.169Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:42.168] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:42.169Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:42.168] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:42.273Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:42.272] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:42.274Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:42.273] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:42.390Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:42.390] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:42.391Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:42.390] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:42.488Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:42.488] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:42.488Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:42.488] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:42.604Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:42.604] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:42.605Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:42.604] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:42.725Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:42.725] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:42.729Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:42.726] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:42.841Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:42.840] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:42.842Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:42.841] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:42.952Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:42.952] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:42.954Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:42.954] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:43.066Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:43.066] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:43.070Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:43.066] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:43.187Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:43.187] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:43.188Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:43.187] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:43.283Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:43.283] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:43.284Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:43.283] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:43.393Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:43.392] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:43.393Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:43.392] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:43.509Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:43.509] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:43.513Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:43.510] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:43.623Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:43.623] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:43.625Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:43.624] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:43.740Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:43.740] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:43.740Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:43.740] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:43.858Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:43.857] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:43.860Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:43.858] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:43.878Z] [StatusFlow] 📥 RX: Client Subscribe FN_13885827_DATAFEED:TICK_SPY:EURUSD M5 (Status: UNKNOWN)
+[LOG] [2026-03-12T17:32:43.921Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [18:32:43.870] [Subscription] ➕ Subscribing to EURUSD M5
+[LOG] [2026-03-12T17:32:43.922Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [18:32:43.871] [Subscription] ⏳ Sending SUBSCRIBE_TICKS and fetching current forming bar for M5...
+[LOG] [2026-03-12T17:32:44.001Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [18:32:43.996] [Subscription] ✅ Subscription successful for M5
+[LOG] [2026-03-12T17:32:44.002Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [18:32:43.996] [Subscription] ✅ Current forming bar received via SUBSCRIBE for M5
+[LOG] [2026-03-12T17:32:44.003Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:43.997] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:44.003Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:43.998] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:44.036Z] [!!! ALARM-FLOW-BACKEND 1 - GET /api/history !!!] Received request: routingKey=FN_13885827_DATAFEED:HISTORY:EURUSD, tf=M5
+[LOG] [2026-03-12T17:32:44.097Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:44.094] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:44.098Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:44.095] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:44.248Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:44.226] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:44.250Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:44.225] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:44.331Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:44.330] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:44.332Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:44.330] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:44.411Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:44.411] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:44.412Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:44.411] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:44.453Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:44.452] [History] 🛑 Post-Fetch Boundary Reached for GBPUSD H1. Flagging max_history.
+[LOG] [2026-03-12T17:32:44.520Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:44.519] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:44.520Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:44.519] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:44.561Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:44.560] [History] 🛑 Post-Fetch Boundary Reached for EURUSD H1. Flagging max_history.
+[LOG] [2026-03-12T17:32:44.635Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:44.635] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:44.636Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:44.635] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:44.756Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:44.755] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:44.757Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:44.756] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:44.857Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:44.856] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:44.859Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:44.857] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:44.953Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:44.952] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:44.957Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:44.956] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:45.065Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:45.064] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:45.078Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:45.078] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[2026-03-12T17:32:45.331Z] [BLOCKING] Event Loop Lag: 99ms
+[LOG] [2026-03-12T17:32:45.347Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:45.336] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:45.361Z] [!!! ALARM-FLOW-BACKEND 1 - GET /api/history !!!] Received request: routingKey=FN_13885827_DATAFEED:HISTORY:EURUSD, tf=M1
+[LOG] [2026-03-12T17:32:45.486Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:45.482] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:45.539Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:45.538] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:45.740Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:45.730] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:45.748Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:45.730] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:45.845Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:45.843] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:45.847Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:45.843] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:45.940Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:45.939] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:45.940Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:45.939] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:46.045Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:46.045] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:46.054Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:46.054] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:46.172Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:46.172] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:46.173Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:46.172] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:46.255Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:46.255] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:46.280Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:46.280] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:46.385Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:46.385] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:46.385Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:46.385] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:46.491Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:46.491] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:46.492Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:46.491] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:46.626Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:46.625] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:46.627Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:46.625] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:46.710Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:46.710] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:46.710Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:46.710] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:46.841Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:46.840] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:46.841Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:46.841] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:46.925Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:46.923] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:46.925Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:46.924] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:47.220Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:47.219] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:47.227Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:47.222] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:47.278Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:47.277] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:47.387Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:47.387] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:47.391Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:47.387] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:47.487Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:47.487] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:47.490Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:47.487] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:47.589Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:47.588] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:47.607Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:47.605] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:47.706Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:47.706] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:47.707Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:47.706] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:47.841Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:47.841] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:47.841Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:47.841] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:47.925Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:47.925] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:47.940Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:47.940] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:48.056Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:48.056] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:48.057Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:48.056] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:48.174Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:48.173] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:48.175Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:48.174] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:48.289Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:48.288] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:48.289Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:48.289] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:48.390Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:48.390] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:48.406Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:48.405] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:48.492Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:48.492] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:48.507Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:48.507] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:48.622Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:48.620] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:48.622Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:48.620] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:48.742Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:48.741] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:48.742Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:48.741] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:48.845Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:48.844] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:48.845Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:48.845] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:48.957Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:48.956] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:48.958Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:48.957] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:49.057Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:49.057] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:49.078Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:49.077] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:49.160Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:49.159] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:49.160Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:49.159] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:49.293Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:49.293] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:49.294Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:49.293] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[2026-03-12T17:32:49.546Z] [BLOCKING] Event Loop Lag: 189ms
+[LOG] [2026-03-12T17:32:49.548Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:49.548] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:49.622Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:49.622] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:49.625Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:49.624] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:49.722Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:49.721] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:49.724Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:49.721] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:49.841Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:49.840] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:49.841Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:49.841] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:49.956Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:49.954] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:49.958Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:49.957] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:50.073Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:50.072] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:50.075Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:50.074] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:50.158Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:50.158] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:50.159Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:50.158] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:50.257Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:50.257] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:50.262Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:50.262] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:50.388Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:50.387] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:50.389Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:50.388] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:50.475Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:50.474] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:50.490Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:50.489] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:50.594Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:50.593] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:50.609Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:50.608] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:50.692Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:50.691] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:50.692Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:50.691] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:50.823Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:50.822] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:50.825Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:50.822] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:50.924Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:50.923] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:50.925Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:50.923] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:51.041Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:51.041] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:51.041Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:51.041] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:51.158Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:51.158] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:51.159Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:51.158] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:51.238Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:51.238] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:51.258Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:51.257] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:51.380Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:51.380] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:51.382Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:51.381] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:51.459Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:51.459] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:51.462Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:51.461] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:51.590Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:51.589] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:51.677Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:51.676] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:51.679Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:51.678] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:51.793Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:51.792] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:51.809Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:51.809] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:51.927Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:51.925] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:51.928Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:51.927] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:52.026Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:52.026] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:52.028Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:52.026] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:52.136Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:52.136] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:52.136Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:52.136] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:52.258Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:52.257] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:52.258Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:52.258] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:52.359Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:52.359] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:52.362Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:52.360] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:52.458Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:52.457] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:52.476Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:52.476] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:52.576Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:52.574] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:52.590Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:52.590] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:52.692Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:52.692] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:52.694Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:52.692] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:52.809Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:52.809] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:52.811Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:52.810] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:52.921Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:52.920] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:52.922Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:52.921] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:53.006Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:53.006] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:53.023Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:53.023] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:53.138Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:53.137] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:53.139Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:53.137] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:53.229Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:53.228] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:53.229Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:53.228] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:53.342Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:53.341] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:53.356Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:53.356] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:53.473Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [18:32:53.473] [History] 🛑 End of Data for GBPUSD M1. Flagging max_history. (RawBin Length: none, Type: none, Buffer? false)
+[LOG] [2026-03-12T17:32:53.475Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:53.474] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:53.556Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:53.556] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:53.691Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:53.690] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T17:32:53.791Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [18:32:53.791] [History] 🛑 End of Data for EURUSD M1. Flagging max_history. (RawBin Length: none, Type: none, Buffer? false)
+
+--- 📊 TOP 10 LOG SOURCES (Last Minute) ---
+[206] [Worker:FN_N_DATAFEED:HISTORY:EURUSD] [N:N:N.N] 
+[204] [Worker:FN_N_DATAFEED:HISTORY:GBPUSD] [N:N:N.N] 
+[92] [Worker:FN_N_DATAFEED:TICK_SPY:EURUSD] [N:N:N.N]
+[88] [Worker:FN_N_DATAFEED:TICK_SPY:GBPUSD] [N:N:N.N]
+[12] [!!! ALARM-FLOW-BACKEND N - GET /api/history !!!] Received r
+[7] [Sync] ✅ Worker Reports SYNC_COMPLETE for EURUSD MN
+[7] [Sync] ✅ Worker Reports SYNC_COMPLETE for GBPUSD MN
+[7] [Sync] ✅ Worker Reports SYNC_COMPLETE for GBPUSD HN
+[7] [Sync] ✅ Worker Reports SYNC_COMPLETE for EURUSD HN
+[5] [UnifiedBotProtocol] 📝 REGISTER REQUEST: Payload={"header":
+-------------------------------------------
+[2026-03-12T17:33:20.049Z] [BLOCKING] Event Loop Lag: 148ms
+[2026-03-12T17:33:49.647Z] [BLOCKING] Event Loop Lag: 262ms
+[2026-03-12T17:33:55.722Z] [BLOCKING] Event Loop Lag: 36ms
+[2026-03-12T17:34:10.151Z] [BLOCKING] Event Loop Lag: 199ms
+[2026-03-12T17:34:40.074Z] [BLOCKING] Event Loop Lag: 140ms
+[LOG] [2026-03-12T17:34:43.926Z] [StatusFlow] 📥 RX: Client Subscribe FN_13885827_DATAFEED:TICK_SPY:EURUSD M5 (Status: UNKNOWN)
+[LOG] [2026-03-12T17:34:43.964Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [18:34:43.918] [Subscription] ➕ Subscribing to EURUSD M5
+[LOG] [2026-03-12T17:34:43.965Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [18:34:43.919] [Subscription] ⏳ Sending SUBSCRIBE_TICKS and fetching current forming bar for M5...
+[LOG] [2026-03-12T17:34:44.077Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [18:34:44.064] [Subscription] ✅ Subscription successful for M5
+[LOG] [2026-03-12T17:34:44.078Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [18:34:44.064] [Subscription] ✅ Current forming bar received via SUBSCRIBE for M5
+[2026-03-12T17:34:44.138Z] [BLOCKING] Event Loop Lag: 34ms
+[LOG] [2026-03-12T17:34:44.142Z] [!!! ALARM-FLOW-BACKEND 1 - GET /api/history !!!] Received request: routingKey=FN_13885827_DATAFEED:HISTORY:EURUSD, tf=M5
+[LOG] [2026-03-12T17:34:48.312Z] [!!! ALARM-FLOW-BACKEND 1 - GET /api/history !!!] Received request: routingKey=FN_13885827_DATAFEED:HISTORY:EURUSD, tf=M1
+[LOG] [2026-03-12T17:34:52.502Z] [!!! ALARM-FLOW-BACKEND 1 - GET /api/history !!!] Received request: routingKey=FN_13885827_DATAFEED:HISTORY:EURUSD, tf=M5
+[LOG] [2026-03-12T17:34:57.340Z] [StatusFlow] 📥 RX: Client Subscribe FN_13885827_DATAFEED:TICK_SPY:EURUSD M3 (Status: UNKNOWN)
+[LOG] [2026-03-12T17:34:57.371Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [18:34:57.332] [Subscription] ➕ Subscribing to EURUSD M3
+[LOG] [2026-03-12T17:34:57.371Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [18:34:57.333] [Subscription] ⏳ Sending SUBSCRIBE_TICKS and fetching current forming bar for M3...
+[LOG] [2026-03-12T17:34:57.429Z] [!!! ALARM-FLOW-BACKEND 1 - GET /api/history !!!] Received request: routingKey=FN_13885827_DATAFEED:HISTORY:EURUSD, tf=M3
+[LOG] [2026-03-12T17:34:57.448Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [18:34:57.427] [Subscription] ✅ Subscription successful for M3
+[LOG] [2026-03-12T17:34:57.449Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [18:34:57.428] [Subscription] ✅ Current forming bar received via SUBSCRIBE for M3
+[LOG] [2026-03-12T17:35:00.872Z] [StatusFlow] 📥 RX: Client Subscribe FN_13885827_DATAFEED:TICK_SPY:EURUSD M2 (Status: UNKNOWN)
+[LOG] [2026-03-12T17:35:00.899Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [18:35:00.866] [Subscription] ➕ Subscribing to EURUSD M2
+[LOG] [2026-03-12T17:35:00.899Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [18:35:00.866] [Subscription] ⏳ Sending SUBSCRIBE_TICKS and fetching current forming bar for M2...
+[LOG] [2026-03-12T17:35:00.976Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [18:35:00.975] [Subscription] ✅ Subscription successful for M2
+[LOG] [2026-03-12T17:35:00.977Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [18:35:00.976] [Subscription] ✅ Current forming bar received via SUBSCRIBE for M2
+[LOG] [2026-03-12T17:35:00.999Z] [!!! ALARM-FLOW-BACKEND 1 - GET /api/history !!!] Received request: routingKey=FN_13885827_DATAFEED:HISTORY:EURUSD, tf=M2
+
+--- 📊 TOP 10 LOG SOURCES (Last Minute) ---
+[12] [Worker:FN_N_DATAFEED:TICK_SPY:EURUSD] [N:N:N.N]
+[5] [!!! ALARM-FLOW-BACKEND N - GET /api/history !!!] Received r
+[3] [StatusFlow] 📥 RX: Client Subscribe FN_N_DATAFEED:TI
+-------------------------------------------
+[LOG] [2026-03-12T17:35:12.465Z] [StatusFlow] 📥 RX: Client Subscribe FN_13885827_DATAFEED:TICK_SPY:EURUSD H1 (Status: UNKNOWN)
+[LOG] [2026-03-12T17:35:12.493Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [18:35:12.459] [Subscription] ➕ Subscribing to EURUSD H1
+[LOG] [2026-03-12T17:35:12.493Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [18:35:12.459] [Subscription] ⏳ Sending SUBSCRIBE_TICKS and fetching current forming bar for H1...
+[LOG] [2026-03-12T17:35:12.560Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [18:35:12.543] [Subscription] ✅ Subscription successful for H1
+[LOG] [2026-03-12T17:35:12.560Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [18:35:12.543] [Subscription] ✅ Current forming bar received via SUBSCRIBE for H1
+[LOG] [2026-03-12T17:35:12.592Z] [!!! ALARM-FLOW-BACKEND 1 - GET /api/history !!!] Received request: routingKey=FN_13885827_DATAFEED:HISTORY:EURUSD, tf=H1
+[2026-03-12T17:35:12.887Z] [BLOCKING] Event Loop Lag: 21ms
+[2026-03-12T17:35:19.558Z] [BLOCKING] Event Loop Lag: 94ms
+[2026-03-12T17:35:50.032Z] [BLOCKING] Event Loop Lag: 116ms
+
+--- 📊 TOP 10 LOG SOURCES (Last Minute) ---
+[4] [Worker:FN_N_DATAFEED:TICK_SPY:EURUSD] [N:N:N.N]
+[1] [StatusFlow] 📥 RX: Client Subscribe FN_N_DATAFEED:TI
+[1] [!!! ALARM-FLOW-BACKEND N - GET /api/history !!!] Received r
+-------------------------------------------
+[2026-03-12T17:36:34.101Z] [BLOCKING] Event Loop Lag: 88ms
+[LOG] [2026-03-12T17:37:18.441Z] [StatusFlow] 📥 RX: Client Subscribe FN_13885827_DATAFEED:TICK_SPY:EURUSD M5 (Status: UNKNOWN)
+[LOG] [2026-03-12T17:37:18.520Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [18:37:18.434] [Subscription] ➕ Subscribing to EURUSD M5
+[LOG] [2026-03-12T17:37:18.521Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [18:37:18.434] [Subscription] ⏳ Sending SUBSCRIBE_TICKS and fetching current forming bar for M5...
+[LOG] [2026-03-12T17:37:18.608Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [18:37:18.572] [Subscription] ✅ Subscription successful for M5
+[LOG] [2026-03-12T17:37:18.608Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [18:37:18.573] [Subscription] ✅ Current forming bar received via SUBSCRIBE for M5
+[LOG] [2026-03-12T17:37:18.620Z] [!!! ALARM-FLOW-BACKEND 1 - GET /api/history !!!] Received request: routingKey=FN_13885827_DATAFEED:HISTORY:EURUSD, tf=M5
+[2026-03-12T17:37:49.542Z] [BLOCKING] Event Loop Lag: 127ms
+[LOG] [2026-03-12T17:37:53.497Z] [Sync] handleDisconnect: Cleaning up socket YvAZ_1TkLDZIgzQIAAAB 
+[LOG] [2026-03-12T17:37:53.498Z] [Sync] ⏳ Start Graceful Disconnect for FN_13885827_DATAFEED:TICK_SPY:GBPUSD:M5
+[LOG] [2026-03-12T17:37:53.498Z] [Sync] ⏳ Start Graceful Disconnect for FN_13885827_DATAFEED:TICK_SPY:EURUSD:M1
+[LOG] [2026-03-12T17:37:53.499Z] [Sync] ⏳ Start Graceful Disconnect for FN_13885827_DATAFEED:TICK_SPY:EURUSD:M5
+[LOG] [2026-03-12T17:37:53.499Z] [Sync] ⏳ Start Graceful Disconnect for FN_13885827_DATAFEED:TICK_SPY:EURUSD:M3
+[LOG] [2026-03-12T17:37:53.499Z] [Sync] ⏳ Start Graceful Disconnect for FN_13885827_DATAFEED:TICK_SPY:EURUSD:M2
+[LOG] [2026-03-12T17:37:53.499Z] [Sync] ⏳ Start Graceful Disconnect for FN_13885827_DATAFEED:TICK_SPY:EURUSD:H1
+[LOG] [2026-03-12T17:37:54.114Z] [SocketServer] Upgrade Request: /socket.io/?EIO=4&transport=websocket from 127.0.0.1
+[LOG] [2026-03-12T17:37:54.142Z] [Socket] Client connected: BSvFpus4TObaP11RAAAD (User: admin)
+[LOG] [2026-03-12T17:37:54.148Z] [SyncManager] syncSubscriptions called.Active Subs: 0.TargetBot: ALL TargetSym: ALL 
+[LOG] [2026-03-12T17:37:54.149Z] [SyncManager] Current Active Subscriptions:  
+[LOG] [2026-03-12T17:37:54.154Z] [SyncManager] syncSubscriptions called.Active Subs: 0.TargetBot: ALL TargetSym: ALL 
+[LOG] [2026-03-12T17:37:54.154Z] [SyncManager] Current Active Subscriptions:  
+[LOG] [2026-03-12T17:37:54.155Z] [SyncManager] syncSubscriptions called.Active Subs: 0.TargetBot: ALL TargetSym: ALL 
+[LOG] [2026-03-12T17:37:54.155Z] [SyncManager] Current Active Subscriptions:  
+[LOG] [2026-03-12T17:37:54.155Z] [SyncManager] syncSubscriptions called.Active Subs: 0.TargetBot: ALL TargetSym: ALL 
+[LOG] [2026-03-12T17:37:54.155Z] [SyncManager] Current Active Subscriptions:  
+[LOG] [2026-03-12T17:37:54.155Z] [SyncManager] syncSubscriptions called.Active Subs: 0.TargetBot: ALL TargetSym: ALL 
+[LOG] [2026-03-12T17:37:54.156Z] [SyncManager] Current Active Subscriptions:  
+[LOG] [2026-03-12T17:37:54.156Z] [SyncManager] syncSubscriptions called.Active Subs: 0.TargetBot: ALL TargetSym: ALL 
+[LOG] [2026-03-12T17:37:54.156Z] [SyncManager] Current Active Subscriptions:  
+[LOG] [2026-03-12T17:37:56.074Z] [StatusFlow] 📥 RX: Client Subscribe FN_13885827_DATAFEED:TICK_SPY:EURUSD M5 (Status: UNKNOWN)
+[LOG] [2026-03-12T17:37:56.132Z] [StatusFlow] 📥 RX: Client Subscribe FN_13885827_DATAFEED:TICK_SPY:GBPUSD M5 (Status: UNKNOWN)
+[2026-03-12T17:37:56.215Z] [BLOCKING] Event Loop Lag: 121ms
+[LOG] [2026-03-12T17:37:56.216Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [18:37:56.066] [Subscription] ➕ Subscribing to EURUSD M5
+[LOG] [2026-03-12T17:37:56.217Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [18:37:56.067] [Subscription] ⏳ Sending SUBSCRIBE_TICKS and fetching current forming bar for M5...
+[LOG] [2026-03-12T17:37:56.221Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:GBPUSD] [18:37:56.119] [Subscription] ➕ Subscribing to GBPUSD M5
+[LOG] [2026-03-12T17:37:56.222Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:GBPUSD] [18:37:56.119] [Subscription] ⏳ Sending SUBSCRIBE_TICKS and fetching current forming bar for M5...
+[LOG] [2026-03-12T17:37:56.249Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [18:37:56.237] [Subscription] ✅ Subscription successful for M5
+[LOG] [2026-03-12T17:37:56.270Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [18:37:56.237] [Subscription] ✅ Current forming bar received via SUBSCRIBE for M5
+[LOG] [2026-03-12T17:37:56.520Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:GBPUSD] [18:37:56.430] [Subscription] ✅ Subscription successful for M5
+[LOG] [2026-03-12T17:37:56.520Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:GBPUSD] [18:37:56.430] [Subscription] ✅ Current forming bar received via SUBSCRIBE for M5
+[LOG] [2026-03-12T17:37:56.592Z] [!!! ALARM-FLOW-BACKEND 1 - GET /api/history !!!] Received request: routingKey=FN_13885827_DATAFEED:HISTORY:GBPUSD, tf=M5
+[LOG] [2026-03-12T17:37:56.612Z] [!!! ALARM-FLOW-BACKEND 1 - GET /api/history !!!] Received request: routingKey=FN_13885827_DATAFEED:HISTORY:EURUSD, tf=M5
+[LOG] [2026-03-12T17:37:56.725Z] [!!! ALARM-FLOW-BACKEND 1 - GET /api/history !!!] Received request: routingKey=FN_13885827_DATAFEED:HISTORY:GBPUSD, tf=M5
+[LOG] [2026-03-12T17:37:56.798Z] [!!! ALARM-FLOW-BACKEND 1 - GET /api/history !!!] Received request: routingKey=FN_13885827_DATAFEED:HISTORY:EURUSD, tf=M5
+
+--- 📊 TOP 10 LOG SOURCES (Last Minute) ---
+[8] [Worker:FN_N_DATAFEED:TICK_SPY:EURUSD] [N:N:N.N]
+[6] [Sync] ⏳ Start Graceful Disconnect for FN_N_DATAFEED:
+[6] [SyncManager] syncSubscriptions called.Active Subs: N.Target
+[6] [SyncManager] Current Active Subscriptions:  
+[5] [!!! ALARM-FLOW-BACKEND N - GET /api/history !!!] Received r
+[4] [Worker:FN_N_DATAFEED:TICK_SPY:GBPUSD] [N:N:N.N]
+[3] [StatusFlow] 📥 RX: Client Subscribe FN_N_DATAFEED:TI
+[1] [Sync] handleDisconnect: Cleaning up socket YvAZ_NTkLDZIgzQI
+[1] [SocketServer] Upgrade Request: /socket.io/?EIO=N&transport=
+[1] [Socket] Client connected: BSvFpusNTObaPNRAAAD (User: admin
+-------------------------------------------
+[2026-03-12T17:38:24.068Z] [BLOCKING] Event Loop Lag: 139ms
+[2026-03-12T17:38:54.019Z] [BLOCKING] Event Loop Lag: 172ms
+[LOG] [2026-03-12T17:39:09.313Z] [Sync] handleDisconnect: Cleaning up socket BSvFpus4TObaP11RAAAD 
+[LOG] [2026-03-12T17:39:09.316Z] [Sync] ⏳ Start Graceful Disconnect for FN_13885827_DATAFEED:TICK_SPY:EURUSD:M5
+[LOG] [2026-03-12T17:39:09.319Z] [Sync] ⏳ Start Graceful Disconnect for FN_13885827_DATAFEED:TICK_SPY:GBPUSD:M5
+[2026-03-12T17:39:09.820Z] [BLOCKING] Event Loop Lag: 158ms
+[LOG] [2026-03-12T17:39:09.913Z] [SocketServer] Upgrade Request: /socket.io/?EIO=4&transport=websocket from 127.0.0.1
+[LOG] [2026-03-12T17:39:09.922Z] [Socket] Client connected: W-dbULVoROYp3D-aAAAF (User: admin)
+[LOG] [2026-03-12T17:39:09.923Z] [SyncManager] syncSubscriptions called.Active Subs: 0.TargetBot: ALL TargetSym: ALL 
+[LOG] [2026-03-12T17:39:09.923Z] [SyncManager] Current Active Subscriptions:  
+[LOG] [2026-03-12T17:39:09.924Z] [SyncManager] syncSubscriptions called.Active Subs: 0.TargetBot: ALL TargetSym: ALL 
+[LOG] [2026-03-12T17:39:09.925Z] [SyncManager] Current Active Subscriptions:  
+
+--- 📊 TOP 10 LOG SOURCES (Last Minute) ---
+[2] [Sync] ⏳ Start Graceful Disconnect for FN_N_DATAFEED:
+[2] [SyncManager] syncSubscriptions called.Active Subs: N.Target
+[2] [SyncManager] Current Active Subscriptions:  
+[1] [Sync] handleDisconnect: Cleaning up socket BSvFpusNTObaPNR
+[1] [SocketServer] Upgrade Request: /socket.io/?EIO=N&transport=
+[1] [Socket] Client connected: W-dbULVoROYpND-aAAAF (User: admin
+-------------------------------------------
+[LOG] [2026-03-12T17:39:14.667Z] [Sync] handleDisconnect: Cleaning up socket W-dbULVoROYp3D-aAAAF 
+[2026-03-12T17:39:16.418Z] [BLOCKING] Event Loop Lag: 26ms
+[2026-03-12T17:39:18.467Z] [BLOCKING] Event Loop Lag: 24ms
+[LOG] [2026-03-12T17:39:20.410Z] [SocketServer] Upgrade Request: /socket.io/?EIO=4&transport=websocket from 127.0.0.1
+[LOG] [2026-03-12T17:39:20.415Z] [Socket] Client connected: wxvsItiD4L_rVHtUAAAH (User: admin)
+[2026-03-12T17:39:20.673Z] [BLOCKING] Event Loop Lag: 189ms
+[LOG] [2026-03-12T17:39:23.819Z] [StatusFlow] 📥 RX: Client Subscribe FN_13885827_DATAFEED:TICK_SPY:EURUSD M5 (Status: UNKNOWN)
+[LOG] [2026-03-12T17:39:23.878Z] [StatusFlow] 📥 RX: Client Subscribe FN_13885827_DATAFEED:TICK_SPY:GBPUSD M5 (Status: UNKNOWN)
+[LOG] [2026-03-12T17:39:23.901Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [18:39:23.808] [Subscription] ➕ Subscribing to EURUSD M5
+[LOG] [2026-03-12T17:39:23.902Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [18:39:23.808] [Subscription] ⏳ Sending SUBSCRIBE_TICKS and fetching current forming bar for M5...
+[LOG] [2026-03-12T17:39:23.905Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:GBPUSD] [18:39:23.866] [Subscription] ➕ Subscribing to GBPUSD M5
+[LOG] [2026-03-12T17:39:23.905Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:GBPUSD] [18:39:23.867] [Subscription] ⏳ Sending SUBSCRIBE_TICKS and fetching current forming bar for M5...
+[LOG] [2026-03-12T17:39:24.004Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:GBPUSD] [18:39:23.984] [Subscription] ✅ Subscription successful for M5
+[LOG] [2026-03-12T17:39:24.004Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:GBPUSD] [18:39:23.984] [Subscription] ✅ Current forming bar received via SUBSCRIBE for M5
+[LOG] [2026-03-12T17:39:24.084Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [18:39:24.003] [Subscription] ✅ Subscription successful for M5
+[LOG] [2026-03-12T17:39:24.085Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [18:39:24.004] [Subscription] ✅ Current forming bar received via SUBSCRIBE for M5
+[LOG] [2026-03-12T17:39:24.154Z] [!!! ALARM-FLOW-BACKEND 1 - GET /api/history !!!] Received request: routingKey=FN_13885827_DATAFEED:HISTORY:EURUSD, tf=M5
+[2026-03-12T17:39:24.237Z] [BLOCKING] Event Loop Lag: 44ms
+[LOG] [2026-03-12T17:39:24.238Z] [!!! ALARM-FLOW-BACKEND 1 - GET /api/history !!!] Received request: routingKey=FN_13885827_DATAFEED:HISTORY:GBPUSD, tf=M5
+[LOG] [2026-03-12T17:39:24.258Z] [!!! ALARM-FLOW-BACKEND 1 - GET /api/history !!!] Received request: routingKey=FN_13885827_DATAFEED:HISTORY:EURUSD, tf=M5
+[LOG] [2026-03-12T17:39:24.288Z] [!!! ALARM-FLOW-BACKEND 1 - GET /api/history !!!] Received request: routingKey=FN_13885827_DATAFEED:HISTORY:GBPUSD, tf=M5
+[2026-03-12T17:39:30.351Z] [BLOCKING] Event Loop Lag: 58ms
+
+--- 📊 TOP 10 LOG SOURCES (Last Minute) ---
+[4] [Worker:FN_N_DATAFEED:TICK_SPY:EURUSD] [N:N:N.N]
+[4] [Worker:FN_N_DATAFEED:TICK_SPY:GBPUSD] [N:N:N.N]
+[4] [!!! ALARM-FLOW-BACKEND N - GET /api/history !!!] Received r
+[2] [StatusFlow] 📥 RX: Client Subscribe FN_N_DATAFEED:TI
+[1] [Sync] handleDisconnect: Cleaning up socket W-dbULVoROYpND-a
+[1] [SocketServer] Upgrade Request: /socket.io/?EIO=N&transport=
+[1] [Socket] Client connected: wxvsItiDNL_rVHtUAAAH (User: admin
+-------------------------------------------
+[2026-03-12T17:40:20.369Z] [BLOCKING] Event Loop Lag: 140ms
+[2026-03-12T17:41:00.432Z] [BLOCKING] Event Loop Lag: 205ms
+[2026-03-12T17:41:30.370Z] [BLOCKING] Event Loop Lag: 201ms
+[2026-03-12T17:42:00.328Z] [BLOCKING] Event Loop Lag: 187ms
+[2026-03-12T17:42:50.367Z] [BLOCKING] Event Loop Lag: 161ms
+[2026-03-12T17:43:40.327Z] [BLOCKING] Event Loop Lag: 137ms
+[2026-03-12T17:44:20.305Z] [BLOCKING] Event Loop Lag: 168ms
+[2026-03-12T17:45:01.039Z] [BLOCKING] Event Loop Lag: 82ms
+[2026-03-12T17:45:20.990Z] [BLOCKING] Event Loop Lag: 65ms
+[2026-03-12T17:45:33.251Z] [BLOCKING] Event Loop Lag: 21ms
+[2026-03-12T17:46:34.103Z] [BLOCKING] Event Loop Lag: 204ms
+[2026-03-12T17:47:34.388Z] [BLOCKING] Event Loop Lag: 158ms
+[2026-03-12T17:48:34.282Z] [BLOCKING] Event Loop Lag: 250ms
+[2026-03-12T17:49:34.144Z] [BLOCKING] Event Loop Lag: 178ms
+[2026-03-12T17:50:00.730Z] [BLOCKING] Event Loop Lag: 89ms
+[2026-03-12T17:52:34.402Z] [BLOCKING] Event Loop Lag: 185ms
+[2026-03-12T17:53:37.238Z] [BLOCKING] Event Loop Lag: 21ms
+[2026-03-12T17:54:55.281Z] [BLOCKING] Event Loop Lag: 29ms
+[2026-03-12T17:55:34.107Z] [BLOCKING] Event Loop Lag: 88ms
+[2026-03-12T17:57:34.189Z] [BLOCKING] Event Loop Lag: 207ms
+[2026-03-12T17:59:34.122Z] [BLOCKING] Event Loop Lag: 97ms
+[2026-03-12T18:00:00.789Z] [BLOCKING] Event Loop Lag: 112ms
+[2026-03-12T18:00:34.085Z] [BLOCKING] Event Loop Lag: 139ms
+[2026-03-12T18:03:34.101Z] [BLOCKING] Event Loop Lag: 88ms
+[2026-03-12T18:05:34.103Z] [BLOCKING] Event Loop Lag: 140ms
+[2026-03-12T18:07:34.084Z] [BLOCKING] Event Loop Lag: 41ms
+[2026-03-12T18:10:02.496Z] [BLOCKING] Event Loop Lag: 32ms
+[2026-03-12T18:11:43.493Z] [BLOCKING] Event Loop Lag: 45ms
+[2026-03-12T18:12:34.082Z] [BLOCKING] Event Loop Lag: 60ms
+[2026-03-12T18:15:05.766Z] [BLOCKING] Event Loop Lag: 31ms
+[2026-03-12T18:15:19.553Z] [BLOCKING] Event Loop Lag: 26ms
+[2026-03-12T18:16:10.054Z] [BLOCKING] Event Loop Lag: 23ms
+[2026-03-12T18:16:34.150Z] [BLOCKING] Event Loop Lag: 120ms
+[2026-03-12T18:16:48.455Z] [BLOCKING] Event Loop Lag: 24ms
+[2026-03-12T18:18:34.100Z] [BLOCKING] Event Loop Lag: 31ms
+[2026-03-12T18:18:50.974Z] [BLOCKING] Event Loop Lag: 30ms
+[2026-03-12T18:24:34.078Z] [BLOCKING] Event Loop Lag: 137ms
+[2026-03-12T18:25:03.689Z] [BLOCKING] Event Loop Lag: 22ms
+[2026-03-12T18:25:34.330Z] [BLOCKING] Event Loop Lag: 77ms
+[2026-03-12T18:26:34.080Z] [BLOCKING] Event Loop Lag: 83ms
+[2026-03-12T18:29:03.781Z] [BLOCKING] Event Loop Lag: 27ms
+[2026-03-12T18:29:34.057Z] [BLOCKING] Event Loop Lag: 195ms
+[2026-03-12T18:31:34.170Z] [BLOCKING] Event Loop Lag: 223ms
+[2026-03-12T18:32:34.115Z] [BLOCKING] Event Loop Lag: 169ms
+[2026-03-12T18:33:34.067Z] [BLOCKING] Event Loop Lag: 144ms
+[2026-03-12T18:35:05.463Z] [BLOCKING] Event Loop Lag: 33ms
+[2026-03-12T18:35:34.045Z] [BLOCKING] Event Loop Lag: 58ms
+[2026-03-12T18:40:01.645Z] [BLOCKING] Event Loop Lag: 31ms
+[2026-03-12T18:41:34.103Z] [BLOCKING] Event Loop Lag: 96ms
+[2026-03-12T18:43:34.177Z] [BLOCKING] Event Loop Lag: 225ms
+[2026-03-12T18:44:34.100Z] [BLOCKING] Event Loop Lag: 199ms
+[2026-03-12T18:44:39.222Z] [BLOCKING] Event Loop Lag: 21ms
+[2026-03-12T18:46:34.077Z] [BLOCKING] Event Loop Lag: 59ms
+[2026-03-12T18:47:03.147Z] [BLOCKING] Event Loop Lag: 22ms
+[2026-03-12T18:47:19.510Z] [BLOCKING] Event Loop Lag: 25ms
+[2026-03-12T18:48:34.105Z] [BLOCKING] Event Loop Lag: 22ms
+[2026-03-12T18:57:25.240Z] [BLOCKING] Event Loop Lag: 23ms
+[2026-03-12T18:57:34.060Z] [BLOCKING] Event Loop Lag: 164ms
+[2026-03-12T18:59:34.213Z] [BLOCKING] Event Loop Lag: 154ms
+[2026-03-12T19:00:00.279Z] [BLOCKING] Event Loop Lag: 32ms
+[2026-03-12T19:00:18.190Z] [BLOCKING] Event Loop Lag: 31ms
+[2026-03-12T19:00:34.206Z] [BLOCKING] Event Loop Lag: 171ms
+[2026-03-12T19:01:34.059Z] [BLOCKING] Event Loop Lag: 185ms
+[2026-03-12T19:03:34.083Z] [BLOCKING] Event Loop Lag: 68ms
+[2026-03-12T19:05:34.082Z] [BLOCKING] Event Loop Lag: 89ms
+[2026-03-12T19:07:34.093Z] [BLOCKING] Event Loop Lag: 91ms
+[2026-03-12T19:08:34.074Z] [BLOCKING] Event Loop Lag: 167ms
+[2026-03-12T19:09:08.799Z] [BLOCKING] Event Loop Lag: 60ms
+[2026-03-12T19:10:34.109Z] [BLOCKING] Event Loop Lag: 107ms
+[2026-03-12T19:11:58.747Z] [BLOCKING] Event Loop Lag: 27ms
+[2026-03-12T19:12:34.868Z] [BLOCKING] Event Loop Lag: 25ms
+[2026-03-12T19:13:34.074Z] [BLOCKING] Event Loop Lag: 124ms
+[2026-03-12T19:15:34.246Z] [BLOCKING] Event Loop Lag: 350ms
+[2026-03-12T19:16:34.098Z] [BLOCKING] Event Loop Lag: 82ms
+[2026-03-12T19:17:34.105Z] [BLOCKING] Event Loop Lag: 214ms
+[2026-03-12T19:18:23.614Z] [BLOCKING] Event Loop Lag: 25ms
+[2026-03-12T19:19:34.082Z] [BLOCKING] Event Loop Lag: 140ms
+[2026-03-12T19:20:34.293Z] [BLOCKING] Event Loop Lag: 27ms
+[2026-03-12T19:21:34.068Z] [BLOCKING] Event Loop Lag: 24ms
+[2026-03-12T19:22:06.289Z] [BLOCKING] Event Loop Lag: 22ms
+[2026-03-12T19:23:19.303Z] [BLOCKING] Event Loop Lag: 27ms
+[2026-03-12T19:25:29.439Z] [BLOCKING] Event Loop Lag: 30ms
+[2026-03-12T19:27:34.110Z] [BLOCKING] Event Loop Lag: 97ms
+[2026-03-12T19:28:34.070Z] [BLOCKING] Event Loop Lag: 180ms
+[2026-03-12T19:29:47.652Z] [BLOCKING] Event Loop Lag: 21ms
+[2026-03-12T19:31:00.671Z] [BLOCKING] Event Loop Lag: 24ms
+[2026-03-12T19:32:34.058Z] [BLOCKING] Event Loop Lag: 75ms
+[2026-03-12T19:34:34.103Z] [BLOCKING] Event Loop Lag: 36ms
+[2026-03-12T19:35:34.109Z] [BLOCKING] Event Loop Lag: 148ms
+[2026-03-12T19:38:04.676Z] [BLOCKING] Event Loop Lag: 29ms
+[2026-03-12T19:39:34.077Z] [BLOCKING] Event Loop Lag: 138ms
+[2026-03-12T19:41:34.095Z] [BLOCKING] Event Loop Lag: 144ms
+[2026-03-12T19:45:00.539Z] [BLOCKING] Event Loop Lag: 95ms
+[2026-03-12T19:46:06.993Z] [BLOCKING] Event Loop Lag: 117ms
+[2026-03-12T19:46:07.928Z] [BLOCKING] Event Loop Lag: 435ms
+[LOG] [2026-03-12T19:46:16.770Z] [Sync] handleDisconnect: Cleaning up socket wxvsItiD4L_rVHtUAAAH 
+[LOG] [2026-03-12T19:46:16.780Z] [Sync] ⏳ Start Graceful Disconnect for FN_13885827_DATAFEED:TICK_SPY:EURUSD:M5
+[LOG] [2026-03-12T19:46:16.780Z] [Sync] ⏳ Start Graceful Disconnect for FN_13885827_DATAFEED:TICK_SPY:GBPUSD:M5
+[2026-03-12T20:12:53.217Z] [BLOCKING] Event Loop Lag: 1596194ms
+[LOG] [2026-03-12T20:12:53.217Z] [Heartbeat] 💀 Connectivity Lost: FN_13885827_DATAFEED:DATAFEED:ALL (> 10000ms). Closing Socket.
+[LOG] [2026-03-12T20:12:53.256Z] [WebSocketManager] 🔌 Force Closing Transport 556501c5-ccbc-49ed-ae03-767411c98ffd
+[LOG] [2026-03-12T20:12:53.288Z] [Heartbeat] 💀 Connectivity Lost: FN_13885827_DATAFEED:TICK_SPY:EURUSD (> 10000ms). Closing Socket.
+[LOG] [2026-03-12T20:12:53.315Z] [WebSocketManager] 🔌 Force Closing Transport b09d95ba-2d31-45a4-b643-3cea17657e7e
+[LOG] [2026-03-12T20:12:53.372Z] [Heartbeat] 💀 Connectivity Lost: FN_13885827_DATAFEED:TICK_SPY:GBPUSD (> 10000ms). Closing Socket.
+[LOG] [2026-03-12T20:12:53.391Z] [WebSocketManager] 🔌 Force Closing Transport c9551bc7-7c9b-48de-9361-382ad772580b
+[LOG] [2026-03-12T20:12:53.409Z] [Heartbeat] 💀 Connectivity Lost: FN_13885827_DATAFEED:HISTORY:EURUSD (> 10000ms). Closing Socket.
+[LOG] [2026-03-12T20:12:53.427Z] [WebSocketManager] 🔌 Force Closing Transport 4fdd65c5-e99f-4126-a02e-62eb348a1dea
+[LOG] [2026-03-12T20:12:53.450Z] [Heartbeat] 💀 Connectivity Lost: FN_13885827_DATAFEED:HISTORY:GBPUSD (> 10000ms). Closing Socket.
+[LOG] [2026-03-12T20:12:53.610Z] [WebSocketManager] 🔌 Force Closing Transport e9f20eb6-e456-44ed-9f69-5193456fb3ab
+
+--- 📊 TOP 10 LOG SOURCES (Last Minute) ---
+[2] [Sync] ⏳ Start Graceful Disconnect for FN_N_DATAFEED:
+[2] [Heartbeat] 💀 Connectivity Lost: FN_N_DATAFEED:TICK_
+[2] [Heartbeat] 💀 Connectivity Lost: FN_N_DATAFEED:HISTO
+[1] [Sync] handleDisconnect: Cleaning up socket wxvsItiDNL_rVHtU
+[1] [Heartbeat] 💀 Connectivity Lost: FN_N_DATAFEED:DATAF
+[1] [WebSocketManager] 🔌 Force Closing Transport NcN-ccbc-
+[1] [WebSocketManager] 🔌 Force Closing Transport bNdNba-NdN-
+[1] [WebSocketManager] 🔌 Force Closing Transport cNbcN-NcNb-
+[1] [WebSocketManager] 🔌 Force Closing Transport NfddNcN-eNf-
+[1] [WebSocketManager] 🔌 Force Closing Transport eNfNebN-eN-
+-------------------------------------------
+[LOG] [2026-03-12T20:12:53.889Z] [SyncManager] syncSubscriptions called.Active Subs: 1.TargetBot: ALL TargetSym: ALL 
+[LOG] [2026-03-12T20:12:53.951Z] [SyncManager] Current Active Subscriptions: FN_13885827_DATAFEED:TICK_SPY:GBPUSD:M5 
+[2026-03-12T20:12:54.029Z] [BLOCKING] Event Loop Lag: 312ms
+[LOG] [2026-03-12T20:12:54.149Z] [SyncManager] syncSubscriptions called.Active Subs: 0.TargetBot: ALL TargetSym: ALL 
+[LOG] [2026-03-12T20:12:54.230Z] [SyncManager] Current Active Subscriptions:  
+[LOG] [2026-03-12T20:12:55.652Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:GBPUSD] [21:12:55.652] [BarData] 🚨 GAP DETECTED for M1. Triggering Sync.
+[LOG] [2026-03-12T20:12:55.687Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:GBPUSD] [21:12:55.686] [Sync] 📤 Smart Sync (RPC) for GBPUSD M1. UTC MS: 1773344700000 -> Broker Sec: 1773355500
+[LOG] [2026-03-12T20:12:55.758Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [21:12:55.663] [BarData] 🚨 GAP DETECTED for M1. Triggering Sync.
+[LOG] [2026-03-12T20:12:55.822Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [21:12:55.664] [Sync] 📤 Smart Sync (RPC) for EURUSD M1. UTC MS: 1773344700000 -> Broker Sec: 1773355500
+[LOG] [2026-03-12T20:12:55.925Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:GBPUSD] [21:12:55.925] [Sync] 📥 Ingesting 26 bars from RPC for M1.
+[LOG] [2026-03-12T20:12:55.979Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:GBPUSD] [21:12:55.926] [Sync] 💾 Persisted 26 bars for M1
+[LOG] [2026-03-12T20:12:56.012Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:GBPUSD] [21:12:55.926] [Queue] ✅ No pending tasks for M1. Sending SYNC_COMPLETE.
+[LOG] [2026-03-12T20:12:56.057Z] [Sync] ✅ Worker Reports SYNC_COMPLETE for GBPUSD M1
+[2026-03-12T20:12:56.139Z] [BLOCKING] Event Loop Lag: 92ms
+[LOG] [2026-03-12T20:12:56.139Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [21:12:55.925] [Sync] 📥 Ingesting 26 bars from RPC for M1.
+[LOG] [2026-03-12T20:12:56.204Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [21:12:55.926] [Sync] 💾 Persisted 26 bars for M1
+[LOG] [2026-03-12T20:12:56.272Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [21:12:55.927] [Queue] ✅ No pending tasks for M1. Sending SYNC_COMPLETE.
+[LOG] [2026-03-12T20:12:56.357Z] [Sync] ✅ Worker Reports SYNC_COMPLETE for EURUSD M1
+[2026-03-12T20:12:56.703Z] [BLOCKING] Event Loop Lag: 64ms
+[LOG] [2026-03-12T20:12:58.791Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:GBPUSD] [21:12:58.791] [BarData] 🚨 GAP DETECTED for M2. Triggering Sync.
+[LOG] [2026-03-12T20:12:58.801Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:GBPUSD] [21:12:58.791] [Sync] 📤 Smart Sync (RPC) for GBPUSD M2. UTC MS: 1773344640000 -> Broker Sec: 1773355440
+[LOG] [2026-03-12T20:12:58.809Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:GBPUSD] [21:12:58.792] [BarData] 🚨 GAP DETECTED for M3. Triggering Sync.
+[LOG] [2026-03-12T20:12:58.819Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:GBPUSD] [21:12:58.803] [BarData] 🚨 GAP DETECTED for M5. Triggering Sync.
+[LOG] [2026-03-12T20:12:58.828Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:GBPUSD] [21:12:58.804] [BarData] 🚨 GAP DETECTED for M10. Triggering Sync.
+[LOG] [2026-03-12T20:12:58.841Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [21:12:58.791] [BarData] 🚨 GAP DETECTED for M2. Triggering Sync.
+[LOG] [2026-03-12T20:12:58.859Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [21:12:58.792] [Sync] 📤 Smart Sync (RPC) for EURUSD M2. UTC MS: 1773344640000 -> Broker Sec: 1773355440
+[LOG] [2026-03-12T20:12:58.874Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [21:12:58.793] [BarData] 🚨 GAP DETECTED for M3. Triggering Sync.
+[LOG] [2026-03-12T20:12:58.891Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [21:12:58.804] [BarData] 🚨 GAP DETECTED for M5. Triggering Sync.
+[LOG] [2026-03-12T20:12:58.928Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [21:12:58.805] [BarData] 🚨 GAP DETECTED for M10. Triggering Sync.
+[LOG] [2026-03-12T20:12:59.044Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:GBPUSD] [21:12:59.022] [Sync] 📥 Ingesting 13 bars from RPC for M2.
+[LOG] [2026-03-12T20:12:59.079Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:GBPUSD] [21:12:59.023] [Sync] 💾 Persisted 13 bars for M2
+[LOG] [2026-03-12T20:12:59.143Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:GBPUSD] [21:12:59.024] [Sync] 📤 Smart Sync (RPC) for GBPUSD M3. UTC MS: 1773344520000 -> Broker Sec: 1773355320
+[LOG] [2026-03-12T20:12:59.279Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:GBPUSD] [21:12:59.024] [Queue] ✅ No pending tasks for M2. Sending SYNC_COMPLETE.
+[LOG] [2026-03-12T20:12:59.364Z] [Sync] ✅ Worker Reports SYNC_COMPLETE for GBPUSD M2
+[LOG] [2026-03-12T20:12:59.560Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [21:12:59.022] [Sync] 📥 Ingesting 13 bars from RPC for M2.
+[LOG] [2026-03-12T20:12:59.684Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [21:12:59.023] [Sync] 💾 Persisted 13 bars for M2
+[LOG] [2026-03-12T20:12:59.788Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [21:12:59.024] [Sync] 📤 Smart Sync (RPC) for EURUSD M3. UTC MS: 1773344520000 -> Broker Sec: 1773355320
+[LOG] [2026-03-12T20:12:59.862Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [21:12:59.024] [Queue] ✅ No pending tasks for M2. Sending SYNC_COMPLETE.
+[LOG] [2026-03-12T20:12:59.988Z] [Sync] ✅ Worker Reports SYNC_COMPLETE for EURUSD M2
+[2026-03-12T20:13:00.104Z] [BLOCKING] Event Loop Lag: 869ms
+[LOG] [2026-03-12T20:13:00.252Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:GBPUSD] [21:13:00.252] [Sync] 📥 Ingesting 9 bars from RPC for M3.
+[LOG] [2026-03-12T20:13:00.261Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:GBPUSD] [21:13:00.253] [Sync] 💾 Persisted 9 bars for M3
+[LOG] [2026-03-12T20:13:00.275Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:GBPUSD] [21:13:00.253] [Sync] 📤 Smart Sync (RPC) for GBPUSD M5. UTC MS: 1773344400000 -> Broker Sec: 1773355200
+[LOG] [2026-03-12T20:13:00.293Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:GBPUSD] [21:13:00.254] [Queue] ✅ No pending tasks for M3. Sending SYNC_COMPLETE.
+[LOG] [2026-03-12T20:13:00.309Z] [Sync] ✅ Worker Reports SYNC_COMPLETE for GBPUSD M3
+[LOG] [2026-03-12T20:13:00.310Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [21:13:00.252] [Sync] 📥 Ingesting 9 bars from RPC for M3.
+[LOG] [2026-03-12T20:13:00.310Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [21:13:00.253] [Sync] 💾 Persisted 9 bars for M3
+[LOG] [2026-03-12T20:13:00.310Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [21:13:00.253] [Sync] 📤 Smart Sync (RPC) for EURUSD M5. UTC MS: 1773344400000 -> Broker Sec: 1773355200
+[LOG] [2026-03-12T20:13:00.340Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [21:13:00.254] [Queue] ✅ No pending tasks for M3. Sending SYNC_COMPLETE.
+[LOG] [2026-03-12T20:13:00.357Z] [Sync] ✅ Worker Reports SYNC_COMPLETE for EURUSD M3
+[LOG] [2026-03-12T20:13:00.379Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:GBPUSD] [21:13:00.378] [Sync] 📥 Ingesting 5 bars from RPC for M5.
+[LOG] [2026-03-12T20:13:00.395Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:GBPUSD] [21:13:00.379] [Sync] 💾 Persisted 5 bars for M5
+[LOG] [2026-03-12T20:13:00.410Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:GBPUSD] [21:13:00.379] [Sync] 📤 Smart Sync (RPC) for GBPUSD M10. UTC MS: 1773343800000 -> Broker Sec: 1773354600
+[LOG] [2026-03-12T20:13:00.421Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:GBPUSD] [21:13:00.380] [Queue] ✅ No pending tasks for M5. Sending SYNC_COMPLETE.
+[LOG] [2026-03-12T20:13:00.425Z] [Sync] ✅ Worker Reports SYNC_COMPLETE for GBPUSD M5
+[LOG] [2026-03-12T20:13:00.426Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [21:13:00.378] [Sync] 📥 Ingesting 5 bars from RPC for M5.
+[LOG] [2026-03-12T20:13:00.439Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [21:13:00.379] [Sync] 💾 Persisted 5 bars for M5
+[LOG] [2026-03-12T20:13:00.440Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [21:13:00.379] [Sync] 📤 Smart Sync (RPC) for EURUSD M10. UTC MS: 1773343800000 -> Broker Sec: 1773354600
+[LOG] [2026-03-12T20:13:00.446Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [21:13:00.380] [Queue] ✅ No pending tasks for M5. Sending SYNC_COMPLETE.
+[LOG] [2026-03-12T20:13:00.457Z] [Sync] ✅ Worker Reports SYNC_COMPLETE for EURUSD M5
+[LOG] [2026-03-12T20:13:00.478Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [21:13:00.478] [Sync] 📥 Ingesting 3 bars from RPC for M10.
+[LOG] [2026-03-12T20:13:00.491Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [21:13:00.479] [Sync] 💾 Persisted 3 bars for M10
+[LOG] [2026-03-12T20:13:00.502Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [21:13:00.480] [Queue] ✅ No pending tasks for M10. Sending SYNC_COMPLETE.
+[LOG] [2026-03-12T20:13:00.509Z] [Sync] ✅ Worker Reports SYNC_COMPLETE for EURUSD M10
+[LOG] [2026-03-12T20:13:00.525Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:GBPUSD] [21:13:00.478] [Sync] 📥 Ingesting 3 bars from RPC for M10.
+[LOG] [2026-03-12T20:13:00.529Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:GBPUSD] [21:13:00.479] [Sync] 💾 Persisted 3 bars for M10
+[LOG] [2026-03-12T20:13:00.541Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:GBPUSD] [21:13:00.479] [Queue] ✅ No pending tasks for M10. Sending SYNC_COMPLETE.
+[LOG] [2026-03-12T20:13:00.545Z] [Sync] ✅ Worker Reports SYNC_COMPLETE for GBPUSD M10
+[2026-03-12T20:13:01.900Z] [BLOCKING] Event Loop Lag: 275ms
+[LOG] [2026-03-12T20:13:02.467Z] [SocketServer] Upgrade Request: /socket.io/?EIO=4&transport=websocket from 127.0.0.1
+[LOG] [2026-03-12T20:13:02.483Z] [Socket] Client connected: xPRL8079mvMyQdhhAAAJ (User: admin)
+[LOG] [2026-03-12T20:13:02.508Z] [StatusFlow] 📥 RX: Client Subscribe FN_13885827_DATAFEED:TICK_SPY:EURUSD M5 (Status: UNKNOWN)
+[LOG] [2026-03-12T20:13:02.512Z] [StatusFlow] 📥 RX: Client Subscribe FN_13885827_DATAFEED:TICK_SPY:GBPUSD M5 (Status: UNKNOWN)
+[LOG] [2026-03-12T20:13:02.628Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [21:13:02.488] [Subscription] ➕ Subscribing to EURUSD M5
+[LOG] [2026-03-12T20:13:02.628Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [21:13:02.488] [Subscription] ⏳ Sending SUBSCRIBE_TICKS and fetching current forming bar for M5...
+[LOG] [2026-03-12T20:13:02.629Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:GBPUSD] [21:13:02.494] [Subscription] ➕ Subscribing to GBPUSD M5
+[LOG] [2026-03-12T20:13:02.630Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:GBPUSD] [21:13:02.495] [Subscription] ⏳ Sending SUBSCRIBE_TICKS and fetching current forming bar for M5...
+[LOG] [2026-03-12T20:13:02.637Z] [!!! ALARM-FLOW-BACKEND 1 - GET /api/history !!!] Received request: routingKey=FN_13885827_DATAFEED:HISTORY:EURUSD, tf=M5
+[LOG] [2026-03-12T20:13:02.674Z] [!!! ALARM-FLOW-BACKEND 1 - GET /api/history !!!] Received request: routingKey=FN_13885827_DATAFEED:HISTORY:GBPUSD, tf=M5
+[LOG] [2026-03-12T20:13:02.760Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [21:13:02.756] [Subscription] ✅ Subscription successful for M5
+[LOG] [2026-03-12T20:13:02.762Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [21:13:02.757] [Subscription] ✅ Current forming bar received via SUBSCRIBE for M5
+[LOG] [2026-03-12T20:13:02.768Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:GBPUSD] [21:13:02.757] [Subscription] ✅ Subscription successful for M5
+[LOG] [2026-03-12T20:13:02.771Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:GBPUSD] [21:13:02.758] [Subscription] ✅ Current forming bar received via SUBSCRIBE for M5
+[2026-03-12T20:13:02.991Z] [BLOCKING] Event Loop Lag: 88ms
+[LOG] [2026-03-12T20:13:03.009Z] [!!! ALARM-FLOW-BACKEND 1 - GET /api/history !!!] Received request: routingKey=FN_13885827_DATAFEED:HISTORY:EURUSD, tf=M5
+[LOG] [2026-03-12T20:13:03.134Z] [!!! ALARM-FLOW-BACKEND 1 - GET /api/history !!!] Received request: routingKey=FN_13885827_DATAFEED:HISTORY:GBPUSD, tf=M5
+[2026-03-12T20:13:03.521Z] [BLOCKING] Event Loop Lag: 30ms
+[2026-03-12T20:13:20.323Z] [BLOCKING] Event Loop Lag: 130ms
+
+--- 📊 TOP 10 LOG SOURCES (Last Minute) ---
+[29] [Worker:FN_N_DATAFEED:TICK_SPY:GBPUSD] [N:N:N.N]
+[29] [Worker:FN_N_DATAFEED:TICK_SPY:EURUSD] [N:N:N.N]
+[5] [Sync] ✅ Worker Reports SYNC_COMPLETE for GBPUSD MN
+[5] [Sync] ✅ Worker Reports SYNC_COMPLETE for EURUSD MN
+[4] [!!! ALARM-FLOW-BACKEND N - GET /api/history !!!] Received r
+[2] [SyncManager] syncSubscriptions called.Active Subs: N.Target
+[2] [StatusFlow] 📥 RX: Client Subscribe FN_N_DATAFEED:TI
+[1] [SyncManager] Current Active Subscriptions: FN_N_DATA
+[1] [SyncManager] Current Active Subscriptions:  
+[1] [SocketServer] Upgrade Request: /socket.io/?EIO=N&transport=
+-------------------------------------------
+[2026-03-12T20:14:10.929Z] [BLOCKING] Event Loop Lag: 126ms
+[2026-03-12T20:15:10.300Z] [BLOCKING] Event Loop Lag: 178ms
+[2026-03-12T20:16:30.926Z] [BLOCKING] Event Loop Lag: 129ms
+[2026-03-12T20:17:59.530Z] [BLOCKING] Event Loop Lag: 26ms
+[2026-03-12T20:18:33.960Z] [BLOCKING] Event Loop Lag: 88ms
+[2026-03-12T20:19:01.308Z] [BLOCKING] Event Loop Lag: 37ms
+[2026-03-12T20:19:41.034Z] [BLOCKING] Event Loop Lag: 231ms
+[2026-03-12T20:20:10.934Z] [BLOCKING] Event Loop Lag: 54ms
+[LOG] [2026-03-12T20:20:55.546Z] [Sync] handleDisconnect: Cleaning up socket xPRL8079mvMyQdhhAAAJ 
+[LOG] [2026-03-12T20:20:55.547Z] [Sync] ⏳ Start Graceful Disconnect for FN_13885827_DATAFEED:TICK_SPY:EURUSD:M5
+[LOG] [2026-03-12T20:20:55.547Z] [Sync] ⏳ Start Graceful Disconnect for FN_13885827_DATAFEED:TICK_SPY:GBPUSD:M5
+[2026-03-12T20:20:56.074Z] [BLOCKING] Event Loop Lag: 56ms
+[LOG] [2026-03-12T20:20:56.150Z] [SocketServer] Upgrade Request: /socket.io/?EIO=4&transport=websocket from 127.0.0.1
+[LOG] [2026-03-12T20:20:56.165Z] [Socket] Client connected: WhGtYZx3JwGFkdM3AAAL (User: admin)
+[LOG] [2026-03-12T20:20:56.188Z] [SyncManager] syncSubscriptions called.Active Subs: 0.TargetBot: ALL TargetSym: ALL 
+[LOG] [2026-03-12T20:20:56.188Z] [SyncManager] Current Active Subscriptions:  
+[LOG] [2026-03-12T20:20:56.189Z] [SyncManager] syncSubscriptions called.Active Subs: 0.TargetBot: ALL TargetSym: ALL 
+[LOG] [2026-03-12T20:20:56.189Z] [SyncManager] Current Active Subscriptions:  
+[2026-03-12T20:21:00.640Z] [BLOCKING] Event Loop Lag: 21ms
+[LOG] [2026-03-12T20:21:04.881Z] [StatusFlow] 📥 RX: Client Subscribe FN_13885827_DATAFEED:TICK_SPY:EURUSD M5 (Status: UNKNOWN)
+[LOG] [2026-03-12T20:21:04.925Z] [StatusFlow] 📥 RX: Client Subscribe FN_13885827_DATAFEED:TICK_SPY:GBPUSD M5 (Status: UNKNOWN)
+[LOG] [2026-03-12T20:21:04.950Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [21:21:04.872] [Subscription] ➕ Subscribing to EURUSD M5
+[LOG] [2026-03-12T20:21:04.950Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [21:21:04.872] [Subscription] ⏳ Sending SUBSCRIBE_TICKS and fetching current forming bar for M5...
+[LOG] [2026-03-12T20:21:04.958Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:GBPUSD] [21:21:04.913] [Subscription] ➕ Subscribing to GBPUSD M5
+[LOG] [2026-03-12T20:21:04.958Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:GBPUSD] [21:21:04.914] [Subscription] ⏳ Sending SUBSCRIBE_TICKS and fetching current forming bar for M5...
+[LOG] [2026-03-12T20:21:04.963Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [21:21:04.961] [Subscription] ✅ Subscription successful for M5
+[LOG] [2026-03-12T20:21:04.963Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [21:21:04.961] [Subscription] ✅ Current forming bar received via SUBSCRIBE for M5
+[LOG] [2026-03-12T20:21:05.139Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:GBPUSD] [21:21:05.117] [Subscription] ✅ Subscription successful for M5
+[LOG] [2026-03-12T20:21:05.140Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:GBPUSD] [21:21:05.117] [Subscription] ✅ Current forming bar received via SUBSCRIBE for M5
+[LOG] [2026-03-12T20:21:05.218Z] [!!! ALARM-FLOW-BACKEND 1 - GET /api/history !!!] Received request: routingKey=FN_13885827_DATAFEED:HISTORY:EURUSD, tf=M5
+[LOG] [2026-03-12T20:21:05.315Z] [!!! ALARM-FLOW-BACKEND 1 - GET /api/history !!!] Received request: routingKey=FN_13885827_DATAFEED:HISTORY:EURUSD, tf=M5
+[LOG] [2026-03-12T20:21:05.345Z] [!!! ALARM-FLOW-BACKEND 1 - GET /api/history !!!] Received request: routingKey=FN_13885827_DATAFEED:HISTORY:GBPUSD, tf=M5
+[LOG] [2026-03-12T20:21:05.410Z] [!!! ALARM-FLOW-BACKEND 1 - GET /api/history !!!] Received request: routingKey=FN_13885827_DATAFEED:HISTORY:GBPUSD, tf=M5
+[LOG] [2026-03-12T20:21:21.773Z] [StatusFlow] 📥 RX: Client Subscribe FN_13885827_DATAFEED:TICK_SPY:EURUSD M5 (Status: UNKNOWN)
+[LOG] [2026-03-12T20:21:21.811Z] [StatusFlow] 📥 RX: Client Subscribe FN_13885827_DATAFEED:TICK_SPY:GBPUSD M5 (Status: UNKNOWN)
+[LOG] [2026-03-12T20:21:21.843Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [21:21:21.766] [Subscription] ➕ Subscribing to EURUSD M5
+[LOG] [2026-03-12T20:21:21.844Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [21:21:21.766] [Subscription] ⏳ Sending SUBSCRIBE_TICKS and fetching current forming bar for M5...
+[LOG] [2026-03-12T20:21:21.848Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:GBPUSD] [21:21:21.802] [Subscription] ➕ Subscribing to GBPUSD M5
+[LOG] [2026-03-12T20:21:21.848Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:GBPUSD] [21:21:21.803] [Subscription] ⏳ Sending SUBSCRIBE_TICKS and fetching current forming bar for M5...
+[LOG] [2026-03-12T20:21:21.860Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [21:21:21.858] [Subscription] ✅ Subscription successful for M5
+[LOG] [2026-03-12T20:21:21.860Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [21:21:21.858] [Subscription] ✅ Current forming bar received via SUBSCRIBE for M5
+[LOG] [2026-03-12T20:21:21.861Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:GBPUSD] [21:21:21.858] [Subscription] ✅ Subscription successful for M5
+[LOG] [2026-03-12T20:21:21.862Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:GBPUSD] [21:21:21.859] [Subscription] ✅ Current forming bar received via SUBSCRIBE for M5
+[LOG] [2026-03-12T20:21:22.099Z] [!!! ALARM-FLOW-BACKEND 1 - GET /api/history !!!] Received request: routingKey=FN_13885827_DATAFEED:HISTORY:EURUSD, tf=M5
+[LOG] [2026-03-12T20:21:22.168Z] [!!! ALARM-FLOW-BACKEND 1 - GET /api/history !!!] Received request: routingKey=FN_13885827_DATAFEED:HISTORY:GBPUSD, tf=M5
+[LOG] [2026-03-12T20:21:22.261Z] [!!! ALARM-FLOW-BACKEND 1 - GET /api/history !!!] Received request: routingKey=FN_13885827_DATAFEED:HISTORY:EURUSD, tf=M5
+[LOG] [2026-03-12T20:21:22.280Z] [!!! ALARM-FLOW-BACKEND 1 - GET /api/history !!!] Received request: routingKey=FN_13885827_DATAFEED:HISTORY:GBPUSD, tf=M5
+[2026-03-12T20:21:26.066Z] [BLOCKING] Event Loop Lag: 175ms
+
+--- 📊 TOP 10 LOG SOURCES (Last Minute) ---
+[8] [Worker:FN_N_DATAFEED:TICK_SPY:EURUSD] [N:N:N.N]
+[8] [Worker:FN_N_DATAFEED:TICK_SPY:GBPUSD] [N:N:N.N]
+[8] [!!! ALARM-FLOW-BACKEND N - GET /api/history !!!] Received r
+[4] [StatusFlow] 📥 RX: Client Subscribe FN_N_DATAFEED:TI
+[2] [Sync] ⏳ Start Graceful Disconnect for FN_N_DATAFEED:
+[2] [SyncManager] syncSubscriptions called.Active Subs: N.Target
+[2] [SyncManager] Current Active Subscriptions:  
+[1] [Sync] handleDisconnect: Cleaning up socket xPRLNmvMyQdhh
+[1] [SocketServer] Upgrade Request: /socket.io/?EIO=N&transport=
+[1] [Socket] Client connected: WhGtYZxNJwGFkdMNAAAL (User: admin
+-------------------------------------------
+[2026-03-12T20:21:56.947Z] [BLOCKING] Event Loop Lag: 96ms
+[2026-03-12T20:22:36.934Z] [BLOCKING] Event Loop Lag: 34ms

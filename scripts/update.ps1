@@ -1,4 +1,4 @@
-﻿param(
+param(
     [string]$TargetDir = "C:\awesome-cockpit",
     [string]$RestartInstances = "False",
     [switch]$UpdateMt5Only
@@ -82,6 +82,18 @@ if ($UpdateMt5Only.IsPresent) {
         $null = Start-Process -FilePath $Mt5Installer -ArgumentList "/auto /path:`"$MasterDist`"" -Wait -PassThru
         Start-Sleep -Seconds 5
         
+        $SourceServersDat = Join-Path $TargetDir ".github_main\ressources\metatrader\master\config\servers.dat"
+        if (-not (Test-Path $SourceServersDat)) {
+            $SourceServersDat = Join-Path $TargetDir "ressources\metatrader\master\config\servers.dat"
+        }
+        $DestConfigDir = Join-Path $MasterDist "config"
+        $DestServersDat = Join-Path $DestConfigDir "servers.dat"
+        if (Test-Path $SourceServersDat) {
+            Write-Log "  Kopiere servers.dat in die Master-Installation..." "Cyan"
+            if (-not (Test-Path $DestConfigDir)) { New-Item -ItemType Directory -Path $DestConfigDir -Force | Out-Null }
+            Copy-Item -Path $SourceServersDat -Destination $DestServersDat -Force -ErrorAction SilentlyContinue
+        }
+
         Write-Log "  Update von Master abgeschlossen. Kopiere neue EXEs in alle Instanzen..." "Cyan"
         
         $InstancesDir = Join-Path $MetaDist "instances"

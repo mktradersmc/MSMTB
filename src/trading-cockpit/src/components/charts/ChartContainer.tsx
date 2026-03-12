@@ -1377,7 +1377,7 @@ export const ChartContainer = React.forwardRef<ChartContainerHandle, ChartContai
         // Subscribe to Visible Range Changes for Sync
         chartA.timeScale().subscribeVisibleTimeRangeChange((range) => {
             // LOOP PROTECTION
-            if (isProgrammaticUpdate.current) return;
+            if (isProgrammaticUpdate.current || isLoading) return;
 
             try {
                 if (range && range.from && range.to) {
@@ -1398,8 +1398,8 @@ export const ChartContainer = React.forwardRef<ChartContainerHandle, ChartContai
         // Subscribe to Logical Range Changes for Sync (Precise index-based)
         chartA.timeScale().subscribeVisibleLogicalRangeChange((range) => {
             // LOOP PROTECTION
-            if (isProgrammaticUpdate.current) {
-                // console.log(`[ChartContainer:${paneId}] Skipping emit (programmatic lock active)`);
+            if (isProgrammaticUpdate.current || isLoading) {
+                // console.log(`[ChartContainer:${paneId}] Skipping emit (programmatic lock or loading active)`);
                 return;
             }
 
@@ -1810,7 +1810,7 @@ export const ChartContainer = React.forwardRef<ChartContainerHandle, ChartContai
                     } else {
                         chartARef.current?.timeScale().fitContent();
                     }
-                    setTimeout(() => isProgrammaticUpdate.current = false, 50); // UNLOCK
+                    setTimeout(() => isProgrammaticUpdate.current = false, 250); // UNLOCK (increased to 250ms for slow initial paints)
                     hasFittedARef.current = true;
                 } else if (chartARef.current) {
                     // Apply captured view state
@@ -1861,7 +1861,7 @@ export const ChartContainer = React.forwardRef<ChartContainerHandle, ChartContai
                             console.log(`[ChartContainer] Restored HISTORY. RightTime: ${state.savedRightTime} -> Idx: ${idx}`);
                         }
 
-                        setTimeout(() => isProgrammaticUpdate.current = false, 50); // UNLOCK
+                        setTimeout(() => isProgrammaticUpdate.current = false, 250); // UNLOCK (increased to 250ms)
                     } catch (e) {
                         isProgrammaticUpdate.current = false; // UNLOCK ON ERROR
                         console.error("[ChartContainer] Error restoring view state:", e);

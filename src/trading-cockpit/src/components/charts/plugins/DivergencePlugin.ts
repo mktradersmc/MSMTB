@@ -107,9 +107,14 @@ export class DivergencePlugin extends BaseWidget<DivergenceState> {
             let drawX2 = x2;
 
             if (drawX2 === null) {
-                if (endSec > (visibleRange.to as number)) drawX2 = this._chart!.timeScale().width() as Coordinate;
-                else if (endSec < (visibleRange.from as number)) drawX2 = -10 as Coordinate;
+                if (endSec > (visibleRange.to as number)) drawX2 = (this._chart!.timeScale().width() + 10) as Coordinate;
+                else if (endSec < (visibleRange.from as number)) return; // Entirely off-screen to the left!
                 else return; // unrenderable
+            }
+
+            // If the entire divergence finishes before the left edge of the screen, don't draw it at all
+            if ((drawX2 as number) < 0) {
+                return;
             }
 
             // Draw slanted line from origin peak to sweep peak
@@ -121,12 +126,15 @@ export class DivergencePlugin extends BaseWidget<DivergenceState> {
             ctx.lineTo(drawX2 as number, y2);
             ctx.stroke();
 
-            // Label
-            ctx.fillStyle = ctx.strokeStyle;
-            ctx.font = '10px Roboto';
-            ctx.globalAlpha = 0.8;
-            ctx.fillText(`SMT ${div.htf} vs ${div.target_symbol}`, (drawX1 as number) + 5, y1 - 6);
-            ctx.globalAlpha = 1.0;
+            // Only draw label if the start point is somewhat within the visible screen
+            // to prevent long text strings from piling up on the left edge.
+            if ((drawX1 as number) >= -5) {
+                ctx.fillStyle = ctx.strokeStyle;
+                ctx.font = '10px Roboto';
+                ctx.globalAlpha = 0.8;
+                ctx.fillText(`SMT ${div.htf} vs ${div.target_symbol}`, (drawX1 as number) + 5, y1 - 6);
+                ctx.globalAlpha = 1.0;
+            }
         });
 
         ctx.restore();

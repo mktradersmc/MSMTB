@@ -10289,3 +10289,1079 @@
 [LOG] [2026-03-12T21:45:49.442Z] [!!! ALARM-FLOW-BACKEND 1 - GET /api/history !!!] Received request: routingKey=Pepperstone_62104204_DATAFEED:HISTORY:BTCUSD, tf=M3
 [2026-03-12T21:45:49.497Z] [BLOCKING] Event Loop Lag: 35ms
 [LOG] [2026-03-12T21:45:49.498Z] [!!! ALARM-FLOW-BACKEND 1 - GET /api/history !!!] Received request: routingKey=Pepperstone_62104204_DATAFEED:HISTORY:ETHUSD, tf=M3
+
+--- 📊 TOP 10 LOG SOURCES (Last Minute) ---
+[8] [Worker:Pepperstone_N_DATAFEED:TICK_SPY:ETHUSD] [N:N
+[4] [Worker:Pepperstone_N_DATAFEED:TICK_SPY:BTCUSD] [N:N
+[3] [StatusFlow] 📥 RX: Client Subscribe Pepperstone_N_DA
+[3] [!!! ALARM-FLOW-BACKEND N - GET /api/history !!!] Received r
+-------------------------------------------
+[2026-03-12T21:46:22.917Z] [BLOCKING] Event Loop Lag: 57ms
+[LOG] [2026-03-12T21:50:10.278Z] [SocketServer] Upgrade Request: /socket.io/?EIO=4&transport=websocket from 127.0.0.1
+[LOG] [2026-03-12T21:50:10.317Z] [Sync] handleDisconnect: Cleaning up socket AG0SnmZzr2Eyff_0AAAF 
+[LOG] [2026-03-12T21:50:10.318Z] [Sync] ⏳ Start Graceful Disconnect for Pepperstone_62104204_DATAFEED:TICK_SPY:BTCUSD:M5
+[LOG] [2026-03-12T21:50:10.318Z] [Sync] ⏳ Start Graceful Disconnect for Pepperstone_62104204_DATAFEED:TICK_SPY:ETHUSD:M15
+[LOG] [2026-03-12T21:50:10.318Z] [Sync] ⏳ Start Graceful Disconnect for FN_13885827_DATAFEED:TICK_SPY:EURUSD:M1
+[LOG] [2026-03-12T21:50:10.319Z] [Sync] ⏳ Start Graceful Disconnect for FN_13885827_DATAFEED:TICK_SPY:GBPUSD:M5
+[LOG] [2026-03-12T21:50:10.319Z] [Sync] ⏳ Start Graceful Disconnect for Pepperstone_62104204_DATAFEED:TICK_SPY:ETHUSD:M5
+[LOG] [2026-03-12T21:50:10.319Z] [Sync] ⏳ Start Graceful Disconnect for Pepperstone_62104204_DATAFEED:TICK_SPY:BTCUSD:M3
+[LOG] [2026-03-12T21:50:10.319Z] [Sync] ⏳ Start Graceful Disconnect for Pepperstone_62104204_DATAFEED:TICK_SPY:ETHUSD:M3
+[2026-03-12T21:50:10.865Z] [BLOCKING] Event Loop Lag: 171ms
+[LOG] [2026-03-12T21:50:10.959Z] [SocketServer] Upgrade Request: /socket.io/?EIO=4&transport=websocket from 127.0.0.1
+[LOG] [2026-03-12T21:50:10.964Z] [Socket] Client connected: B9oTrGtHgNJJkBPzAAAJ (User: admin)
+[LOG] [2026-03-12T21:50:10.974Z] [SyncManager] syncSubscriptions called.Active Subs: 0.TargetBot: ALL TargetSym: ALL 
+[LOG] [2026-03-12T21:50:10.974Z] [SyncManager] Current Active Subscriptions:  
+[LOG] [2026-03-12T21:50:10.974Z] [SyncManager] syncSubscriptions called.Active Subs: 0.TargetBot: ALL TargetSym: ALL 
+[LOG] [2026-03-12T21:50:10.974Z] [SyncManager] Current Active Subscriptions:  
+[LOG] [2026-03-12T21:50:10.974Z] [SyncManager] syncSubscriptions called.Active Subs: 0.TargetBot: ALL TargetSym: ALL 
+[LOG] [2026-03-12T21:50:10.974Z] [SyncManager] Current Active Subscriptions:  
+[LOG] [2026-03-12T21:50:10.974Z] [SyncManager] syncSubscriptions called.Active Subs: 0.TargetBot: ALL TargetSym: ALL 
+[LOG] [2026-03-12T21:50:10.975Z] [SyncManager] Current Active Subscriptions:  
+[LOG] [2026-03-12T21:50:10.975Z] [SyncManager] syncSubscriptions called.Active Subs: 0.TargetBot: ALL TargetSym: ALL 
+[LOG] [2026-03-12T21:50:10.975Z] [SyncManager] Current Active Subscriptions:  
+[LOG] [2026-03-12T21:50:10.975Z] [SyncManager] syncSubscriptions called.Active Subs: 0.TargetBot: ALL TargetSym: ALL 
+[LOG] [2026-03-12T21:50:10.975Z] [SyncManager] Current Active Subscriptions:  
+[LOG] [2026-03-12T21:50:10.975Z] [SyncManager] syncSubscriptions called.Active Subs: 0.TargetBot: ALL TargetSym: ALL 
+[LOG] [2026-03-12T21:50:10.975Z] [SyncManager] Current Active Subscriptions:  
+
+--- 📊 TOP 10 LOG SOURCES (Last Minute) ---
+[7] [SyncManager] syncSubscriptions called.Active Subs: N.Target
+[7] [SyncManager] Current Active Subscriptions:  
+[5] [Sync] ⏳ Start Graceful Disconnect for Pepperstone_N_
+[2] [SocketServer] Upgrade Request: /socket.io/?EIO=N&transport=
+[2] [Sync] ⏳ Start Graceful Disconnect for FN_N_DATAFEED:
+[1] [Sync] handleDisconnect: Cleaning up socket AGNSnmZzrNEyff_N
+[1] [Socket] Client connected: BNoTrGtHgNJJkBPzAAAJ (User: admin
+-------------------------------------------
+[LOG] [2026-03-12T21:50:12.916Z] [StatusFlow] 📥 RX: Client Subscribe Pepperstone_62104204_DATAFEED:TICK_SPY:BTCUSD M3 (Status: UNKNOWN)
+[LOG] [2026-03-12T21:50:12.944Z] [Worker:Pepperstone_62104204_DATAFEED:TICK_SPY:BTCUSD] [22:50:12.910] [Subscription] ➕ Subscribing to BTCUSD M3
+[LOG] [2026-03-12T21:50:12.944Z] [Worker:Pepperstone_62104204_DATAFEED:TICK_SPY:BTCUSD] [22:50:12.910] [Subscription] ⏳ Sending SUBSCRIBE_TICKS and fetching current forming bar for M3...
+[LOG] [2026-03-12T21:50:12.962Z] [Worker:Pepperstone_62104204_DATAFEED:TICK_SPY:BTCUSD] [22:50:12.955] [Subscription] ✅ Subscription successful for M3
+[LOG] [2026-03-12T21:50:12.963Z] [Worker:Pepperstone_62104204_DATAFEED:TICK_SPY:BTCUSD] [22:50:12.956] [Subscription] ✅ Current forming bar received via SUBSCRIBE for M3
+[LOG] [2026-03-12T21:50:13.082Z] [StatusFlow] 📥 RX: Client Subscribe Pepperstone_62104204_DATAFEED:TICK_SPY:ETHUSD M3 (Status: UNKNOWN)
+[LOG] [2026-03-12T21:50:13.118Z] [Worker:Pepperstone_62104204_DATAFEED:TICK_SPY:ETHUSD] [22:50:13.077] [Subscription] ➕ Subscribing to ETHUSD M3
+[LOG] [2026-03-12T21:50:13.119Z] [Worker:Pepperstone_62104204_DATAFEED:TICK_SPY:ETHUSD] [22:50:13.078] [Subscription] ⏳ Sending SUBSCRIBE_TICKS and fetching current forming bar for M3...
+[LOG] [2026-03-12T21:50:13.162Z] [Worker:Pepperstone_62104204_DATAFEED:TICK_SPY:ETHUSD] [22:50:13.154] [Subscription] ✅ Subscription successful for M3
+[LOG] [2026-03-12T21:50:13.164Z] [Worker:Pepperstone_62104204_DATAFEED:TICK_SPY:ETHUSD] [22:50:13.155] [Subscription] ✅ Current forming bar received via SUBSCRIBE for M3
+[LOG] [2026-03-12T21:50:13.168Z] [!!! ALARM-FLOW-BACKEND 1 - GET /api/history !!!] Received request: routingKey=Pepperstone_62104204_DATAFEED:HISTORY:BTCUSD, tf=M3
+[LOG] [2026-03-12T21:50:13.249Z] [!!! ALARM-FLOW-BACKEND 1 - GET /api/history !!!] Received request: routingKey=Pepperstone_62104204_DATAFEED:HISTORY:BTCUSD, tf=M3
+[LOG] [2026-03-12T21:50:13.328Z] [!!! ALARM-FLOW-BACKEND 1 - GET /api/history !!!] Received request: routingKey=Pepperstone_62104204_DATAFEED:HISTORY:ETHUSD, tf=M3
+[LOG] [2026-03-12T21:50:19.857Z] [StatusFlow] 📥 RX: Client Subscribe Pepperstone_62104204_DATAFEED:TICK_SPY:BTCUSD M5 (Status: UNKNOWN)
+[LOG] [2026-03-12T21:50:19.965Z] [StatusFlow] 📥 RX: Client Subscribe Pepperstone_62104204_DATAFEED:TICK_SPY:ETHUSD M5 (Status: UNKNOWN)
+[2026-03-12T21:50:20.005Z] [BLOCKING] Event Loop Lag: 44ms
+[LOG] [2026-03-12T21:50:20.007Z] [Worker:Pepperstone_62104204_DATAFEED:TICK_SPY:BTCUSD] [22:50:19.847] [Subscription] ➕ Subscribing to BTCUSD M5
+[LOG] [2026-03-12T21:50:20.008Z] [Worker:Pepperstone_62104204_DATAFEED:TICK_SPY:BTCUSD] [22:50:19.848] [Subscription] ⏳ Sending SUBSCRIBE_TICKS and fetching current forming bar for M5...
+[LOG] [2026-03-12T21:50:20.026Z] [Worker:Pepperstone_62104204_DATAFEED:TICK_SPY:ETHUSD] [22:50:19.951] [Subscription] ➕ Subscribing to ETHUSD M5
+[LOG] [2026-03-12T21:50:20.026Z] [Worker:Pepperstone_62104204_DATAFEED:TICK_SPY:ETHUSD] [22:50:19.951] [Subscription] ⏳ Sending SUBSCRIBE_TICKS and fetching current forming bar for M5...
+[LOG] [2026-03-12T21:50:20.050Z] [Worker:Pepperstone_62104204_DATAFEED:TICK_SPY:BTCUSD] [22:50:20.046] [Subscription] ✅ Subscription successful for M5
+[LOG] [2026-03-12T21:50:20.050Z] [Worker:Pepperstone_62104204_DATAFEED:TICK_SPY:BTCUSD] [22:50:20.047] [Subscription] ✅ Current forming bar received via SUBSCRIBE for M5
+[LOG] [2026-03-12T21:50:20.051Z] [Worker:Pepperstone_62104204_DATAFEED:TICK_SPY:ETHUSD] [22:50:20.047] [Subscription] ✅ Subscription successful for M5
+[LOG] [2026-03-12T21:50:20.051Z] [Worker:Pepperstone_62104204_DATAFEED:TICK_SPY:ETHUSD] [22:50:20.047] [Subscription] ✅ Current forming bar received via SUBSCRIBE for M5
+[LOG] [2026-03-12T21:50:20.196Z] [!!! ALARM-FLOW-BACKEND 1 - GET /api/history !!!] Received request: routingKey=Pepperstone_62104204_DATAFEED:HISTORY:BTCUSD, tf=M5
+[LOG] [2026-03-12T21:50:20.232Z] [!!! ALARM-FLOW-BACKEND 1 - GET /api/history !!!] Received request: routingKey=Pepperstone_62104204_DATAFEED:HISTORY:ETHUSD, tf=M5
+[2026-03-12T21:50:21.027Z] [BLOCKING] Event Loop Lag: 22ms
+[LOG] [2026-03-12T21:50:24.346Z] [StatusFlow] 📥 RX: Client Subscribe Pepperstone_62104204_DATAFEED:TICK_SPY:BTCUSD M10 (Status: UNKNOWN)
+[LOG] [2026-03-12T21:50:24.376Z] [StatusFlow] 📥 RX: Client Subscribe Pepperstone_62104204_DATAFEED:TICK_SPY:ETHUSD M10 (Status: UNKNOWN)
+[LOG] [2026-03-12T21:50:24.399Z] [Worker:Pepperstone_62104204_DATAFEED:TICK_SPY:BTCUSD] [22:50:24.339] [Subscription] ➕ Subscribing to BTCUSD M10
+[LOG] [2026-03-12T21:50:24.399Z] [Worker:Pepperstone_62104204_DATAFEED:TICK_SPY:BTCUSD] [22:50:24.339] [Subscription] ⏳ Sending SUBSCRIBE_TICKS and fetching current forming bar for M10...
+[LOG] [2026-03-12T21:50:24.402Z] [Worker:Pepperstone_62104204_DATAFEED:TICK_SPY:ETHUSD] [22:50:24.369] [Subscription] ➕ Subscribing to ETHUSD M10
+[LOG] [2026-03-12T21:50:24.402Z] [Worker:Pepperstone_62104204_DATAFEED:TICK_SPY:ETHUSD] [22:50:24.369] [Subscription] ⏳ Sending SUBSCRIBE_TICKS and fetching current forming bar for M10...
+[LOG] [2026-03-12T21:50:24.520Z] [Worker:Pepperstone_62104204_DATAFEED:TICK_SPY:BTCUSD] [22:50:24.516] [Subscription] ✅ Subscription successful for M10
+[LOG] [2026-03-12T21:50:24.521Z] [Worker:Pepperstone_62104204_DATAFEED:TICK_SPY:BTCUSD] [22:50:24.517] [Subscription] ✅ Current forming bar received via SUBSCRIBE for M10
+[LOG] [2026-03-12T21:50:24.521Z] [Worker:Pepperstone_62104204_DATAFEED:TICK_SPY:ETHUSD] [22:50:24.517] [Subscription] ✅ Subscription successful for M10
+[LOG] [2026-03-12T21:50:24.522Z] [Worker:Pepperstone_62104204_DATAFEED:TICK_SPY:ETHUSD] [22:50:24.517] [Subscription] ✅ Current forming bar received via SUBSCRIBE for M10
+[LOG] [2026-03-12T21:50:24.542Z] [!!! ALARM-FLOW-BACKEND 1 - GET /api/history !!!] Received request: routingKey=Pepperstone_62104204_DATAFEED:HISTORY:BTCUSD, tf=M10
+[LOG] [2026-03-12T21:50:24.602Z] [!!! ALARM-FLOW-BACKEND 1 - GET /api/history !!!] Received request: routingKey=Pepperstone_62104204_DATAFEED:HISTORY:ETHUSD, tf=M10
+[LOG] [2026-03-12T21:50:27.779Z] [StatusFlow] 📥 RX: Client Subscribe Pepperstone_62104204_DATAFEED:TICK_SPY:BTCUSD H12 (Status: UNKNOWN)
+[LOG] [2026-03-12T21:50:27.805Z] [StatusFlow] 📥 RX: Client Subscribe Pepperstone_62104204_DATAFEED:TICK_SPY:ETHUSD H12 (Status: UNKNOWN)
+[LOG] [2026-03-12T21:50:27.826Z] [Worker:Pepperstone_62104204_DATAFEED:TICK_SPY:BTCUSD] [22:50:27.772] [Subscription] ➕ Subscribing to BTCUSD H12
+[LOG] [2026-03-12T21:50:27.827Z] [Worker:Pepperstone_62104204_DATAFEED:TICK_SPY:BTCUSD] [22:50:27.772] [Subscription] ⏳ Sending SUBSCRIBE_TICKS and fetching current forming bar for H12...
+[LOG] [2026-03-12T21:50:27.829Z] [Worker:Pepperstone_62104204_DATAFEED:TICK_SPY:ETHUSD] [22:50:27.799] [Subscription] ➕ Subscribing to ETHUSD H12
+[LOG] [2026-03-12T21:50:27.829Z] [Worker:Pepperstone_62104204_DATAFEED:TICK_SPY:ETHUSD] [22:50:27.800] [Subscription] ⏳ Sending SUBSCRIBE_TICKS and fetching current forming bar for H12...
+[LOG] [2026-03-12T21:50:27.950Z] [Worker:Pepperstone_62104204_DATAFEED:TICK_SPY:ETHUSD] [22:50:27.947] [Subscription] ✅ Subscription successful for H12
+[LOG] [2026-03-12T21:50:27.951Z] [Worker:Pepperstone_62104204_DATAFEED:TICK_SPY:ETHUSD] [22:50:27.948] [Subscription] ✅ Current forming bar received via SUBSCRIBE for H12
+[LOG] [2026-03-12T21:50:27.951Z] [Worker:Pepperstone_62104204_DATAFEED:TICK_SPY:BTCUSD] [22:50:27.947] [Subscription] ✅ Subscription successful for H12
+[LOG] [2026-03-12T21:50:27.951Z] [Worker:Pepperstone_62104204_DATAFEED:TICK_SPY:BTCUSD] [22:50:27.948] [Subscription] ✅ Current forming bar received via SUBSCRIBE for H12
+[LOG] [2026-03-12T21:50:28.014Z] [!!! ALARM-FLOW-BACKEND 1 - GET /api/history !!!] Received request: routingKey=Pepperstone_62104204_DATAFEED:HISTORY:BTCUSD, tf=H12
+[LOG] [2026-03-12T21:50:28.024Z] [SocketServer] History Gap for BTCUSD H12. Req: 10000, Found: 3102. Triggering BACKGROUND fetch from 1638784800000.
+[LOG] [2026-03-12T21:50:28.088Z] [!!! ALARM-FLOW-BACKEND 1 - GET /api/history !!!] Received request: routingKey=Pepperstone_62104204_DATAFEED:HISTORY:ETHUSD, tf=H12
+[LOG] [2026-03-12T21:50:28.098Z] [SocketServer] History Gap for ETHUSD H12. Req: 10000, Found: 3102. Triggering BACKGROUND fetch from 1638784800000.
+[2026-03-12T21:50:28.777Z] [BLOCKING] Event Loop Lag: 190ms
+[2026-03-12T21:50:30.920Z] [BLOCKING] Event Loop Lag: 143ms
+[2026-03-12T21:51:10.932Z] [BLOCKING] Event Loop Lag: 62ms
+
+--- 📊 TOP 10 LOG SOURCES (Last Minute) ---
+[16] [Worker:Pepperstone_N_DATAFEED:TICK_SPY:BTCUSD] [N:N
+[16] [Worker:Pepperstone_N_DATAFEED:TICK_SPY:ETHUSD] [N:N
+[9] [!!! ALARM-FLOW-BACKEND N - GET /api/history !!!] Received r
+[8] [StatusFlow] 📥 RX: Client Subscribe Pepperstone_N_DA
+[1] [SocketServer] History Gap for BTCUSD HN. Req: N, Found
+[1] [SocketServer] History Gap for ETHUSD HN. Req: N, Found
+-------------------------------------------
+[2026-03-12T21:53:00.940Z] [BLOCKING] Event Loop Lag: 106ms
+[2026-03-12T21:53:40.888Z] [BLOCKING] Event Loop Lag: 32ms
+[LOG] [2026-03-12T21:53:48.265Z] [!!! ALARM-FLOW-BACKEND 1 - GET /api/history !!!] Received request: routingKey=Pepperstone_62104204_DATAFEED:HISTORY:BTCUSD, tf=H12
+[LOG] [2026-03-12T21:53:48.277Z] [SocketServer] History Gap for BTCUSD H12. Req: 10000, Found: 3102. Triggering BACKGROUND fetch from 1638784800000.
+[LOG] [2026-03-12T21:53:48.314Z] [!!! ALARM-FLOW-BACKEND 1 - GET /api/history !!!] Received request: routingKey=Pepperstone_62104204_DATAFEED:HISTORY:ETHUSD, tf=H12
+[LOG] [2026-03-12T21:53:48.327Z] [SocketServer] History Gap for ETHUSD H12. Req: 10000, Found: 3102. Triggering BACKGROUND fetch from 1638784800000.
+[LOG] [2026-03-12T21:53:48.329Z] [!!! ALARM-FLOW-BACKEND 1 - GET /api/history !!!] Received request: routingKey=Pepperstone_62104204_DATAFEED:HISTORY:BTCUSD, tf=H12
+[LOG] [2026-03-12T21:53:48.350Z] [SocketServer] History Gap for BTCUSD H12. Req: 10000, Found: 3102. Triggering BACKGROUND fetch from 1638784800000.
+[LOG] [2026-03-12T21:53:48.361Z] [!!! ALARM-FLOW-BACKEND 1 - GET /api/history !!!] Received request: routingKey=Pepperstone_62104204_DATAFEED:HISTORY:ETHUSD, tf=H12
+[LOG] [2026-03-12T21:53:48.384Z] [SocketServer] History Gap for ETHUSD H12. Req: 10000, Found: 3102. Triggering BACKGROUND fetch from 1638784800000.
+[2026-03-12T21:53:48.535Z] [BLOCKING] Event Loop Lag: 48ms
+[2026-03-12T21:53:49.100Z] [BLOCKING] Event Loop Lag: 65ms
+[2026-03-12T21:54:10.903Z] [BLOCKING] Event Loop Lag: 198ms
+
+--- 📊 TOP 10 LOG SOURCES (Last Minute) ---
+[4] [!!! ALARM-FLOW-BACKEND N - GET /api/history !!!] Received r
+[2] [SocketServer] History Gap for BTCUSD HN. Req: N, Found
+[2] [SocketServer] History Gap for ETHUSD HN. Req: N, Found
+-------------------------------------------
+[2026-03-12T21:54:45.114Z] === FORENSIC LOGGER ATTACHED ===
+[LOG] [2026-03-12T21:54:45.142Z] [LogService] 📝 Redirecting High-Frequency Logs to: C:\Users\Michael\IdeaProjects\MSMTB\src\market-data-core\logs\traffic.log
+[LOG] [2026-03-12T21:54:45.145Z] [AssetMapping] Loaded 4 mappings.
+[LOG] [2026-03-12T21:54:45.145Z] [WebSocketManager] 🆕 Instance Created: 58bf6
+[LOG] [2026-03-12T21:54:45.146Z] [SystemOrchestrator] 🆕 Creating FRESH Instance(v1773352485146)
+[LOG] [2026-03-12T21:54:45.147Z] [SystemOrchestrator] 🏗️ CONSTRUCTOR CALLED (Instance skz81)
+[LOG] [2026-03-12T21:54:45.147Z] [SystemOrchestrator:skz81] Loaded state: 0 available, 4 configured.
+[LOG] [2026-03-12T21:54:45.147Z] [Sync] 🛑 Global Provisioning DISABLED. Waiting for TickSpy...
+[LOG] [2026-03-12T21:54:45.147Z] [SyncManager] 🎛️ Loaded Features: {
+  "ENABLE_STARTUP_SANITY_CHECK": false,
+  "ENABLE_PERIODIC_SANITY_CHECK": true,
+  "ENABLE_REGISTRATION_SANITY_CHECK": false,
+  "ENABLE_CONSISTENCY_SCHEDULER": false,
+  "ENABLE_DEEP_HISTORY_SYNC": true,
+  "ENABLE_TICK_LOGGING": false,
+  "ENABLE_BAR_DATA_LOGGING": false,
+  "ENABLE_INDICATOR_LOGGING": false,
+  "ENABLE_DETAILED_PROTOCOL_LOGGING": false
+}
+[LOG] [2026-03-12T21:54:45.149Z] [SystemOrchestrator] 🔄 Refreshing Available Symbols (Direct DB Fetch)...
+[LOG] [2026-03-12T21:54:45.152Z] [SystemOrchestrator] 🔄 Refreshed Available Symbols. Total Count: 1922
+[LOG] [2026-03-12T21:54:45.152Z] [Sync] 🗺️ Rebuilt Symbol Maps: 2 bots, 8 reverse mappings.
+[LOG] [2026-03-12T21:54:45.154Z] [WorkerFactory] 🏭 Creating BACKTEST for PAPER_BOT:ALL:ALL (Script: BacktestWorker.js)
+[LOG] [2026-03-12T21:54:45.156Z] [SystemOrchestrator] 🚀 Virtual Broker PAPER_BOT registered for DATAFEED, TICK_SPY, HISTORY, and TRADING.
+[LOG] [2026-03-12T21:54:45.156Z] [SystemOrchestrator] 📂 Starting System File Monitor...
+[LOG] [2026-03-12T21:54:45.157Z] [SystemOrchestrator] 📂 Starting System File Monitor...
+[LOG] [2026-03-12T21:54:45.281Z] [TradeDist] Loaded Config from DB: 8 brokers configured.
+[LOG] [2026-03-12T21:54:45.327Z] [SocketServer] Starting with standard HTTP (No SSL configuration found).
+[LOG] [2026-03-12T21:54:45.333Z] Starting market-data-core...
+[LOG] [2026-03-12T21:54:45.341Z] [Gateway] WebSocket Server started on port 3000
+[LOG] [2026-03-12T21:54:45.342Z] [Framework] One-Time Route Initialization...
+[LOG] [2026-03-12T21:54:45.342Z] [Framework] Routes initialized (Empty - Protocol handled by UnifiedBotProtocol)
+[LOG] [2026-03-12T21:54:45.342Z] [Index] Linking SocketServer to SystemOrchestrator... Has Method: function
+[LOG] [2026-03-12T21:54:45.342Z] [Index] SystemOrchestrator Instance ID: skz81
+[LOG] [2026-03-12T21:54:45.342Z] [SystemOrchestrator] ✅ SocketServer Linked Successfully.
+[LOG] [2026-03-12T21:54:45.342Z] [Index] Link Call Complete.
+[LOG] [2026-03-12T21:54:45.343Z] [EconomicCalendar] 🗓️ Starting Service...
+[LOG] [2026-03-12T21:54:45.350Z] [EconomicCalendar] Proactive fetching next month: apr.2026
+[LOG] [2026-03-12T21:54:45.389Z] MarketDataCore Services initialized.
+[LOG] [2026-03-12T21:54:45.391Z] [SocketServer] Listening on 0.0.0.0:3005 (IPv4 Explicit)
+[LOG] [2026-03-12T21:54:45.584Z] [Gateway] New Connection: c6c4078d-f726-478c-b9b1-b2171640db97
+[LOG] [2026-03-12T21:54:45.585Z] [Gateway] New Connection: f9a8088a-31f5-4771-9227-adf3a258e768
+[LOG] [2026-03-12T21:54:45.585Z] [Gateway] New Connection: 1ede31c7-7059-47e4-b724-25c21e2c57de
+[LOG] [2026-03-12T21:54:45.586Z] [Gateway] New Connection: 4cb2f22c-d118-4482-a807-bbd61e0aacb2
+[LOG] [2026-03-12T21:54:45.588Z] [UnifiedBotProtocol] 📝 REGISTER REQUEST: Payload={"header":{"command":"REGISTER","botId":"FN_13885827_DATAFEED","func":"HISTORY","symbol":"EURUSD","timestamp":1773363285},"botId":"FN_13885827_DATAFEED","func":"HISTORY","symbol":"EURUSD","type":"REGISTER"}
+[LOG] [2026-03-12T21:54:45.589Z] [UnifiedBotProtocol] ✅ REGISTERING: FN_13885827_DATAFEED | HISTORY | EURUSD
+[LOG] [2026-03-12T21:54:45.589Z] [WebSocketManager] 🔑 REGISTERED: FN_13885827_DATAFEED:HISTORY:EURUSD (Transport: c6c4078d-f726-478c-b9b1-b2171640db97)
+[LOG] [2026-03-12T21:54:45.589Z] [SysOrch:Connect] 🟢 NEW CONNECTION: RoutingKey=FN_13885827_DATAFEED:HISTORY:EURUSD, ID=FN_13885827_DATAFEED, Func=HISTORY, Sym=EURUSD
+[LOG] [2026-03-12T21:54:45.589Z] [SysOrch:Connect] Registered NEW Bot Status: FN_13885827_DATAFEED:HISTORY:EURUSD
+[LOG] [2026-03-12T21:54:45.589Z] [SystemOrchestrator] 🔌 Bot Connected: FN_13885827_DATAFEED (HISTORY) [EURUSD]
+[LOG] [2026-03-12T21:54:45.590Z] [WorkerFactory] 🏭 Creating HISTORY for FN_13885827_DATAFEED:HISTORY:EURUSD (Script: HistoryWorker.js)
+[LOG] [2026-03-12T21:54:45.591Z] [SystemOrchestrator] 🚀 Spawned Worker: HISTORY for FN_13885827_DATAFEED:HISTORY:EURUSD
+[LOG] [2026-03-12T21:54:45.592Z] [UnifiedBotProtocol] 📝 REGISTER REQUEST: Payload={"header":{"command":"REGISTER","botId":"FN_13885827_DATAFEED","func":"HISTORY","symbol":"GBPUSD","timestamp":1773363285},"botId":"FN_13885827_DATAFEED","func":"HISTORY","symbol":"GBPUSD","type":"REGISTER"}
+[LOG] [2026-03-12T21:54:45.593Z] [UnifiedBotProtocol] ✅ REGISTERING: FN_13885827_DATAFEED | HISTORY | GBPUSD
+[LOG] [2026-03-12T21:54:45.593Z] [WebSocketManager] 🔑 REGISTERED: FN_13885827_DATAFEED:HISTORY:GBPUSD (Transport: f9a8088a-31f5-4771-9227-adf3a258e768)
+[LOG] [2026-03-12T21:54:45.593Z] [SysOrch:Connect] 🟢 NEW CONNECTION: RoutingKey=FN_13885827_DATAFEED:HISTORY:GBPUSD, ID=FN_13885827_DATAFEED, Func=HISTORY, Sym=GBPUSD
+[LOG] [2026-03-12T21:54:45.593Z] [SysOrch:Connect] Registered NEW Bot Status: FN_13885827_DATAFEED:HISTORY:GBPUSD
+[LOG] [2026-03-12T21:54:45.593Z] [SystemOrchestrator] 🔌 Bot Connected: FN_13885827_DATAFEED (HISTORY) [GBPUSD]
+[LOG] [2026-03-12T21:54:45.593Z] [WorkerFactory] 🏭 Creating HISTORY for FN_13885827_DATAFEED:HISTORY:GBPUSD (Script: HistoryWorker.js)
+[LOG] [2026-03-12T21:54:45.594Z] [SystemOrchestrator] 🚀 Spawned Worker: HISTORY for FN_13885827_DATAFEED:HISTORY:GBPUSD
+[LOG] [2026-03-12T21:54:45.594Z] [UnifiedBotProtocol] 📝 REGISTER REQUEST: Payload={"header":{"command":"REGISTER","botId":"Pepperstone_62104204_DATAFEED","func":"HISTORY","symbol":"ETHUSD","timestamp":1773363285},"botId":"Pepperstone_62104204_DATAFEED","func":"HISTORY","symbol":"ETHUSD","type":"REGISTER"}
+[LOG] [2026-03-12T21:54:45.595Z] [UnifiedBotProtocol] ✅ REGISTERING: Pepperstone_62104204_DATAFEED | HISTORY | ETHUSD
+[LOG] [2026-03-12T21:54:45.595Z] [WebSocketManager] 🔑 REGISTERED: Pepperstone_62104204_DATAFEED:HISTORY:ETHUSD (Transport: 1ede31c7-7059-47e4-b724-25c21e2c57de)
+[LOG] [2026-03-12T21:54:45.595Z] [SysOrch:Connect] 🟢 NEW CONNECTION: RoutingKey=Pepperstone_62104204_DATAFEED:HISTORY:ETHUSD, ID=Pepperstone_62104204_DATAFEED, Func=HISTORY, Sym=ETHUSD
+[LOG] [2026-03-12T21:54:45.595Z] [SysOrch:Connect] Registered NEW Bot Status: Pepperstone_62104204_DATAFEED:HISTORY:ETHUSD
+[LOG] [2026-03-12T21:54:45.595Z] [SystemOrchestrator] 🔌 Bot Connected: Pepperstone_62104204_DATAFEED (HISTORY) [ETHUSD]
+[LOG] [2026-03-12T21:54:45.596Z] [WorkerFactory] 🏭 Creating HISTORY for Pepperstone_62104204_DATAFEED:HISTORY:ETHUSD (Script: HistoryWorker.js)
+[LOG] [2026-03-12T21:54:45.596Z] [SystemOrchestrator] 🚀 Spawned Worker: HISTORY for Pepperstone_62104204_DATAFEED:HISTORY:ETHUSD
+[LOG] [2026-03-12T21:54:45.597Z] [UnifiedBotProtocol] 📝 REGISTER REQUEST: Payload={"header":{"command":"REGISTER","botId":"Pepperstone_62104204_DATAFEED","func":"HISTORY","symbol":"BTCUSD","timestamp":1773363285},"botId":"Pepperstone_62104204_DATAFEED","func":"HISTORY","symbol":"BTCUSD","type":"REGISTER"}
+[LOG] [2026-03-12T21:54:45.598Z] [UnifiedBotProtocol] ✅ REGISTERING: Pepperstone_62104204_DATAFEED | HISTORY | BTCUSD
+[LOG] [2026-03-12T21:54:45.598Z] [WebSocketManager] 🔑 REGISTERED: Pepperstone_62104204_DATAFEED:HISTORY:BTCUSD (Transport: 4cb2f22c-d118-4482-a807-bbd61e0aacb2)
+[LOG] [2026-03-12T21:54:45.598Z] [SysOrch:Connect] 🟢 NEW CONNECTION: RoutingKey=Pepperstone_62104204_DATAFEED:HISTORY:BTCUSD, ID=Pepperstone_62104204_DATAFEED, Func=HISTORY, Sym=BTCUSD
+[LOG] [2026-03-12T21:54:45.598Z] [SysOrch:Connect] Registered NEW Bot Status: Pepperstone_62104204_DATAFEED:HISTORY:BTCUSD
+[LOG] [2026-03-12T21:54:45.598Z] [SystemOrchestrator] 🔌 Bot Connected: Pepperstone_62104204_DATAFEED (HISTORY) [BTCUSD]
+[LOG] [2026-03-12T21:54:45.599Z] [WorkerFactory] 🏭 Creating HISTORY for Pepperstone_62104204_DATAFEED:HISTORY:BTCUSD (Script: HistoryWorker.js)
+[LOG] [2026-03-12T21:54:45.599Z] [SystemOrchestrator] 🚀 Spawned Worker: HISTORY for Pepperstone_62104204_DATAFEED:HISTORY:BTCUSD
+[LOG] [2026-03-12T21:54:45.646Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [22:54:45.646] [Init] 🚀 Worker Spawned for FN_13885827_DATAFEED:HISTORY:GBPUSD
+[LOG] [2026-03-12T21:54:45.647Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [22:54:45.647] [History] 🟢 Connected for GBPUSD. Starting history initialization.
+[LOG] [2026-03-12T21:54:45.647Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [22:54:45.647] [History] ➕ Added 17 TFs to Low Priority Queue.
+[LOG] [2026-03-12T21:54:45.650Z] [Worker:Pepperstone_62104204_DATAFEED:HISTORY:ETHUSD] [22:54:45.649] [Init] 🚀 Worker Spawned for Pepperstone_62104204_DATAFEED:HISTORY:ETHUSD
+[LOG] [2026-03-12T21:54:45.651Z] [Worker:Pepperstone_62104204_DATAFEED:HISTORY:ETHUSD] [22:54:45.651] [History] 🟢 Connected for ETHUSD. Starting history initialization.
+[LOG] [2026-03-12T21:54:45.651Z] [Worker:Pepperstone_62104204_DATAFEED:HISTORY:ETHUSD] [22:54:45.651] [History] ➕ Added 17 TFs to Low Priority Queue.
+[LOG] [2026-03-12T21:54:45.654Z] [Worker:Pepperstone_62104204_DATAFEED:HISTORY:BTCUSD] [22:54:45.653] [Init] 🚀 Worker Spawned for Pepperstone_62104204_DATAFEED:HISTORY:BTCUSD
+[LOG] [2026-03-12T21:54:45.656Z] [Worker:Pepperstone_62104204_DATAFEED:HISTORY:BTCUSD] [22:54:45.656] [History] 🟢 Connected for BTCUSD. Starting history initialization.
+[LOG] [2026-03-12T21:54:45.656Z] [Worker:Pepperstone_62104204_DATAFEED:HISTORY:BTCUSD] [22:54:45.656] [History] ➕ Added 17 TFs to Low Priority Queue.
+[LOG] [2026-03-12T21:54:45.668Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [22:54:45.667] [Init] 🚀 Worker Spawned for FN_13885827_DATAFEED:HISTORY:EURUSD
+[LOG] [2026-03-12T21:54:45.669Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [22:54:45.669] [History] 🟢 Connected for EURUSD. Starting history initialization.
+[LOG] [2026-03-12T21:54:45.670Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [22:54:45.669] [History] ➕ Added 17 TFs to Low Priority Queue.
+[LOG] [2026-03-12T21:54:45.701Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [22:54:45.701] [History] 🛑 End of Data for GBPUSD M1. Flagging max_history. (RawBin Length: none, Type: none, Buffer? false)
+[LOG] [2026-03-12T21:54:45.770Z] [SocketServer] Upgrade Request: /socket.io/?EIO=4&transport=websocket from 127.0.0.1
+[LOG] [2026-03-12T21:54:45.790Z] [Worker:Pepperstone_62104204_DATAFEED:HISTORY:ETHUSD] [22:54:45.788] [History] 🛑 End of Data for ETHUSD M1. Flagging max_history. (RawBin Length: none, Type: none, Buffer? false)
+[LOG] [2026-03-12T21:54:45.790Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [22:54:45.789] [History] 🛑 End of Data for EURUSD M1. Flagging max_history. (RawBin Length: none, Type: none, Buffer? false)
+[LOG] [2026-03-12T21:54:45.791Z] [Worker:Pepperstone_62104204_DATAFEED:HISTORY:BTCUSD] [22:54:45.789] [History] 🛑 End of Data for BTCUSD M1. Flagging max_history. (RawBin Length: none, Type: none, Buffer? false)
+[LOG] [2026-03-12T21:54:45.794Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [22:54:45.793] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T21:54:45.818Z] [Socket] Client connected: 05O0BXazFGY8Xs8LAAAB (User: admin)
+[LOG] [2026-03-12T21:54:45.891Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [22:54:45.891] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T21:54:45.903Z] [Worker:Pepperstone_62104204_DATAFEED:HISTORY:ETHUSD] [22:54:45.903] [History] 🛑 End of Data for ETHUSD M2. Flagging max_history. (RawBin Length: none, Type: none, Buffer? false)
+[LOG] [2026-03-12T21:54:45.907Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [22:54:45.907] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T21:54:45.910Z] [Worker:Pepperstone_62104204_DATAFEED:HISTORY:BTCUSD] [22:54:45.910] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T21:54:45.953Z] [DB] 💾 Saved 370 calendar events.
+[LOG] [2026-03-12T21:54:45.953Z] [EconomicCalendar] 🟢 Next month loaded successfully.
+[LOG] [2026-03-12T21:54:45.957Z] [SocketServer] Upgrade Request: /socket.io/?EIO=4&transport=websocket from 127.0.0.1
+[LOG] [2026-03-12T21:54:46.009Z] [Worker:Pepperstone_62104204_DATAFEED:HISTORY:BTCUSD] [22:54:46.009] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T21:54:46.026Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [22:54:46.026] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T21:54:46.029Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [22:54:46.027] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T21:54:46.029Z] [Worker:Pepperstone_62104204_DATAFEED:HISTORY:ETHUSD] [22:54:46.028] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T21:54:46.124Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [22:54:46.124] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T21:54:46.141Z] [Worker:Pepperstone_62104204_DATAFEED:HISTORY:BTCUSD] [22:54:46.141] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T21:54:46.145Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [22:54:46.143] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T21:54:46.146Z] [Worker:Pepperstone_62104204_DATAFEED:HISTORY:ETHUSD] [22:54:46.145] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T21:54:46.257Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [22:54:46.256] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T21:54:46.257Z] [Worker:Pepperstone_62104204_DATAFEED:HISTORY:ETHUSD] [22:54:46.257] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T21:54:46.259Z] [Worker:Pepperstone_62104204_DATAFEED:HISTORY:BTCUSD] [22:54:46.258] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T21:54:46.260Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [22:54:46.260] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T21:54:46.356Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [22:54:46.356] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T21:54:46.365Z] [Worker:Pepperstone_62104204_DATAFEED:HISTORY:BTCUSD] [22:54:46.365] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T21:54:46.372Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [22:54:46.372] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T21:54:46.374Z] [Worker:Pepperstone_62104204_DATAFEED:HISTORY:ETHUSD] [22:54:46.373] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T21:54:46.408Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [22:54:46.408] [History] 🛑 Boundary Reached for GBPUSD H1. Flagging max_history.
+[LOG] [2026-03-12T21:54:46.409Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [22:54:46.409] [History] 🛑 Boundary Reached for GBPUSD H2. Flagging max_history.
+[LOG] [2026-03-12T21:54:46.410Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [22:54:46.410] [History] 🛑 Boundary Reached for GBPUSD H3. Flagging max_history.
+[LOG] [2026-03-12T21:54:46.411Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [22:54:46.411] [History] 🛑 Boundary Reached for GBPUSD H4. Flagging max_history.
+[LOG] [2026-03-12T21:54:46.412Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [22:54:46.412] [History] 🛑 Boundary Reached for GBPUSD H6. Flagging max_history.
+[LOG] [2026-03-12T21:54:46.412Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [22:54:46.412] [History] 🛑 Boundary Reached for GBPUSD H8. Flagging max_history.
+[LOG] [2026-03-12T21:54:46.413Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [22:54:46.413] [History] 🛑 Boundary Reached for GBPUSD H12. Flagging max_history.
+[LOG] [2026-03-12T21:54:46.473Z] [Worker:Pepperstone_62104204_DATAFEED:HISTORY:BTCUSD] [22:54:46.472] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T21:54:46.475Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [22:54:46.474] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T21:54:46.490Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [22:54:46.489] [History] 💾 Decoded 1 bars from rawBin (Length: 48).
+[LOG] [2026-03-12T21:54:46.490Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [22:54:46.490] [History] 🏁 Reached maximum available broker history for GBPUSD D1 (minTime 1220486400000 >= oldestTime 1220486400000). Proceeding to next timeframe.
+[LOG] [2026-03-12T21:54:46.491Z] [Worker:Pepperstone_62104204_DATAFEED:HISTORY:ETHUSD] [22:54:46.490] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T21:54:46.498Z] [Worker:Pepperstone_62104204_DATAFEED:HISTORY:BTCUSD] [22:54:46.497] [History] 🛑 Boundary Reached for BTCUSD H1. Flagging max_history.
+[LOG] [2026-03-12T21:54:46.499Z] [Worker:Pepperstone_62104204_DATAFEED:HISTORY:BTCUSD] [22:54:46.499] [History] 🛑 Boundary Reached for BTCUSD H2. Flagging max_history.
+[LOG] [2026-03-12T21:54:46.502Z] [Worker:Pepperstone_62104204_DATAFEED:HISTORY:BTCUSD] [22:54:46.501] [History] 🛑 Boundary Reached for BTCUSD H3. Flagging max_history.
+[LOG] [2026-03-12T21:54:46.502Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [22:54:46.502] [History] 🛑 Boundary Reached for EURUSD H1. Flagging max_history.
+[LOG] [2026-03-12T21:54:46.503Z] [Worker:Pepperstone_62104204_DATAFEED:HISTORY:BTCUSD] [22:54:46.503] [History] 🛑 Boundary Reached for BTCUSD H4. Flagging max_history.
+[LOG] [2026-03-12T21:54:46.505Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [22:54:46.503] [History] 🛑 Boundary Reached for EURUSD H2. Flagging max_history.
+[LOG] [2026-03-12T21:54:46.506Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [22:54:46.505] [History] 🛑 Boundary Reached for EURUSD H3. Flagging max_history.
+[LOG] [2026-03-12T21:54:46.507Z] [Worker:Pepperstone_62104204_DATAFEED:HISTORY:BTCUSD] [22:54:46.505] [History] 🛑 Boundary Reached for BTCUSD H6. Flagging max_history.
+[LOG] [2026-03-12T21:54:46.507Z] [Worker:Pepperstone_62104204_DATAFEED:HISTORY:BTCUSD] [22:54:46.506] [History] 🛑 Boundary Reached for BTCUSD H8. Flagging max_history.
+[LOG] [2026-03-12T21:54:46.507Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [22:54:46.506] [History] 🛑 Boundary Reached for EURUSD H4. Flagging max_history.
+[LOG] [2026-03-12T21:54:46.508Z] [Worker:Pepperstone_62104204_DATAFEED:HISTORY:BTCUSD] [22:54:46.508] [History] 🛑 Boundary Reached for BTCUSD H12. Flagging max_history.
+[LOG] [2026-03-12T21:54:46.509Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [22:54:46.508] [History] 🛑 Boundary Reached for EURUSD H6. Flagging max_history.
+[LOG] [2026-03-12T21:54:46.510Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [22:54:46.509] [History] 🛑 Boundary Reached for EURUSD H8. Flagging max_history.
+[LOG] [2026-03-12T21:54:46.510Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [22:54:46.509] [History] 🛑 Boundary Reached for EURUSD H12. Flagging max_history.
+[LOG] [2026-03-12T21:54:46.521Z] [Worker:Pepperstone_62104204_DATAFEED:HISTORY:ETHUSD] [22:54:46.521] [History] 🛑 Boundary Reached for ETHUSD H1. Flagging max_history.
+[LOG] [2026-03-12T21:54:46.525Z] [Worker:Pepperstone_62104204_DATAFEED:HISTORY:ETHUSD] [22:54:46.524] [History] 🛑 Boundary Reached for ETHUSD H2. Flagging max_history.
+[LOG] [2026-03-12T21:54:46.528Z] [Worker:Pepperstone_62104204_DATAFEED:HISTORY:ETHUSD] [22:54:46.527] [History] 🛑 Boundary Reached for ETHUSD H3. Flagging max_history.
+[LOG] [2026-03-12T21:54:46.529Z] [Worker:Pepperstone_62104204_DATAFEED:HISTORY:ETHUSD] [22:54:46.529] [History] 🛑 Boundary Reached for ETHUSD H4. Flagging max_history.
+[LOG] [2026-03-12T21:54:46.530Z] [Worker:Pepperstone_62104204_DATAFEED:HISTORY:ETHUSD] [22:54:46.530] [History] 🛑 Boundary Reached for ETHUSD H6. Flagging max_history.
+[LOG] [2026-03-12T21:54:46.532Z] [Worker:Pepperstone_62104204_DATAFEED:HISTORY:ETHUSD] [22:54:46.532] [History] 🛑 Boundary Reached for ETHUSD H8. Flagging max_history.
+[LOG] [2026-03-12T21:54:46.533Z] [Worker:Pepperstone_62104204_DATAFEED:HISTORY:ETHUSD] [22:54:46.533] [History] 🛑 Boundary Reached for ETHUSD H12. Flagging max_history.
+[LOG] [2026-03-12T21:54:46.589Z] [Worker:Pepperstone_62104204_DATAFEED:HISTORY:BTCUSD] [22:54:46.589] [History] 💾 Decoded 1 bars from rawBin (Length: 48).
+[LOG] [2026-03-12T21:54:46.590Z] [Worker:Pepperstone_62104204_DATAFEED:HISTORY:BTCUSD] [22:54:46.589] [History] 🏁 Reached maximum available broker history for BTCUSD D1 (minTime 1279324800000 >= oldestTime 1279324800000). Proceeding to next timeframe.
+[LOG] [2026-03-12T21:54:46.591Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [22:54:46.589] [History] 💾 Decoded 1 bars from rawBin (Length: 48).
+[LOG] [2026-03-12T21:54:46.591Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [22:54:46.589] [History] 🏁 Reached maximum available broker history for GBPUSD W1 (minTime 1220140800000 >= oldestTime 1220140800000). Proceeding to next timeframe.
+[LOG] [2026-03-12T21:54:46.591Z] [Worker:Pepperstone_62104204_DATAFEED:HISTORY:ETHUSD] [22:54:46.590] [History] 💾 Decoded 1 bars from rawBin (Length: 48).
+[LOG] [2026-03-12T21:54:46.591Z] [Worker:Pepperstone_62104204_DATAFEED:HISTORY:ETHUSD] [22:54:46.590] [History] 🏁 Reached maximum available broker history for ETHUSD D1 (minTime 1530230400000 >= oldestTime 1530230400000). Proceeding to next timeframe.
+[LOG] [2026-03-12T21:54:46.593Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [22:54:46.593] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T21:54:46.593Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [22:54:46.593] [History] ⚠️ Batch contained only filtered (1970) data. Pausing fetch for this TF.
+[LOG] [2026-03-12T21:54:46.688Z] [Worker:Pepperstone_62104204_DATAFEED:HISTORY:BTCUSD] [22:54:46.687] [History] 💾 Decoded 1 bars from rawBin (Length: 48).
+[LOG] [2026-03-12T21:54:46.688Z] [Worker:Pepperstone_62104204_DATAFEED:HISTORY:BTCUSD] [22:54:46.687] [History] 🏁 Reached maximum available broker history for BTCUSD W1 (minTime 1278806400000 >= oldestTime 1278806400000). Proceeding to next timeframe.
+[LOG] [2026-03-12T21:54:46.688Z] [Worker:Pepperstone_62104204_DATAFEED:HISTORY:ETHUSD] [22:54:46.687] [History] 💾 Decoded 1 bars from rawBin (Length: 48).
+[LOG] [2026-03-12T21:54:46.689Z] [Worker:Pepperstone_62104204_DATAFEED:HISTORY:ETHUSD] [22:54:46.688] [History] 🏁 Reached maximum available broker history for ETHUSD W1 (minTime 1529798400000 >= oldestTime 1529798400000). Proceeding to next timeframe.
+[LOG] [2026-03-12T21:54:46.689Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [22:54:46.687] [History] 💾 Decoded 1 bars from rawBin (Length: 48).
+[LOG] [2026-03-12T21:54:46.689Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [22:54:46.688] [History] 🏁 Reached maximum available broker history for GBPUSD MN1 (minTime 1220227200000 >= oldestTime 1220227200000). Proceeding to next timeframe.
+[LOG] [2026-03-12T21:54:46.689Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [22:54:46.689] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T21:54:46.690Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [22:54:46.689] [History] ⚠️ Batch contained only filtered (1970) data. Pausing fetch for this TF.
+[LOG] [2026-03-12T21:54:46.806Z] [Worker:Pepperstone_62104204_DATAFEED:HISTORY:BTCUSD] [22:54:46.806] [History] 💾 Decoded 1 bars from rawBin (Length: 48).
+[LOG] [2026-03-12T21:54:46.807Z] [Worker:Pepperstone_62104204_DATAFEED:HISTORY:BTCUSD] [22:54:46.806] [History] 🏁 Reached maximum available broker history for BTCUSD MN1 (minTime 1277942400000 >= oldestTime 1277942400000). Proceeding to next timeframe.
+[LOG] [2026-03-12T21:54:46.808Z] [Worker:Pepperstone_62104204_DATAFEED:HISTORY:ETHUSD] [22:54:46.807] [History] 💾 Decoded 1 bars from rawBin (Length: 48).
+[LOG] [2026-03-12T21:54:46.809Z] [Worker:Pepperstone_62104204_DATAFEED:HISTORY:ETHUSD] [22:54:46.808] [History] 🏁 Reached maximum available broker history for ETHUSD MN1 (minTime 1527811200000 >= oldestTime 1527811200000). Proceeding to next timeframe.
+[LOG] [2026-03-12T21:54:46.809Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [22:54:46.807] [History] 💾 Decoded 273 bars from rawBin (Length: 13104).
+[LOG] [2026-03-12T21:54:46.810Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [22:54:46.808] [History] ⚠️ Batch contained only filtered (1970) data. Pausing fetch for this TF.
+[LOG] [2026-03-12T21:54:46.810Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [22:54:46.809] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T21:54:46.908Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [22:54:46.908] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T21:54:46.914Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [22:54:46.913] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T21:54:46.925Z] [Worker:Pepperstone_62104204_DATAFEED:HISTORY:ETHUSD] [22:54:46.925] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T21:54:46.926Z] [Worker:Pepperstone_62104204_DATAFEED:HISTORY:BTCUSD] [22:54:46.926] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T21:54:47.007Z] [Worker:Pepperstone_62104204_DATAFEED:HISTORY:BTCUSD] [22:54:47.007] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T21:54:47.023Z] [Worker:Pepperstone_62104204_DATAFEED:HISTORY:ETHUSD] [22:54:47.023] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T21:54:47.023Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [22:54:47.023] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T21:54:47.024Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [22:54:47.023] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T21:54:47.140Z] [Worker:Pepperstone_62104204_DATAFEED:HISTORY:BTCUSD] [22:54:47.140] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T21:54:47.140Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [22:54:47.140] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T21:54:47.141Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [22:54:47.140] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T21:54:47.141Z] [Worker:Pepperstone_62104204_DATAFEED:HISTORY:ETHUSD] [22:54:47.141] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T21:54:47.244Z] [Worker:Pepperstone_62104204_DATAFEED:HISTORY:BTCUSD] [22:54:47.243] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T21:54:47.259Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [22:54:47.244] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T21:54:47.266Z] [Worker:Pepperstone_62104204_DATAFEED:HISTORY:ETHUSD] [22:54:47.244] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T21:54:47.284Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [22:54:47.283] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T21:54:47.301Z] [Gateway] New Connection: c77e21d4-5d55-4924-98f8-84e9e2fcc6cf
+[LOG] [2026-03-12T21:54:47.302Z] [Gateway] New Connection: 3a1bb394-1e4c-4305-8bfa-4482ff2a94c5
+[LOG] [2026-03-12T21:54:47.307Z] [UnifiedBotProtocol] 📝 REGISTER REQUEST: Payload={"header":{"command":"REGISTER","botId":"FN_13885827_DATAFEED","func":"TICK_SPY","symbol":"EURUSD","timestamp":1773363287},"botId":"FN_13885827_DATAFEED","func":"TICK_SPY","symbol":"EURUSD","type":"REGISTER"}
+[LOG] [2026-03-12T21:54:47.308Z] [UnifiedBotProtocol] ✅ REGISTERING: FN_13885827_DATAFEED | TICK_SPY | EURUSD
+[LOG] [2026-03-12T21:54:47.308Z] [WebSocketManager] 🔑 REGISTERED: FN_13885827_DATAFEED:TICK_SPY:EURUSD (Transport: c77e21d4-5d55-4924-98f8-84e9e2fcc6cf)
+[LOG] [2026-03-12T21:54:47.309Z] [SysOrch:Connect] 🟢 NEW CONNECTION: RoutingKey=FN_13885827_DATAFEED:TICK_SPY:EURUSD, ID=FN_13885827_DATAFEED, Func=TICK_SPY, Sym=EURUSD
+[LOG] [2026-03-12T21:54:47.309Z] [SysOrch:Connect] Registered NEW Bot Status: FN_13885827_DATAFEED:TICK_SPY:EURUSD
+[LOG] [2026-03-12T21:54:47.311Z] [SystemOrchestrator] 🔌 Bot Connected: FN_13885827_DATAFEED (TICK_SPY) [EURUSD]
+[LOG] [2026-03-12T21:54:47.314Z] [Sync] ♻️ Resending Active Subscriptions for Reconnected Bot: FN_13885827_DATAFEED:TICK_SPY:EURUSD
+[LOG] [2026-03-12T21:54:47.314Z] [WorkerFactory] 🏭 Creating TICK_SPY for FN_13885827_DATAFEED:TICK_SPY:EURUSD (Script: SymbolWorker.js)
+[LOG] [2026-03-12T21:54:47.315Z] [SystemOrchestrator] 🚀 Spawned Worker: TICK_SPY for FN_13885827_DATAFEED:TICK_SPY:EURUSD
+[LOG] [2026-03-12T21:54:47.316Z] [UnifiedBotProtocol] 📝 REGISTER REQUEST: Payload={"header":{"command":"REGISTER","botId":"Pepperstone_62104204_DATAFEED","func":"TICK_SPY","symbol":"BTCUSD","timestamp":1773363287},"botId":"Pepperstone_62104204_DATAFEED","func":"TICK_SPY","symbol":"BTCUSD","type":"REGISTER"}
+[LOG] [2026-03-12T21:54:47.317Z] [UnifiedBotProtocol] ✅ REGISTERING: Pepperstone_62104204_DATAFEED | TICK_SPY | BTCUSD
+[LOG] [2026-03-12T21:54:47.317Z] [WebSocketManager] 🔑 REGISTERED: Pepperstone_62104204_DATAFEED:TICK_SPY:BTCUSD (Transport: 3a1bb394-1e4c-4305-8bfa-4482ff2a94c5)
+[LOG] [2026-03-12T21:54:47.317Z] [SysOrch:Connect] 🟢 NEW CONNECTION: RoutingKey=Pepperstone_62104204_DATAFEED:TICK_SPY:BTCUSD, ID=Pepperstone_62104204_DATAFEED, Func=TICK_SPY, Sym=BTCUSD
+[LOG] [2026-03-12T21:54:47.318Z] [SysOrch:Connect] Registered NEW Bot Status: Pepperstone_62104204_DATAFEED:TICK_SPY:BTCUSD
+[LOG] [2026-03-12T21:54:47.323Z] [SystemOrchestrator] 🔌 Bot Connected: Pepperstone_62104204_DATAFEED (TICK_SPY) [BTCUSD]
+[LOG] [2026-03-12T21:54:47.330Z] [Sync] ♻️ Resending Active Subscriptions for Reconnected Bot: Pepperstone_62104204_DATAFEED:TICK_SPY:BTCUSD
+[LOG] [2026-03-12T21:54:47.330Z] [WorkerFactory] 🏭 Creating TICK_SPY for Pepperstone_62104204_DATAFEED:TICK_SPY:BTCUSD (Script: SymbolWorker.js)
+[LOG] [2026-03-12T21:54:47.331Z] [SystemOrchestrator] 🚀 Spawned Worker: TICK_SPY for Pepperstone_62104204_DATAFEED:TICK_SPY:BTCUSD
+[LOG] [2026-03-12T21:54:47.336Z] [Worker:Pepperstone_62104204_DATAFEED:HISTORY:BTCUSD] [22:54:47.336] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T21:54:47.357Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [22:54:47.356] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T21:54:47.365Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [22:54:47.365] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T21:54:47.382Z] [Worker:Pepperstone_62104204_DATAFEED:HISTORY:ETHUSD] [22:54:47.365] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T21:54:47.385Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [22:54:47.374] [Init] 🚀 Worker Spawned for FN_13885827_DATAFEED:TICK_SPY:EURUSD
+[LOG] [2026-03-12T21:54:47.386Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [22:54:47.375] DB Connected: EURUSD.db
+[LOG] [2026-03-12T21:54:47.390Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [22:54:47.376] [Lifecycle] Bot Connected: FN_13885827_DATAFEED (CID: undefined). Triggering Gap Check...
+[LOG] [2026-03-12T21:54:47.394Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [22:54:47.376] [GapCheck:Trace] M1 OK. Age: 167376ms < Threshold 180000ms. Last: 2026-03-12T21:52:00.000Z
+[LOG] [2026-03-12T21:54:47.394Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [22:54:47.376] [GapCheck:Trace] M2 OK. Age: 287376ms < Threshold 360000ms. Last: 2026-03-12T21:50:00.000Z
+[LOG] [2026-03-12T21:54:47.395Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [22:54:47.376] [GapCheck:Trace] M3 OK. Age: 407376ms < Threshold 540000ms. Last: 2026-03-12T21:48:00.000Z
+[LOG] [2026-03-12T21:54:47.397Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [22:54:47.376] [GapCheck:Trace] M5 OK. Age: 587376ms < Threshold 900000ms. Last: 2026-03-12T21:45:00.000Z
+[LOG] [2026-03-12T21:54:47.397Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [22:54:47.377] [GapCheck:Trace] M10 OK. Age: 887376ms < Threshold 1800000ms. Last: 2026-03-12T21:40:00.000Z
+[LOG] [2026-03-12T21:54:47.397Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [22:54:47.377] [GapCheck:Trace] M15 OK. Age: 1487376ms < Threshold 2700000ms. Last: 2026-03-12T21:30:00.000Z
+[LOG] [2026-03-12T21:54:47.398Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [22:54:47.377] [GapCheck:Trace] M30 OK. Age: 3287376ms < Threshold 5400000ms. Last: 2026-03-12T21:00:00.000Z
+[LOG] [2026-03-12T21:54:47.398Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [22:54:47.377] [GapCheck:Trace] H1 OK. Age: 6887376ms < Threshold 10800000ms. Last: 2026-03-12T20:00:00.000Z
+[LOG] [2026-03-12T21:54:47.398Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [22:54:47.377] [GapCheck:Trace] H2 OK. Age: 10487376ms < Threshold 21600000ms. Last: 2026-03-12T19:00:00.000Z
+[LOG] [2026-03-12T21:54:47.398Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [22:54:47.377] [GapCheck:Trace] H3 OK. Age: 14087376ms < Threshold 32400000ms. Last: 2026-03-12T18:00:00.000Z
+[LOG] [2026-03-12T21:54:47.398Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [22:54:47.377] [GapCheck:Trace] H4 OK. Age: 17687376ms < Threshold 43200000ms. Last: 2026-03-12T17:00:00.000Z
+[LOG] [2026-03-12T21:54:47.398Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [22:54:47.377] [GapCheck:Trace] H6 OK. Age: 24887376ms < Threshold 64800000ms. Last: 2026-03-12T15:00:00.000Z
+[LOG] [2026-03-12T21:54:47.398Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [22:54:47.377] [GapCheck:Trace] H8 OK. Age: 32087376ms < Threshold 86400000ms. Last: 2026-03-12T13:00:00.000Z
+[LOG] [2026-03-12T21:54:47.399Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [22:54:47.377] [GapCheck:Trace] H12 OK. Age: 46487376ms < Threshold 129600000ms. Last: 2026-03-12T09:00:00.000Z
+[LOG] [2026-03-12T21:54:47.399Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [22:54:47.377] [GapCheck:Trace] D1 OK. Age: 78887376ms < Threshold 259200000ms. Last: 2026-03-12T00:00:00.000Z
+[LOG] [2026-03-12T21:54:47.399Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [22:54:47.378] [GapCheck:Trace] W1 OK. Age: 1029287376ms < Threshold 1814400000ms. Last: 2026-03-01T00:00:00.000Z
+[LOG] [2026-03-12T21:54:47.399Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [22:54:47.378] [GapCheck:Trace] MN1 OK. Age: 3448487376ms < Threshold 7776000000ms. Last: 2026-02-01T00:00:00.000Z
+[LOG] [2026-03-12T21:54:47.400Z] [Worker:Pepperstone_62104204_DATAFEED:TICK_SPY:BTCUSD] [22:54:47.391] [Init] 🚀 Worker Spawned for Pepperstone_62104204_DATAFEED:TICK_SPY:BTCUSD
+[LOG] [2026-03-12T21:54:47.400Z] [Worker:Pepperstone_62104204_DATAFEED:TICK_SPY:BTCUSD] [22:54:47.392] DB Connected: BTCUSD.db
+[LOG] [2026-03-12T21:54:47.400Z] [Worker:Pepperstone_62104204_DATAFEED:TICK_SPY:BTCUSD] [22:54:47.393] [Lifecycle] Bot Connected: Pepperstone_62104204_DATAFEED (CID: undefined). Triggering Gap Check...
+[LOG] [2026-03-12T21:54:47.400Z] [Worker:Pepperstone_62104204_DATAFEED:TICK_SPY:BTCUSD] [22:54:47.394] [GapCheck:Trace] M1 OK. Age: 107393ms < Threshold 180000ms. Last: 2026-03-12T21:53:00.000Z
+[LOG] [2026-03-12T21:54:47.401Z] [Worker:Pepperstone_62104204_DATAFEED:TICK_SPY:BTCUSD] [22:54:47.394] [GapCheck:Trace] M2 OK. Age: 167393ms < Threshold 360000ms. Last: 2026-03-12T21:52:00.000Z
+[LOG] [2026-03-12T21:54:47.401Z] [Worker:Pepperstone_62104204_DATAFEED:TICK_SPY:BTCUSD] [22:54:47.394] [GapCheck:Trace] M3 OK. Age: 227393ms < Threshold 540000ms. Last: 2026-03-12T21:51:00.000Z
+[LOG] [2026-03-12T21:54:47.401Z] [Worker:Pepperstone_62104204_DATAFEED:TICK_SPY:BTCUSD] [22:54:47.394] [GapCheck:Trace] M5 OK. Age: 587393ms < Threshold 900000ms. Last: 2026-03-12T21:45:00.000Z
+[LOG] [2026-03-12T21:54:47.401Z] [Worker:Pepperstone_62104204_DATAFEED:TICK_SPY:BTCUSD] [22:54:47.394] [GapCheck:Trace] M10 OK. Age: 887393ms < Threshold 1800000ms. Last: 2026-03-12T21:40:00.000Z
+[LOG] [2026-03-12T21:54:47.401Z] [Worker:Pepperstone_62104204_DATAFEED:TICK_SPY:BTCUSD] [22:54:47.394] [GapCheck:Trace] M15 OK. Age: 1487393ms < Threshold 2700000ms. Last: 2026-03-12T21:30:00.000Z
+[LOG] [2026-03-12T21:54:47.401Z] [Worker:Pepperstone_62104204_DATAFEED:TICK_SPY:BTCUSD] [22:54:47.394] [GapCheck:Trace] M30 OK. Age: 3287393ms < Threshold 5400000ms. Last: 2026-03-12T21:00:00.000Z
+[LOG] [2026-03-12T21:54:47.402Z] [Worker:Pepperstone_62104204_DATAFEED:TICK_SPY:BTCUSD] [22:54:47.394] [GapCheck:Trace] H1 OK. Age: 6887393ms < Threshold 10800000ms. Last: 2026-03-12T20:00:00.000Z
+[LOG] [2026-03-12T21:54:47.402Z] [Worker:Pepperstone_62104204_DATAFEED:TICK_SPY:BTCUSD] [22:54:47.395] [GapCheck:Trace] H2 OK. Age: 10487393ms < Threshold 21600000ms. Last: 2026-03-12T19:00:00.000Z
+[LOG] [2026-03-12T21:54:47.402Z] [Worker:Pepperstone_62104204_DATAFEED:TICK_SPY:BTCUSD] [22:54:47.395] [GapCheck:Trace] H3 OK. Age: 14087393ms < Threshold 32400000ms. Last: 2026-03-12T18:00:00.000Z
+[LOG] [2026-03-12T21:54:47.402Z] [Worker:Pepperstone_62104204_DATAFEED:TICK_SPY:BTCUSD] [22:54:47.395] [GapCheck:Trace] H4 OK. Age: 17687393ms < Threshold 43200000ms. Last: 2026-03-12T17:00:00.000Z
+[LOG] [2026-03-12T21:54:47.402Z] [Worker:Pepperstone_62104204_DATAFEED:TICK_SPY:BTCUSD] [22:54:47.395] [GapCheck:Trace] H6 OK. Age: 24887393ms < Threshold 64800000ms. Last: 2026-03-12T15:00:00.000Z
+[LOG] [2026-03-12T21:54:47.402Z] [Worker:Pepperstone_62104204_DATAFEED:TICK_SPY:BTCUSD] [22:54:47.395] [GapCheck:Trace] H8 OK. Age: 32087393ms < Threshold 86400000ms. Last: 2026-03-12T13:00:00.000Z
+[LOG] [2026-03-12T21:54:47.402Z] [Worker:Pepperstone_62104204_DATAFEED:TICK_SPY:BTCUSD] [22:54:47.395] [GapCheck:Trace] H12 OK. Age: 46487393ms < Threshold 129600000ms. Last: 2026-03-12T09:00:00.000Z
+[LOG] [2026-03-12T21:54:47.402Z] [Worker:Pepperstone_62104204_DATAFEED:TICK_SPY:BTCUSD] [22:54:47.395] [GapCheck:Trace] D1 OK. Age: 78887393ms < Threshold 259200000ms. Last: 2026-03-12T00:00:00.000Z
+[LOG] [2026-03-12T21:54:47.402Z] [Worker:Pepperstone_62104204_DATAFEED:TICK_SPY:BTCUSD] [22:54:47.395] [GapCheck:Trace] W1 OK. Age: 1029287393ms < Threshold 1814400000ms. Last: 2026-03-01T00:00:00.000Z
+[LOG] [2026-03-12T21:54:47.403Z] [Worker:Pepperstone_62104204_DATAFEED:TICK_SPY:BTCUSD] [22:54:47.395] [GapCheck:Trace] MN1 OK. Age: 3448487393ms < Threshold 7776000000ms. Last: 2026-02-01T00:00:00.000Z
+[LOG] [2026-03-12T21:54:47.404Z] [Gateway] New Connection: 744e07cb-ac6b-42e6-a1cb-abc268e58011
+[LOG] [2026-03-12T21:54:47.407Z] [Gateway] New Connection: c76a25be-bc50-4a4d-8ae5-08c858a15165
+[LOG] [2026-03-12T21:54:47.408Z] [UnifiedBotProtocol] 📝 REGISTER REQUEST: Payload={"header":{"command":"REGISTER","botId":"Pepperstone_62104204_DATAFEED","func":"TICK_SPY","symbol":"ETHUSD","timestamp":1773363287},"botId":"Pepperstone_62104204_DATAFEED","func":"TICK_SPY","symbol":"ETHUSD","type":"REGISTER"}
+[LOG] [2026-03-12T21:54:47.409Z] [UnifiedBotProtocol] ✅ REGISTERING: Pepperstone_62104204_DATAFEED | TICK_SPY | ETHUSD
+[LOG] [2026-03-12T21:54:47.409Z] [WebSocketManager] 🔑 REGISTERED: Pepperstone_62104204_DATAFEED:TICK_SPY:ETHUSD (Transport: 744e07cb-ac6b-42e6-a1cb-abc268e58011)
+[LOG] [2026-03-12T21:54:47.410Z] [SysOrch:Connect] 🟢 NEW CONNECTION: RoutingKey=Pepperstone_62104204_DATAFEED:TICK_SPY:ETHUSD, ID=Pepperstone_62104204_DATAFEED, Func=TICK_SPY, Sym=ETHUSD
+[LOG] [2026-03-12T21:54:47.411Z] [SysOrch:Connect] Registered NEW Bot Status: Pepperstone_62104204_DATAFEED:TICK_SPY:ETHUSD
+[LOG] [2026-03-12T21:54:47.412Z] [SystemOrchestrator] 🔌 Bot Connected: Pepperstone_62104204_DATAFEED (TICK_SPY) [ETHUSD]
+[LOG] [2026-03-12T21:54:47.413Z] [Sync] ♻️ Resending Active Subscriptions for Reconnected Bot: Pepperstone_62104204_DATAFEED:TICK_SPY:ETHUSD
+[LOG] [2026-03-12T21:54:47.413Z] [WorkerFactory] 🏭 Creating TICK_SPY for Pepperstone_62104204_DATAFEED:TICK_SPY:ETHUSD (Script: SymbolWorker.js)
+[LOG] [2026-03-12T21:54:47.414Z] [SystemOrchestrator] 🚀 Spawned Worker: TICK_SPY for Pepperstone_62104204_DATAFEED:TICK_SPY:ETHUSD
+[LOG] [2026-03-12T21:54:47.414Z] [SyncManager] syncSubscriptions called.Active Subs: 0.TargetBot: FN_13885827_DATAFEED:TICK_SPY:EURUSD TargetSym: ALL 
+[LOG] [2026-03-12T21:54:47.414Z] [SyncManager] Current Active Subscriptions:  
+[LOG] [2026-03-12T21:54:47.415Z] [UnifiedBotProtocol] 📝 REGISTER REQUEST: Payload={"header":{"command":"REGISTER","botId":"FN_13885827_DATAFEED","func":"TICK_SPY","symbol":"GBPUSD","timestamp":1773363287},"botId":"FN_13885827_DATAFEED","func":"TICK_SPY","symbol":"GBPUSD","type":"REGISTER"}
+[LOG] [2026-03-12T21:54:47.415Z] [UnifiedBotProtocol] ✅ REGISTERING: FN_13885827_DATAFEED | TICK_SPY | GBPUSD
+[LOG] [2026-03-12T21:54:47.415Z] [WebSocketManager] 🔑 REGISTERED: FN_13885827_DATAFEED:TICK_SPY:GBPUSD (Transport: c76a25be-bc50-4a4d-8ae5-08c858a15165)
+[LOG] [2026-03-12T21:54:47.415Z] [SysOrch:Connect] 🟢 NEW CONNECTION: RoutingKey=FN_13885827_DATAFEED:TICK_SPY:GBPUSD, ID=FN_13885827_DATAFEED, Func=TICK_SPY, Sym=GBPUSD
+[LOG] [2026-03-12T21:54:47.415Z] [SysOrch:Connect] Registered NEW Bot Status: FN_13885827_DATAFEED:TICK_SPY:GBPUSD
+[LOG] [2026-03-12T21:54:47.415Z] [SystemOrchestrator] 🔌 Bot Connected: FN_13885827_DATAFEED (TICK_SPY) [GBPUSD]
+[LOG] [2026-03-12T21:54:47.416Z] [Sync] ♻️ Resending Active Subscriptions for Reconnected Bot: FN_13885827_DATAFEED:TICK_SPY:GBPUSD
+[LOG] [2026-03-12T21:54:47.416Z] [WorkerFactory] 🏭 Creating TICK_SPY for FN_13885827_DATAFEED:TICK_SPY:GBPUSD (Script: SymbolWorker.js)
+[LOG] [2026-03-12T21:54:47.417Z] [SystemOrchestrator] 🚀 Spawned Worker: TICK_SPY for FN_13885827_DATAFEED:TICK_SPY:GBPUSD
+[LOG] [2026-03-12T21:54:47.431Z] [SyncManager] syncSubscriptions called.Active Subs: 0.TargetBot: Pepperstone_62104204_DATAFEED:TICK_SPY:BTCUSD TargetSym: ALL 
+[LOG] [2026-03-12T21:54:47.431Z] [SyncManager] Current Active Subscriptions:  
+[LOG] [2026-03-12T21:54:47.453Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [22:54:47.453] [History] 🛑 End of Data for GBPUSD M2. Flagging max_history. (RawBin Length: none, Type: none, Buffer? false)
+[LOG] [2026-03-12T21:54:47.458Z] [Worker:Pepperstone_62104204_DATAFEED:HISTORY:ETHUSD] [22:54:47.453] [History] 🛑 End of Data for ETHUSD M3. Flagging max_history. (RawBin Length: none, Type: none, Buffer? false)
+[LOG] [2026-03-12T21:54:47.459Z] [Worker:Pepperstone_62104204_DATAFEED:TICK_SPY:ETHUSD] [22:54:47.454] [Init] 🚀 Worker Spawned for Pepperstone_62104204_DATAFEED:TICK_SPY:ETHUSD
+[LOG] [2026-03-12T21:54:47.459Z] [Worker:Pepperstone_62104204_DATAFEED:TICK_SPY:ETHUSD] [22:54:47.455] DB Connected: ETHUSD.db
+[LOG] [2026-03-12T21:54:47.460Z] [Worker:Pepperstone_62104204_DATAFEED:TICK_SPY:ETHUSD] [22:54:47.456] [Lifecycle] Bot Connected: Pepperstone_62104204_DATAFEED (CID: undefined). Triggering Gap Check...
+[LOG] [2026-03-12T21:54:47.460Z] [Worker:Pepperstone_62104204_DATAFEED:TICK_SPY:ETHUSD] [22:54:47.457] [GapCheck:Trace] M1 OK. Age: 107457ms < Threshold 180000ms. Last: 2026-03-12T21:53:00.000Z
+[LOG] [2026-03-12T21:54:47.461Z] [Worker:Pepperstone_62104204_DATAFEED:TICK_SPY:ETHUSD] [22:54:47.457] [GapCheck:Trace] M2 OK. Age: 167457ms < Threshold 360000ms. Last: 2026-03-12T21:52:00.000Z
+[LOG] [2026-03-12T21:54:47.461Z] [Worker:Pepperstone_62104204_DATAFEED:TICK_SPY:ETHUSD] [22:54:47.457] [GapCheck:Trace] M3 OK. Age: 227457ms < Threshold 540000ms. Last: 2026-03-12T21:51:00.000Z
+[LOG] [2026-03-12T21:54:47.461Z] [Worker:Pepperstone_62104204_DATAFEED:TICK_SPY:ETHUSD] [22:54:47.457] [GapCheck:Trace] M5 OK. Age: 587457ms < Threshold 900000ms. Last: 2026-03-12T21:45:00.000Z
+[LOG] [2026-03-12T21:54:47.461Z] [Worker:Pepperstone_62104204_DATAFEED:TICK_SPY:ETHUSD] [22:54:47.457] [GapCheck:Trace] M10 OK. Age: 887457ms < Threshold 1800000ms. Last: 2026-03-12T21:40:00.000Z
+[LOG] [2026-03-12T21:54:47.461Z] [Worker:Pepperstone_62104204_DATAFEED:TICK_SPY:ETHUSD] [22:54:47.457] [GapCheck:Trace] M15 OK. Age: 1487457ms < Threshold 2700000ms. Last: 2026-03-12T21:30:00.000Z
+[LOG] [2026-03-12T21:54:47.461Z] [Worker:Pepperstone_62104204_DATAFEED:TICK_SPY:ETHUSD] [22:54:47.458] [GapCheck:Trace] M30 OK. Age: 3287457ms < Threshold 5400000ms. Last: 2026-03-12T21:00:00.000Z
+[LOG] [2026-03-12T21:54:47.461Z] [Worker:Pepperstone_62104204_DATAFEED:TICK_SPY:ETHUSD] [22:54:47.458] [GapCheck:Trace] H1 OK. Age: 6887457ms < Threshold 10800000ms. Last: 2026-03-12T20:00:00.000Z
+[LOG] [2026-03-12T21:54:47.461Z] [Worker:Pepperstone_62104204_DATAFEED:TICK_SPY:ETHUSD] [22:54:47.458] [GapCheck:Trace] H2 OK. Age: 10487457ms < Threshold 21600000ms. Last: 2026-03-12T19:00:00.000Z
+[LOG] [2026-03-12T21:54:47.461Z] [Worker:Pepperstone_62104204_DATAFEED:TICK_SPY:ETHUSD] [22:54:47.458] [GapCheck:Trace] H3 OK. Age: 14087457ms < Threshold 32400000ms. Last: 2026-03-12T18:00:00.000Z
+[LOG] [2026-03-12T21:54:47.461Z] [Worker:Pepperstone_62104204_DATAFEED:TICK_SPY:ETHUSD] [22:54:47.458] [GapCheck:Trace] H4 OK. Age: 17687457ms < Threshold 43200000ms. Last: 2026-03-12T17:00:00.000Z
+[LOG] [2026-03-12T21:54:47.462Z] [Worker:Pepperstone_62104204_DATAFEED:TICK_SPY:ETHUSD] [22:54:47.458] [GapCheck:Trace] H6 OK. Age: 24887457ms < Threshold 64800000ms. Last: 2026-03-12T15:00:00.000Z
+[LOG] [2026-03-12T21:54:47.462Z] [Worker:Pepperstone_62104204_DATAFEED:TICK_SPY:ETHUSD] [22:54:47.458] [GapCheck:Trace] H8 OK. Age: 32087457ms < Threshold 86400000ms. Last: 2026-03-12T13:00:00.000Z
+[LOG] [2026-03-12T21:54:47.462Z] [Worker:Pepperstone_62104204_DATAFEED:TICK_SPY:ETHUSD] [22:54:47.458] [GapCheck:Trace] H12 OK. Age: 46487457ms < Threshold 129600000ms. Last: 2026-03-12T09:00:00.000Z
+[LOG] [2026-03-12T21:54:47.462Z] [Worker:Pepperstone_62104204_DATAFEED:TICK_SPY:ETHUSD] [22:54:47.458] [GapCheck:Trace] D1 OK. Age: 78887457ms < Threshold 259200000ms. Last: 2026-03-12T00:00:00.000Z
+[LOG] [2026-03-12T21:54:47.462Z] [Worker:Pepperstone_62104204_DATAFEED:TICK_SPY:ETHUSD] [22:54:47.458] [GapCheck:Trace] W1 OK. Age: 1029287457ms < Threshold 1814400000ms. Last: 2026-03-01T00:00:00.000Z
+[LOG] [2026-03-12T21:54:47.462Z] [Worker:Pepperstone_62104204_DATAFEED:TICK_SPY:ETHUSD] [22:54:47.459] [GapCheck:Trace] MN1 OK. Age: 3448487457ms < Threshold 7776000000ms. Last: 2026-02-01T00:00:00.000Z
+[LOG] [2026-03-12T21:54:47.464Z] [Worker:Pepperstone_62104204_DATAFEED:HISTORY:BTCUSD] [22:54:47.454] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T21:54:47.464Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [22:54:47.456] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T21:54:47.465Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:GBPUSD] [22:54:47.462] [Init] 🚀 Worker Spawned for FN_13885827_DATAFEED:TICK_SPY:GBPUSD
+[LOG] [2026-03-12T21:54:47.465Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:GBPUSD] [22:54:47.463] DB Connected: GBPUSD.db
+[LOG] [2026-03-12T21:54:47.465Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:GBPUSD] [22:54:47.465] [Lifecycle] Bot Connected: FN_13885827_DATAFEED (CID: undefined). Triggering Gap Check...
+[LOG] [2026-03-12T21:54:47.465Z] [Gateway] New Connection: d80cd6f4-59e7-41e7-a123-37d9294d14f2
+[LOG] [2026-03-12T21:54:47.465Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:GBPUSD] [22:54:47.465] [GapCheck:Trace] M1 OK. Age: 107465ms < Threshold 180000ms. Last: 2026-03-12T21:53:00.000Z
+[LOG] [2026-03-12T21:54:47.466Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:GBPUSD] [22:54:47.465] [GapCheck:Trace] M2 OK. Age: 167465ms < Threshold 360000ms. Last: 2026-03-12T21:52:00.000Z
+[LOG] [2026-03-12T21:54:47.466Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:GBPUSD] [22:54:47.465] [GapCheck:Trace] M3 OK. Age: 227465ms < Threshold 540000ms. Last: 2026-03-12T21:51:00.000Z
+[LOG] [2026-03-12T21:54:47.466Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:GBPUSD] [22:54:47.465] [GapCheck:Trace] M5 OK. Age: 587465ms < Threshold 900000ms. Last: 2026-03-12T21:45:00.000Z
+[LOG] [2026-03-12T21:54:47.466Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:GBPUSD] [22:54:47.466] [GapCheck:Trace] M10 OK. Age: 887465ms < Threshold 1800000ms. Last: 2026-03-12T21:40:00.000Z
+[LOG] [2026-03-12T21:54:47.466Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:GBPUSD] [22:54:47.466] [GapCheck:Trace] M15 OK. Age: 1487465ms < Threshold 2700000ms. Last: 2026-03-12T21:30:00.000Z
+[LOG] [2026-03-12T21:54:47.466Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:GBPUSD] [22:54:47.466] [GapCheck:Trace] M30 OK. Age: 3287465ms < Threshold 5400000ms. Last: 2026-03-12T21:00:00.000Z
+[LOG] [2026-03-12T21:54:47.466Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:GBPUSD] [22:54:47.466] [GapCheck:Trace] H1 OK. Age: 6887465ms < Threshold 10800000ms. Last: 2026-03-12T20:00:00.000Z
+[LOG] [2026-03-12T21:54:47.466Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:GBPUSD] [22:54:47.466] [GapCheck:Trace] H2 OK. Age: 10487465ms < Threshold 21600000ms. Last: 2026-03-12T19:00:00.000Z
+[LOG] [2026-03-12T21:54:47.466Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:GBPUSD] [22:54:47.466] [GapCheck:Trace] H3 OK. Age: 14087465ms < Threshold 32400000ms. Last: 2026-03-12T18:00:00.000Z
+[LOG] [2026-03-12T21:54:47.466Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:GBPUSD] [22:54:47.466] [GapCheck:Trace] H4 OK. Age: 17687465ms < Threshold 43200000ms. Last: 2026-03-12T17:00:00.000Z
+[LOG] [2026-03-12T21:54:47.467Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:GBPUSD] [22:54:47.466] [GapCheck:Trace] H6 OK. Age: 24887465ms < Threshold 64800000ms. Last: 2026-03-12T15:00:00.000Z
+[LOG] [2026-03-12T21:54:47.467Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:GBPUSD] [22:54:47.467] [GapCheck:Trace] H8 OK. Age: 32087465ms < Threshold 86400000ms. Last: 2026-03-12T13:00:00.000Z
+[LOG] [2026-03-12T21:54:47.467Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:GBPUSD] [22:54:47.467] [GapCheck:Trace] H12 OK. Age: 46487465ms < Threshold 129600000ms. Last: 2026-03-12T09:00:00.000Z
+[LOG] [2026-03-12T21:54:47.467Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:GBPUSD] [22:54:47.467] [GapCheck:Trace] D1 OK. Age: 78887465ms < Threshold 259200000ms. Last: 2026-03-12T00:00:00.000Z
+[LOG] [2026-03-12T21:54:47.467Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:GBPUSD] [22:54:47.467] [GapCheck:Trace] W1 OK. Age: 1029287465ms < Threshold 1814400000ms. Last: 2026-03-01T00:00:00.000Z
+[LOG] [2026-03-12T21:54:47.468Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:GBPUSD] [22:54:47.467] [GapCheck:Trace] MN1 OK. Age: 3448487465ms < Threshold 7776000000ms. Last: 2026-02-01T00:00:00.000Z
+[LOG] [2026-03-12T21:54:47.477Z] [Gateway] New Connection: e732f36c-8652-43a5-9bc3-c4c78ef7490f
+[LOG] [2026-03-12T21:54:47.520Z] [SyncManager] syncSubscriptions called.Active Subs: 0.TargetBot: Pepperstone_62104204_DATAFEED:TICK_SPY:ETHUSD TargetSym: ALL 
+[LOG] [2026-03-12T21:54:47.525Z] [SyncManager] Current Active Subscriptions:  
+[LOG] [2026-03-12T21:54:47.528Z] [SyncManager] syncSubscriptions called.Active Subs: 0.TargetBot: FN_13885827_DATAFEED:TICK_SPY:GBPUSD TargetSym: ALL 
+[LOG] [2026-03-12T21:54:47.530Z] [SyncManager] Current Active Subscriptions:  
+[LOG] [2026-03-12T21:54:47.568Z] [Worker:Pepperstone_62104204_DATAFEED:HISTORY:ETHUSD] [22:54:47.567] [History] 🛑 End of Data for ETHUSD M5. Flagging max_history. (RawBin Length: none, Type: none, Buffer? false)
+[LOG] [2026-03-12T21:54:47.571Z] [UnifiedBotProtocol] 📝 REGISTER REQUEST: Payload={"header":{"command":"REGISTER","botId":"FN_13885827_DATAFEED","func":"DATAFEED","symbol":"ALL","timestamp":1773363287},"botId":"FN_13885827_DATAFEED","func":"DATAFEED","symbol":"ALL","type":"REGISTER"}
+[LOG] [2026-03-12T21:54:47.573Z] [UnifiedBotProtocol] ✅ REGISTERING: FN_13885827_DATAFEED | DATAFEED | ALL
+[LOG] [2026-03-12T21:54:47.574Z] [WebSocketManager] 🔑 REGISTERED: FN_13885827_DATAFEED:DATAFEED:ALL (Transport: d80cd6f4-59e7-41e7-a123-37d9294d14f2)
+[LOG] [2026-03-12T21:54:47.574Z] [SysOrch:Connect] 🟢 NEW CONNECTION: RoutingKey=FN_13885827_DATAFEED:DATAFEED:ALL, ID=FN_13885827_DATAFEED, Func=DATAFEED, Sym=ALL
+[LOG] [2026-03-12T21:54:47.575Z] [SysOrch:Connect] Registered NEW Bot Status: FN_13885827_DATAFEED:DATAFEED:ALL
+[LOG] [2026-03-12T21:54:47.575Z] [SystemOrchestrator] 🔌 Bot Connected: FN_13885827_DATAFEED (DATAFEED) [ALL]
+[LOG] [2026-03-12T21:54:47.575Z] [Sync] 🤝 Sending Configuration Handshake to FN_13885827_DATAFEED...
+[LOG] [2026-03-12T21:54:47.575Z] [Sync] ♻️ Resending Active Subscriptions for Reconnected Bot: FN_13885827_DATAFEED:DATAFEED:ALL
+[LOG] [2026-03-12T21:54:47.575Z] [WorkerFactory] 🏭 Creating DATAFEED for FN_13885827_DATAFEED:DATAFEED:ALL (Script: DatafeedWorker.js)
+[LOG] [2026-03-12T21:54:47.576Z] [SystemOrchestrator] 🚀 Spawned Worker: DATAFEED for FN_13885827_DATAFEED:DATAFEED:ALL
+[LOG] [2026-03-12T21:54:47.576Z] [SystemOrchestrator] ⏩ Symbol Discovery delegated to DatafeedWorker for FN_13885827_DATAFEED
+[LOG] [2026-03-12T21:54:47.577Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [22:54:47.577] [History] 🛑 End of Data for GBPUSD M3. Flagging max_history. (RawBin Length: none, Type: none, Buffer? false)
+[LOG] [2026-03-12T21:54:47.578Z] [Worker:Pepperstone_62104204_DATAFEED:HISTORY:BTCUSD] [22:54:47.577] [History] 🛑 End of Data for BTCUSD M2. Flagging max_history. (RawBin Length: none, Type: none, Buffer? false)
+[LOG] [2026-03-12T21:54:47.578Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [22:54:47.577] [History] 🛑 End of Data for EURUSD M2. Flagging max_history. (RawBin Length: none, Type: none, Buffer? false)
+[LOG] [2026-03-12T21:54:47.592Z] [UnifiedBotProtocol] 📝 REGISTER REQUEST: Payload={"header":{"command":"REGISTER","botId":"Pepperstone_62104204_DATAFEED","func":"DATAFEED","symbol":"ALL","timestamp":1773363287},"botId":"Pepperstone_62104204_DATAFEED","func":"DATAFEED","symbol":"ALL","type":"REGISTER"}
+[LOG] [2026-03-12T21:54:47.595Z] [UnifiedBotProtocol] ✅ REGISTERING: Pepperstone_62104204_DATAFEED | DATAFEED | ALL
+[LOG] [2026-03-12T21:54:47.599Z] [WebSocketManager] 🔑 REGISTERED: Pepperstone_62104204_DATAFEED:DATAFEED:ALL (Transport: e732f36c-8652-43a5-9bc3-c4c78ef7490f)
+[LOG] [2026-03-12T21:54:47.607Z] [SysOrch:Connect] 🟢 NEW CONNECTION: RoutingKey=Pepperstone_62104204_DATAFEED:DATAFEED:ALL, ID=Pepperstone_62104204_DATAFEED, Func=DATAFEED, Sym=ALL
+[LOG] [2026-03-12T21:54:47.613Z] [SysOrch:Connect] Registered NEW Bot Status: Pepperstone_62104204_DATAFEED:DATAFEED:ALL
+[LOG] [2026-03-12T21:54:47.616Z] [SystemOrchestrator] 🔌 Bot Connected: Pepperstone_62104204_DATAFEED (DATAFEED) [ALL]
+[LOG] [2026-03-12T21:54:47.620Z] [Sync] 🤝 Sending Configuration Handshake to Pepperstone_62104204_DATAFEED...
+[LOG] [2026-03-12T21:54:47.628Z] [Sync] ♻️ Resending Active Subscriptions for Reconnected Bot: Pepperstone_62104204_DATAFEED:DATAFEED:ALL
+[LOG] [2026-03-12T21:54:47.633Z] [WorkerFactory] 🏭 Creating DATAFEED for Pepperstone_62104204_DATAFEED:DATAFEED:ALL (Script: DatafeedWorker.js)
+[LOG] [2026-03-12T21:54:47.637Z] [SystemOrchestrator] 🚀 Spawned Worker: DATAFEED for Pepperstone_62104204_DATAFEED:DATAFEED:ALL
+[LOG] [2026-03-12T21:54:47.644Z] [SystemOrchestrator] ⏩ Symbol Discovery delegated to DatafeedWorker for Pepperstone_62104204_DATAFEED
+[2026-03-12T21:54:47.648Z] [BLOCKING] Event Loop Lag: 27ms
+[LOG] [2026-03-12T21:54:47.653Z] [Worker:FN_13885827_DATAFEED:DATAFEED:ALL] [22:54:47.613] [Init] 🚀 Worker Spawned for FN_13885827_DATAFEED:DATAFEED:ALL
+[LOG] [2026-03-12T21:54:47.660Z] [Worker:FN_13885827_DATAFEED:DATAFEED:ALL] [22:54:47.614] [DatafeedWorker] ✅ Found 76 existing symbols for Broker '504e20aa-403f-41ff-9d55-aeed39648955'.
+[LOG] [2026-03-12T21:54:47.666Z] [Worker:FN_13885827_DATAFEED:DATAFEED:ALL] [22:54:47.615] ℹ️ Sending CMD_CONFIG_SYMBOLS for 2 configured symbols (RPC)...
+[LOG] [2026-03-12T21:54:47.669Z] [Worker:FN_13885827_DATAFEED:DATAFEED:ALL] [22:54:47.615] [DatafeedWorker] 🔄 Triggering Auto-Subscriptions (Stub)...
+[LOG] [2026-03-12T21:54:47.676Z] [SyncManager] syncSubscriptions called.Active Subs: 0.TargetBot: FN_13885827_DATAFEED:DATAFEED:ALL TargetSym: ALL 
+[LOG] [2026-03-12T21:54:47.680Z] [SyncManager] Current Active Subscriptions:  
+[LOG] [2026-03-12T21:54:47.691Z] [Worker:Pepperstone_62104204_DATAFEED:DATAFEED:ALL] [22:54:47.679] [Init] 🚀 Worker Spawned for Pepperstone_62104204_DATAFEED:DATAFEED:ALL
+[LOG] [2026-03-12T21:54:47.697Z] [Worker:Pepperstone_62104204_DATAFEED:DATAFEED:ALL] [22:54:47.681] [DatafeedWorker] ✅ Found 1699 existing symbols for Broker 'eeef39f8-ec2d-4d80-a432-16cbe204e2b1'.
+[LOG] [2026-03-12T21:54:47.706Z] [Worker:Pepperstone_62104204_DATAFEED:DATAFEED:ALL] [22:54:47.682] ℹ️ Sending CMD_CONFIG_SYMBOLS for 2 configured symbols (RPC)...
+[LOG] [2026-03-12T21:54:47.712Z] [Worker:Pepperstone_62104204_DATAFEED:DATAFEED:ALL] [22:54:47.683] [DatafeedWorker] 🔄 Triggering Auto-Subscriptions (Stub)...
+[LOG] [2026-03-12T21:54:47.719Z] [Worker:Pepperstone_62104204_DATAFEED:HISTORY:ETHUSD] [22:54:47.691] [History] 🛑 End of Data for ETHUSD M10. Flagging max_history. (RawBin Length: none, Type: none, Buffer? false)
+[LOG] [2026-03-12T21:54:47.727Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [22:54:47.727] [History] 🛑 End of Data for EURUSD M3. Flagging max_history. (RawBin Length: none, Type: none, Buffer? false)
+[LOG] [2026-03-12T21:54:47.731Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [22:54:47.731] [History] 🛑 End of Data for GBPUSD M5. Flagging max_history. (RawBin Length: none, Type: none, Buffer? false)
+[LOG] [2026-03-12T21:54:47.733Z] [SyncManager] syncSubscriptions called.Active Subs: 0.TargetBot: Pepperstone_62104204_DATAFEED:DATAFEED:ALL TargetSym: ALL 
+[LOG] [2026-03-12T21:54:47.742Z] [SyncManager] Current Active Subscriptions:  
+[LOG] [2026-03-12T21:54:47.764Z] [Worker:Pepperstone_62104204_DATAFEED:HISTORY:BTCUSD] [22:54:47.764] [History] 🛑 End of Data for BTCUSD M3. Flagging max_history. (RawBin Length: none, Type: none, Buffer? false)
+[LOG] [2026-03-12T21:54:47.828Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [22:54:47.828] [History] 🛑 End of Data for GBPUSD M10. Flagging max_history. (RawBin Length: none, Type: none, Buffer? false)
+[LOG] [2026-03-12T21:54:47.832Z] [Worker:Pepperstone_62104204_DATAFEED:HISTORY:ETHUSD] [22:54:47.832] [History] 🛑 End of Data for ETHUSD M15. Flagging max_history. (RawBin Length: none, Type: none, Buffer? false)
+[LOG] [2026-03-12T21:54:47.837Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [22:54:47.837] [History] 🛑 End of Data for EURUSD M5. Flagging max_history. (RawBin Length: none, Type: none, Buffer? false)
+[LOG] [2026-03-12T21:54:47.899Z] [Worker:Pepperstone_62104204_DATAFEED:HISTORY:BTCUSD] [22:54:47.899] [History] 🛑 End of Data for BTCUSD M5. Flagging max_history. (RawBin Length: none, Type: none, Buffer? false)
+[LOG] [2026-03-12T21:54:47.905Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [22:54:47.905] [History] 🛑 End of Data for GBPUSD M15. Flagging max_history. (RawBin Length: none, Type: none, Buffer? false)
+[LOG] [2026-03-12T21:54:47.914Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [22:54:47.914] [History] 🛑 End of Data for EURUSD M10. Flagging max_history. (RawBin Length: none, Type: none, Buffer? false)
+[LOG] [2026-03-12T21:54:47.945Z] [Worker:Pepperstone_62104204_DATAFEED:HISTORY:ETHUSD] [22:54:47.945] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T21:54:47.948Z] [Worker:FN_13885827_DATAFEED:DATAFEED:ALL] [22:54:47.947] ✅ Config RPC Confirmed by Bot (332ms). Status: OK
+[LOG] [2026-03-12T21:54:47.976Z] [Worker:Pepperstone_62104204_DATAFEED:DATAFEED:ALL] [22:54:47.976] ✅ Config RPC Confirmed by Bot (293ms). Status: OK
+[LOG] [2026-03-12T21:54:47.992Z] [Worker:Pepperstone_62104204_DATAFEED:HISTORY:ETHUSD] [22:54:47.991] [History] 🛑 End of Data for ETHUSD M30. Flagging max_history. (RawBin Length: none, Type: none, Buffer? false)
+[LOG] [2026-03-12T21:54:47.992Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [22:54:47.991] [History] 🛑 End of Data for GBPUSD M30. Flagging max_history. (RawBin Length: none, Type: none, Buffer? false)
+[LOG] [2026-03-12T21:54:47.993Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [22:54:47.992] [History] 🛑 End of Data for EURUSD M15. Flagging max_history. (RawBin Length: none, Type: none, Buffer? false)
+[LOG] [2026-03-12T21:54:47.998Z] [Worker:Pepperstone_62104204_DATAFEED:HISTORY:BTCUSD] [22:54:47.998] [History] 🛑 End of Data for BTCUSD M10. Flagging max_history. (RawBin Length: none, Type: none, Buffer? false)
+[LOG] [2026-03-12T21:54:48.106Z] [Worker:Pepperstone_62104204_DATAFEED:HISTORY:BTCUSD] [22:54:48.106] [History] 🛑 End of Data for BTCUSD M15. Flagging max_history. (RawBin Length: none, Type: none, Buffer? false)
+[LOG] [2026-03-12T21:54:48.107Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [22:54:48.106] [History] 🛑 End of Data for EURUSD M30. Flagging max_history. (RawBin Length: none, Type: none, Buffer? false)
+[LOG] [2026-03-12T21:54:48.238Z] [Worker:Pepperstone_62104204_DATAFEED:HISTORY:BTCUSD] [22:54:48.237] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T21:54:48.323Z] [Worker:Pepperstone_62104204_DATAFEED:HISTORY:BTCUSD] [22:54:48.321] [History] 🛑 End of Data for BTCUSD M30. Flagging max_history. (RawBin Length: none, Type: none, Buffer? false)
+[LOG] [2026-03-12T21:54:49.990Z] [Sync] handleDisconnect: Cleaning up socket 05O0BXazFGY8Xs8LAAAB 
+[LOG] [2026-03-12T21:54:50.161Z] [SystemOrchestrator] ⏩ Auto-Start logic is disabled in system configuration.
+[LOG] [2026-03-12T21:54:50.623Z] [SocketServer] Upgrade Request: /socket.io/?EIO=4&transport=websocket from 127.0.0.1
+[LOG] [2026-03-12T21:54:50.627Z] [Socket] Client connected: CUFN3LS16UVqJvxVAAAF (User: admin)
+[LOG] [2026-03-12T21:54:52.057Z] [StatusFlow] 📥 RX: Client Subscribe Pepperstone_62104204_DATAFEED:TICK_SPY:BTCUSD H12 (Status: UNKNOWN)
+[LOG] [2026-03-12T21:54:52.102Z] [Worker:Pepperstone_62104204_DATAFEED:TICK_SPY:BTCUSD] [22:54:52.046] [Subscription] ➕ Subscribing to BTCUSD H12
+[LOG] [2026-03-12T21:54:52.103Z] [Worker:Pepperstone_62104204_DATAFEED:TICK_SPY:BTCUSD] [22:54:52.047] [Subscription] ⏳ Sending SUBSCRIBE_TICKS and fetching current forming bar for H12...
+[LOG] [2026-03-12T21:54:52.183Z] [Worker:Pepperstone_62104204_DATAFEED:TICK_SPY:BTCUSD] [22:54:52.127] [Subscription] ✅ Subscription successful for H12
+[LOG] [2026-03-12T21:54:52.183Z] [Worker:Pepperstone_62104204_DATAFEED:TICK_SPY:BTCUSD] [22:54:52.128] [Subscription] ✅ Current forming bar received via SUBSCRIBE for H12
+[LOG] [2026-03-12T21:54:52.194Z] [StatusFlow] 📥 RX: Client Subscribe Pepperstone_62104204_DATAFEED:TICK_SPY:ETHUSD H12 (Status: UNKNOWN)
+[LOG] [2026-03-12T21:54:52.363Z] [Worker:Pepperstone_62104204_DATAFEED:TICK_SPY:ETHUSD] [22:54:52.186] [Subscription] ➕ Subscribing to ETHUSD H12
+[LOG] [2026-03-12T21:54:52.363Z] [Worker:Pepperstone_62104204_DATAFEED:TICK_SPY:ETHUSD] [22:54:52.186] [Subscription] ⏳ Sending SUBSCRIBE_TICKS and fetching current forming bar for H12...
+[LOG] [2026-03-12T21:54:52.468Z] [Worker:Pepperstone_62104204_DATAFEED:TICK_SPY:ETHUSD] [22:54:52.441] [Subscription] ✅ Subscription successful for H12
+[LOG] [2026-03-12T21:54:52.468Z] [Worker:Pepperstone_62104204_DATAFEED:TICK_SPY:ETHUSD] [22:54:52.442] [Subscription] ✅ Current forming bar received via SUBSCRIBE for H12
+[LOG] [2026-03-12T21:54:52.568Z] [!!! ALARM-FLOW-BACKEND 1 - GET /api/history !!!] Received request: routingKey=Pepperstone_62104204_DATAFEED:HISTORY:BTCUSD, tf=H12
+[LOG] [2026-03-12T21:54:52.579Z] [SocketServer] History Gap for BTCUSD H12. Req: 10000, Found: 3102. Triggering BACKGROUND fetch from 1638784800000.
+[LOG] [2026-03-12T21:54:52.609Z] [!!! ALARM-FLOW-BACKEND 1 - GET /api/history !!!] Received request: routingKey=Pepperstone_62104204_DATAFEED:HISTORY:BTCUSD, tf=H12
+[LOG] [2026-03-12T21:54:52.626Z] [SocketServer] History Gap for BTCUSD H12. Req: 10000, Found: 3102. Triggering BACKGROUND fetch from 1638784800000.
+[2026-03-12T21:54:52.763Z] [BLOCKING] Event Loop Lag: 80ms
+[LOG] [2026-03-12T21:54:52.830Z] [!!! ALARM-FLOW-BACKEND 1 - GET /api/history !!!] Received request: routingKey=Pepperstone_62104204_DATAFEED:HISTORY:ETHUSD, tf=H12
+[LOG] [2026-03-12T21:54:52.845Z] [SocketServer] History Gap for ETHUSD H12. Req: 10000, Found: 3102. Triggering BACKGROUND fetch from 1638784800000.
+[2026-03-12T21:54:53.333Z] [BLOCKING] Event Loop Lag: 70ms
+[2026-03-12T21:54:53.860Z] [BLOCKING] Event Loop Lag: 27ms
+[LOG] [2026-03-12T21:54:57.564Z] [StatusFlow] 📥 RX: Client Subscribe Pepperstone_62104204_DATAFEED:TICK_SPY:BTCUSD M10 (Status: UNKNOWN)
+[LOG] [2026-03-12T21:54:57.617Z] [Worker:Pepperstone_62104204_DATAFEED:TICK_SPY:BTCUSD] [22:54:57.550] [Subscription] ➕ Subscribing to BTCUSD M10
+[LOG] [2026-03-12T21:54:57.617Z] [Worker:Pepperstone_62104204_DATAFEED:TICK_SPY:BTCUSD] [22:54:57.551] [Subscription] ⏳ Sending SUBSCRIBE_TICKS and fetching current forming bar for M10...
+[LOG] [2026-03-12T21:54:57.717Z] [Worker:Pepperstone_62104204_DATAFEED:TICK_SPY:BTCUSD] [22:54:57.629] [Subscription] ✅ Subscription successful for M10
+[LOG] [2026-03-12T21:54:57.718Z] [Worker:Pepperstone_62104204_DATAFEED:TICK_SPY:BTCUSD] [22:54:57.629] [Subscription] ✅ Current forming bar received via SUBSCRIBE for M10
+[LOG] [2026-03-12T21:54:57.735Z] [!!! ALARM-FLOW-BACKEND 1 - GET /api/history !!!] Received request: routingKey=Pepperstone_62104204_DATAFEED:HISTORY:BTCUSD, tf=M10
+[2026-03-12T21:55:00.542Z] [BLOCKING] Event Loop Lag: 121ms
+[LOG] [2026-03-12T21:55:00.628Z] [StatusFlow] 📥 RX: Client Subscribe Pepperstone_62104204_DATAFEED:TICK_SPY:ETHUSD M10 (Status: UNKNOWN)
+[LOG] [2026-03-12T21:55:00.659Z] [Worker:Pepperstone_62104204_DATAFEED:TICK_SPY:ETHUSD] [22:55:00.622] [Subscription] ➕ Subscribing to ETHUSD M10
+[LOG] [2026-03-12T21:55:00.659Z] [Worker:Pepperstone_62104204_DATAFEED:TICK_SPY:ETHUSD] [22:55:00.623] [Subscription] ⏳ Sending SUBSCRIBE_TICKS and fetching current forming bar for M10...
+[LOG] [2026-03-12T21:55:00.740Z] [Worker:Pepperstone_62104204_DATAFEED:TICK_SPY:ETHUSD] [22:55:00.734] [Subscription] ✅ Subscription successful for M10
+[LOG] [2026-03-12T21:55:00.740Z] [Worker:Pepperstone_62104204_DATAFEED:TICK_SPY:ETHUSD] [22:55:00.735] [Subscription] ✅ Current forming bar received via SUBSCRIBE for M10
+[LOG] [2026-03-12T21:55:00.765Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [22:55:00.764] [BarData] 🚨 GAP DETECTED for M1. Triggering Sync.
+[LOG] [2026-03-12T21:55:00.765Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [22:55:00.765] [Sync] 📤 Smart Sync (RPC) for EURUSD M1. UTC MS: 1773352320000 -> Broker Sec: 1773363120
+[LOG] [2026-03-12T21:55:00.768Z] [!!! ALARM-FLOW-BACKEND 1 - GET /api/history !!!] Received request: routingKey=Pepperstone_62104204_DATAFEED:HISTORY:ETHUSD, tf=M10
+[LOG] [2026-03-12T21:55:00.843Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [22:55:00.840] [Sync] 📥 Ingesting 2 bars from RPC for M1.
+[LOG] [2026-03-12T21:55:00.844Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [22:55:00.842] [Sync] 💾 Persisted 2 bars for M1
+[LOG] [2026-03-12T21:55:00.844Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [22:55:00.843] [Queue] ✅ No pending tasks for M1. Sending SYNC_COMPLETE.
+[LOG] [2026-03-12T21:55:00.845Z] [Sync] ✅ Worker Reports SYNC_COMPLETE for EURUSD M1
+[LOG] [2026-03-12T21:55:04.437Z] [StatusFlow] 📥 RX: Client Subscribe Pepperstone_62104204_DATAFEED:TICK_SPY:BTCUSD M5 (Status: UNKNOWN)
+[LOG] [2026-03-12T21:55:04.473Z] [StatusFlow] 📥 RX: Client Subscribe Pepperstone_62104204_DATAFEED:TICK_SPY:ETHUSD M5 (Status: UNKNOWN)
+[LOG] [2026-03-12T21:55:04.499Z] [Worker:Pepperstone_62104204_DATAFEED:TICK_SPY:BTCUSD] [22:55:04.431] [Subscription] ➕ Subscribing to BTCUSD M5
+[LOG] [2026-03-12T21:55:04.500Z] [Worker:Pepperstone_62104204_DATAFEED:TICK_SPY:BTCUSD] [22:55:04.431] [Subscription] ⏳ Sending SUBSCRIBE_TICKS and fetching current forming bar for M5...
+[LOG] [2026-03-12T21:55:04.513Z] [Worker:Pepperstone_62104204_DATAFEED:TICK_SPY:ETHUSD] [22:55:04.466] [Subscription] ➕ Subscribing to ETHUSD M5
+[LOG] [2026-03-12T21:55:04.514Z] [Worker:Pepperstone_62104204_DATAFEED:TICK_SPY:ETHUSD] [22:55:04.466] [Subscription] ⏳ Sending SUBSCRIBE_TICKS and fetching current forming bar for M5...
+[LOG] [2026-03-12T21:55:04.654Z] [Worker:Pepperstone_62104204_DATAFEED:TICK_SPY:ETHUSD] [22:55:04.590] [Subscription] ✅ Subscription successful for M5
+[LOG] [2026-03-12T21:55:04.655Z] [Worker:Pepperstone_62104204_DATAFEED:TICK_SPY:ETHUSD] [22:55:04.590] [Subscription] ✅ Current forming bar received via SUBSCRIBE for M5
+[LOG] [2026-03-12T21:55:04.655Z] [Worker:Pepperstone_62104204_DATAFEED:TICK_SPY:BTCUSD] [22:55:04.590] [Subscription] ✅ Subscription successful for M5
+[LOG] [2026-03-12T21:55:04.656Z] [Worker:Pepperstone_62104204_DATAFEED:TICK_SPY:BTCUSD] [22:55:04.590] [Subscription] ✅ Current forming bar received via SUBSCRIBE for M5
+[LOG] [2026-03-12T21:55:04.708Z] [!!! ALARM-FLOW-BACKEND 1 - GET /api/history !!!] Received request: routingKey=Pepperstone_62104204_DATAFEED:HISTORY:ETHUSD, tf=M5
+[LOG] [2026-03-12T21:55:04.753Z] [!!! ALARM-FLOW-BACKEND 1 - GET /api/history !!!] Received request: routingKey=Pepperstone_62104204_DATAFEED:HISTORY:BTCUSD, tf=M5
+[2026-03-12T21:55:05.118Z] [BLOCKING] Event Loop Lag: 22ms
+[2026-03-12T21:55:08.688Z] [BLOCKING] Event Loop Lag: 34ms
+[LOG] [2026-03-12T21:55:11.408Z] [!!! ALARM-FLOW-BACKEND 1 - GET /api/history !!!] Received request: routingKey=Pepperstone_62104204_DATAFEED:HISTORY:BTCUSD, tf=M10
+[LOG] [2026-03-12T21:55:11.491Z] [!!! ALARM-FLOW-BACKEND 1 - GET /api/history !!!] Received request: routingKey=Pepperstone_62104204_DATAFEED:HISTORY:ETHUSD, tf=M10
+[LOG] [2026-03-12T21:55:13.456Z] [StatusFlow] 📥 RX: Client Subscribe Pepperstone_62104204_DATAFEED:TICK_SPY:BTCUSD M2 (Status: UNKNOWN)
+[LOG] [2026-03-12T21:55:13.486Z] [StatusFlow] 📥 RX: Client Subscribe Pepperstone_62104204_DATAFEED:TICK_SPY:ETHUSD M2 (Status: UNKNOWN)
+[LOG] [2026-03-12T21:55:13.515Z] [Worker:Pepperstone_62104204_DATAFEED:TICK_SPY:BTCUSD] [22:55:13.448] [Subscription] ➕ Subscribing to BTCUSD M2
+[LOG] [2026-03-12T21:55:13.515Z] [Worker:Pepperstone_62104204_DATAFEED:TICK_SPY:BTCUSD] [22:55:13.448] [Subscription] ⏳ Sending SUBSCRIBE_TICKS and fetching current forming bar for M2...
+[LOG] [2026-03-12T21:55:13.518Z] [Worker:Pepperstone_62104204_DATAFEED:TICK_SPY:ETHUSD] [22:55:13.479] [Subscription] ➕ Subscribing to ETHUSD M2
+[LOG] [2026-03-12T21:55:13.519Z] [Worker:Pepperstone_62104204_DATAFEED:TICK_SPY:ETHUSD] [22:55:13.479] [Subscription] ⏳ Sending SUBSCRIBE_TICKS and fetching current forming bar for M2...
+[LOG] [2026-03-12T21:55:13.651Z] [Worker:Pepperstone_62104204_DATAFEED:TICK_SPY:BTCUSD] [22:55:13.645] [Subscription] ✅ Subscription successful for M2
+[LOG] [2026-03-12T21:55:13.651Z] [Worker:Pepperstone_62104204_DATAFEED:TICK_SPY:BTCUSD] [22:55:13.645] [Subscription] ✅ Current forming bar received via SUBSCRIBE for M2
+[LOG] [2026-03-12T21:55:13.654Z] [Worker:Pepperstone_62104204_DATAFEED:TICK_SPY:ETHUSD] [22:55:13.646] [Subscription] ✅ Subscription successful for M2
+[LOG] [2026-03-12T21:55:13.654Z] [Worker:Pepperstone_62104204_DATAFEED:TICK_SPY:ETHUSD] [22:55:13.646] [Subscription] ✅ Current forming bar received via SUBSCRIBE for M2
+[LOG] [2026-03-12T21:55:13.674Z] [!!! ALARM-FLOW-BACKEND 1 - GET /api/history !!!] Received request: routingKey=Pepperstone_62104204_DATAFEED:HISTORY:BTCUSD, tf=M2
+[LOG] [2026-03-12T21:55:13.717Z] [!!! ALARM-FLOW-BACKEND 1 - GET /api/history !!!] Received request: routingKey=Pepperstone_62104204_DATAFEED:HISTORY:ETHUSD, tf=M2
+[2026-03-12T21:55:13.791Z] [BLOCKING] Event Loop Lag: 36ms
+[LOG] [2026-03-12T21:55:17.851Z] [StatusFlow] 📥 RX: Client Subscribe Pepperstone_62104204_DATAFEED:TICK_SPY:BTCUSD MN1 (Status: UNKNOWN)
+[LOG] [2026-03-12T21:55:17.857Z] [Worker:Pepperstone_62104204_DATAFEED:TICK_SPY:BTCUSD] [22:55:17.849] [Subscription] ➕ Subscribing to BTCUSD MN1
+[LOG] [2026-03-12T21:55:17.857Z] [Worker:Pepperstone_62104204_DATAFEED:TICK_SPY:BTCUSD] [22:55:17.849] [Subscription] ⏳ Sending SUBSCRIBE_TICKS and fetching current forming bar for MN1...
+[LOG] [2026-03-12T21:55:17.863Z] [StatusFlow] 📥 RX: Client Subscribe Pepperstone_62104204_DATAFEED:TICK_SPY:ETHUSD MN1 (Status: UNKNOWN)
+[LOG] [2026-03-12T21:55:17.880Z] [Worker:Pepperstone_62104204_DATAFEED:TICK_SPY:ETHUSD] [22:55:17.863] [Subscription] ➕ Subscribing to ETHUSD MN1
+[LOG] [2026-03-12T21:55:17.881Z] [Worker:Pepperstone_62104204_DATAFEED:TICK_SPY:ETHUSD] [22:55:17.863] [Subscription] ⏳ Sending SUBSCRIBE_TICKS and fetching current forming bar for MN1...
+[LOG] [2026-03-12T21:55:17.896Z] [Worker:Pepperstone_62104204_DATAFEED:TICK_SPY:BTCUSD] [22:55:17.884] [Subscription] ✅ Subscription successful for MN1
+[LOG] [2026-03-12T21:55:17.896Z] [Worker:Pepperstone_62104204_DATAFEED:TICK_SPY:BTCUSD] [22:55:17.884] [Subscription] ✅ Current forming bar received via SUBSCRIBE for MN1
+[LOG] [2026-03-12T21:55:17.918Z] [!!! ALARM-FLOW-BACKEND 1 - GET /api/history !!!] Received request: routingKey=Pepperstone_62104204_DATAFEED:HISTORY:BTCUSD, tf=MN1
+[LOG] [2026-03-12T21:55:17.919Z] [SocketServer] History Gap for BTCUSD MN1. Req: 10000, Found: 180. Triggering BACKGROUND fetch from 1277942400000.
+[LOG] [2026-03-12T21:55:17.925Z] [Worker:Pepperstone_62104204_DATAFEED:TICK_SPY:ETHUSD] [22:55:17.924] [Subscription] ✅ Subscription successful for MN1
+[LOG] [2026-03-12T21:55:17.925Z] [Worker:Pepperstone_62104204_DATAFEED:TICK_SPY:ETHUSD] [22:55:17.925] [Subscription] ✅ Current forming bar received via SUBSCRIBE for MN1
+[LOG] [2026-03-12T21:55:17.927Z] [!!! ALARM-FLOW-BACKEND 1 - GET /api/history !!!] Received request: routingKey=Pepperstone_62104204_DATAFEED:HISTORY:ETHUSD, tf=MN1
+[LOG] [2026-03-12T21:55:17.927Z] [SocketServer] History Gap for ETHUSD MN1. Req: 10000, Found: 94. Triggering BACKGROUND fetch from 1527811200000.
+[LOG] [2026-03-12T21:55:19.905Z] [StatusFlow] 📥 RX: Client Subscribe Pepperstone_62104204_DATAFEED:TICK_SPY:BTCUSD D1 (Status: UNKNOWN)
+[LOG] [2026-03-12T21:55:19.945Z] [StatusFlow] 📥 RX: Client Subscribe Pepperstone_62104204_DATAFEED:TICK_SPY:ETHUSD D1 (Status: UNKNOWN)
+[LOG] [2026-03-12T21:55:19.976Z] [Worker:Pepperstone_62104204_DATAFEED:TICK_SPY:BTCUSD] [22:55:19.899] [Subscription] ➕ Subscribing to BTCUSD D1
+[LOG] [2026-03-12T21:55:19.976Z] [Worker:Pepperstone_62104204_DATAFEED:TICK_SPY:BTCUSD] [22:55:19.899] [Subscription] ⏳ Sending SUBSCRIBE_TICKS and fetching current forming bar for D1...
+[LOG] [2026-03-12T21:55:19.979Z] [Worker:Pepperstone_62104204_DATAFEED:TICK_SPY:ETHUSD] [22:55:19.935] [Subscription] ➕ Subscribing to ETHUSD D1
+[LOG] [2026-03-12T21:55:19.979Z] [Worker:Pepperstone_62104204_DATAFEED:TICK_SPY:ETHUSD] [22:55:19.935] [Subscription] ⏳ Sending SUBSCRIBE_TICKS and fetching current forming bar for D1...
+[LOG] [2026-03-12T21:55:20.134Z] [Worker:Pepperstone_62104204_DATAFEED:TICK_SPY:BTCUSD] [22:55:20.125] [Subscription] ✅ Subscription successful for D1
+[LOG] [2026-03-12T21:55:20.136Z] [Worker:Pepperstone_62104204_DATAFEED:TICK_SPY:BTCUSD] [22:55:20.125] [Subscription] ✅ Current forming bar received via SUBSCRIBE for D1
+[LOG] [2026-03-12T21:55:20.142Z] [Worker:Pepperstone_62104204_DATAFEED:TICK_SPY:ETHUSD] [22:55:20.119] [Subscription] ✅ Subscription successful for D1
+[LOG] [2026-03-12T21:55:20.145Z] [Worker:Pepperstone_62104204_DATAFEED:TICK_SPY:ETHUSD] [22:55:20.119] [Subscription] ✅ Current forming bar received via SUBSCRIBE for D1
+[LOG] [2026-03-12T21:55:20.204Z] [!!! ALARM-FLOW-BACKEND 1 - GET /api/history !!!] Received request: routingKey=Pepperstone_62104204_DATAFEED:HISTORY:BTCUSD, tf=D1
+[LOG] [2026-03-12T21:55:20.223Z] [SocketServer] History Gap for BTCUSD D1. Req: 10000, Found: 4871. Triggering BACKGROUND fetch from 1279324800000.
+[LOG] [2026-03-12T21:55:20.259Z] [!!! ALARM-FLOW-BACKEND 1 - GET /api/history !!!] Received request: routingKey=Pepperstone_62104204_DATAFEED:HISTORY:ETHUSD, tf=D1
+[LOG] [2026-03-12T21:55:20.269Z] [SocketServer] History Gap for ETHUSD D1. Req: 10000, Found: 2542. Triggering BACKGROUND fetch from 1530230400000.
+[2026-03-12T21:55:20.407Z] [BLOCKING] Event Loop Lag: 71ms
+[LOG] [2026-03-12T21:55:22.132Z] [StatusFlow] 📥 RX: Client Subscribe Pepperstone_62104204_DATAFEED:TICK_SPY:BTCUSD H8 (Status: UNKNOWN)
+[LOG] [2026-03-12T21:55:22.163Z] [StatusFlow] 📥 RX: Client Subscribe Pepperstone_62104204_DATAFEED:TICK_SPY:ETHUSD H8 (Status: UNKNOWN)
+[LOG] [2026-03-12T21:55:22.186Z] [Worker:Pepperstone_62104204_DATAFEED:TICK_SPY:BTCUSD] [22:55:22.126] [Subscription] ➕ Subscribing to BTCUSD H8
+[LOG] [2026-03-12T21:55:22.188Z] [Worker:Pepperstone_62104204_DATAFEED:TICK_SPY:BTCUSD] [22:55:22.126] [Subscription] ⏳ Sending SUBSCRIBE_TICKS and fetching current forming bar for H8...
+[LOG] [2026-03-12T21:55:22.192Z] [Worker:Pepperstone_62104204_DATAFEED:TICK_SPY:ETHUSD] [22:55:22.157] [Subscription] ➕ Subscribing to ETHUSD H8
+[LOG] [2026-03-12T21:55:22.193Z] [Worker:Pepperstone_62104204_DATAFEED:TICK_SPY:ETHUSD] [22:55:22.157] [Subscription] ⏳ Sending SUBSCRIBE_TICKS and fetching current forming bar for H8...
+[LOG] [2026-03-12T21:55:22.315Z] [Worker:Pepperstone_62104204_DATAFEED:TICK_SPY:BTCUSD] [22:55:22.312] [Subscription] ✅ Subscription successful for H8
+[LOG] [2026-03-12T21:55:22.316Z] [Worker:Pepperstone_62104204_DATAFEED:TICK_SPY:BTCUSD] [22:55:22.312] [Subscription] ✅ Current forming bar received via SUBSCRIBE for H8
+[LOG] [2026-03-12T21:55:22.316Z] [Worker:Pepperstone_62104204_DATAFEED:TICK_SPY:ETHUSD] [22:55:22.312] [Subscription] ✅ Subscription successful for H8
+[LOG] [2026-03-12T21:55:22.316Z] [Worker:Pepperstone_62104204_DATAFEED:TICK_SPY:ETHUSD] [22:55:22.312] [Subscription] ✅ Current forming bar received via SUBSCRIBE for H8
+[LOG] [2026-03-12T21:55:22.318Z] [!!! ALARM-FLOW-BACKEND 1 - GET /api/history !!!] Received request: routingKey=Pepperstone_62104204_DATAFEED:HISTORY:BTCUSD, tf=H8
+[LOG] [2026-03-12T21:55:22.336Z] [SocketServer] History Gap for BTCUSD H8. Req: 10000, Found: 5102. Triggering BACKGROUND fetch from 1625720400000.
+[LOG] [2026-03-12T21:55:22.341Z] [!!! ALARM-FLOW-BACKEND 1 - GET /api/history !!!] Received request: routingKey=Pepperstone_62104204_DATAFEED:HISTORY:ETHUSD, tf=H8
+[LOG] [2026-03-12T21:55:22.366Z] [SocketServer] History Gap for ETHUSD H8. Req: 10000, Found: 5102. Triggering BACKGROUND fetch from 1625720400000.
+[2026-03-12T21:55:30.514Z] [BLOCKING] Event Loop Lag: 56ms
+
+--- 📊 TOP 10 LOG SOURCES (Last Minute) ---
+[48] [Worker:Pepperstone_N_DATAFEED:TICK_SPY:BTCUSD] [N:N
+[48] [Worker:Pepperstone_N_DATAFEED:TICK_SPY:ETHUSD] [N:N
+[36] [Worker:Pepperstone_N_DATAFEED:HISTORY:BTCUSD] [N:N
+[35] [Worker:FN_N_DATAFEED:HISTORY:GBPUSD] [N:N:N.N] 
+[35] [Worker:FN_N_DATAFEED:HISTORY:EURUSD] [N:N:N.N] 
+[34] [Worker:Pepperstone_N_DATAFEED:HISTORY:ETHUSD] [N:N
+[25] [Worker:FN_N_DATAFEED:TICK_SPY:EURUSD] [N:N:N.N]
+[20] [Worker:FN_N_DATAFEED:TICK_SPY:GBPUSD] [N:N:N.N]
+[17] [!!! ALARM-FLOW-BACKEND N - GET /api/history !!!] Received r
+[14] [StatusFlow] 📥 RX: Client Subscribe Pepperstone_N_DA
+-------------------------------------------
+[2026-03-12T21:56:00.956Z] [BLOCKING] Event Loop Lag: 136ms
+[2026-03-12T21:56:30.935Z] [BLOCKING] Event Loop Lag: 111ms
+[LOG] [2026-03-12T21:56:51.174Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [22:56:51.173] [BarData] 🚨 GAP DETECTED for M2. Triggering Sync.
+[LOG] [2026-03-12T21:56:51.174Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [22:56:51.174] [Sync] 📤 Smart Sync (RPC) for EURUSD M2. UTC MS: 1773352200000 -> Broker Sec: 1773363000
+[LOG] [2026-03-12T21:56:51.193Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [22:56:51.193] [Sync] 📥 Ingesting 2 bars from RPC for M2.
+[LOG] [2026-03-12T21:56:51.194Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [22:56:51.194] [Sync] 💾 Persisted 2 bars for M2
+[LOG] [2026-03-12T21:56:51.194Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [22:56:51.194] [Queue] ✅ No pending tasks for M2. Sending SYNC_COMPLETE.
+[LOG] [2026-03-12T21:56:51.194Z] [Sync] ✅ Worker Reports SYNC_COMPLETE for EURUSD M2
+[2026-03-12T21:57:41.944Z] === FORENSIC LOGGER ATTACHED ===
+[LOG] [2026-03-12T21:57:41.969Z] [LogService] 📝 Redirecting High-Frequency Logs to: C:\Users\Michael\IdeaProjects\MSMTB\src\market-data-core\logs\traffic.log
+[LOG] [2026-03-12T21:57:41.971Z] [AssetMapping] Loaded 4 mappings.
+[LOG] [2026-03-12T21:57:41.972Z] [WebSocketManager] 🆕 Instance Created: nhefp8
+[LOG] [2026-03-12T21:57:41.973Z] [SystemOrchestrator] 🆕 Creating FRESH Instance(v1773352661973)
+[LOG] [2026-03-12T21:57:41.974Z] [SystemOrchestrator] 🏗️ CONSTRUCTOR CALLED (Instance qw8kbs)
+[LOG] [2026-03-12T21:57:41.974Z] [SystemOrchestrator:qw8kbs] Loaded state: 0 available, 4 configured.
+[LOG] [2026-03-12T21:57:41.974Z] [Sync] 🛑 Global Provisioning DISABLED. Waiting for TickSpy...
+[LOG] [2026-03-12T21:57:41.975Z] [SyncManager] 🎛️ Loaded Features: {
+  "ENABLE_STARTUP_SANITY_CHECK": false,
+  "ENABLE_PERIODIC_SANITY_CHECK": true,
+  "ENABLE_REGISTRATION_SANITY_CHECK": false,
+  "ENABLE_CONSISTENCY_SCHEDULER": false,
+  "ENABLE_DEEP_HISTORY_SYNC": true,
+  "ENABLE_TICK_LOGGING": false,
+  "ENABLE_BAR_DATA_LOGGING": false,
+  "ENABLE_INDICATOR_LOGGING": false,
+  "ENABLE_DETAILED_PROTOCOL_LOGGING": false
+}
+[LOG] [2026-03-12T21:57:41.976Z] [SystemOrchestrator] 🔄 Refreshing Available Symbols (Direct DB Fetch)...
+[LOG] [2026-03-12T21:57:41.980Z] [SystemOrchestrator] 🔄 Refreshed Available Symbols. Total Count: 1922
+[LOG] [2026-03-12T21:57:41.981Z] [Sync] 🗺️ Rebuilt Symbol Maps: 2 bots, 8 reverse mappings.
+[LOG] [2026-03-12T21:57:41.982Z] [WorkerFactory] 🏭 Creating BACKTEST for PAPER_BOT:ALL:ALL (Script: BacktestWorker.js)
+[LOG] [2026-03-12T21:57:41.986Z] [SystemOrchestrator] 🚀 Virtual Broker PAPER_BOT registered for DATAFEED, TICK_SPY, HISTORY, and TRADING.
+[LOG] [2026-03-12T21:57:41.986Z] [SystemOrchestrator] 📂 Starting System File Monitor...
+[LOG] [2026-03-12T21:57:41.986Z] [SystemOrchestrator] 📂 Starting System File Monitor...
+[LOG] [2026-03-12T21:57:42.144Z] [TradeDist] Loaded Config from DB: 8 brokers configured.
+[LOG] [2026-03-12T21:57:42.194Z] [SocketServer] Starting with standard HTTP (No SSL configuration found).
+[LOG] [2026-03-12T21:57:42.201Z] Starting market-data-core...
+[LOG] [2026-03-12T21:57:42.210Z] [Gateway] WebSocket Server started on port 3000
+[LOG] [2026-03-12T21:57:42.211Z] [Framework] One-Time Route Initialization...
+[LOG] [2026-03-12T21:57:42.211Z] [Framework] Routes initialized (Empty - Protocol handled by UnifiedBotProtocol)
+[LOG] [2026-03-12T21:57:42.212Z] [Index] Linking SocketServer to SystemOrchestrator... Has Method: function
+[LOG] [2026-03-12T21:57:42.212Z] [Index] SystemOrchestrator Instance ID: qw8kbs
+[LOG] [2026-03-12T21:57:42.212Z] [SystemOrchestrator] ✅ SocketServer Linked Successfully.
+[LOG] [2026-03-12T21:57:42.212Z] [Index] Link Call Complete.
+[LOG] [2026-03-12T21:57:42.213Z] [EconomicCalendar] 🗓️ Starting Service...
+[LOG] [2026-03-12T21:57:42.220Z] [EconomicCalendar] Proactive fetching next month: apr.2026
+[LOG] [2026-03-12T21:57:42.259Z] MarketDataCore Services initialized.
+[LOG] [2026-03-12T21:57:42.261Z] [SocketServer] Listening on 0.0.0.0:3005 (IPv4 Explicit)
+[LOG] [2026-03-12T21:57:42.440Z] [SocketServer] Upgrade Request: /socket.io/?EIO=4&transport=websocket from 127.0.0.1
+[LOG] [2026-03-12T21:57:42.790Z] [DB] 💾 Saved 370 calendar events.
+[LOG] [2026-03-12T21:57:42.790Z] [EconomicCalendar] 🟢 Next month loaded successfully.
+[LOG] [2026-03-12T21:57:42.974Z] [Gateway] New Connection: d31aafc2-57f0-4a65-8439-354dacc73b9e
+[LOG] [2026-03-12T21:57:43.009Z] [Gateway] New Connection: 5686bc00-f621-4783-bc04-5874c5b85d3b
+[LOG] [2026-03-12T21:57:43.009Z] [Gateway] New Connection: edc1fe33-2137-4f13-a45d-1927cef6957c
+[LOG] [2026-03-12T21:57:43.023Z] [Gateway] New Connection: 39ffdda3-745c-451c-b610-7971bc8df9f2
+[LOG] [2026-03-12T21:57:43.088Z] [UnifiedBotProtocol] 📝 REGISTER REQUEST: Payload={"header":{"command":"REGISTER","botId":"Pepperstone_62104204_DATAFEED","func":"DATAFEED","symbol":"ALL","timestamp":1773363462},"botId":"Pepperstone_62104204_DATAFEED","func":"DATAFEED","symbol":"ALL","type":"REGISTER"}
+[LOG] [2026-03-12T21:57:43.089Z] [UnifiedBotProtocol] ✅ REGISTERING: Pepperstone_62104204_DATAFEED | DATAFEED | ALL
+[LOG] [2026-03-12T21:57:43.089Z] [WebSocketManager] 🔑 REGISTERED: Pepperstone_62104204_DATAFEED:DATAFEED:ALL (Transport: d31aafc2-57f0-4a65-8439-354dacc73b9e)
+[LOG] [2026-03-12T21:57:43.089Z] [SysOrch:Connect] 🟢 NEW CONNECTION: RoutingKey=Pepperstone_62104204_DATAFEED:DATAFEED:ALL, ID=Pepperstone_62104204_DATAFEED, Func=DATAFEED, Sym=ALL
+[LOG] [2026-03-12T21:57:43.089Z] [SysOrch:Connect] Registered NEW Bot Status: Pepperstone_62104204_DATAFEED:DATAFEED:ALL
+[LOG] [2026-03-12T21:57:43.090Z] [SystemOrchestrator] 🔌 Bot Connected: Pepperstone_62104204_DATAFEED (DATAFEED) [ALL]
+[LOG] [2026-03-12T21:57:43.090Z] [Sync] 🤝 Sending Configuration Handshake to Pepperstone_62104204_DATAFEED...
+[LOG] [2026-03-12T21:57:43.090Z] [Sync] ♻️ Resending Active Subscriptions for Reconnected Bot: Pepperstone_62104204_DATAFEED:DATAFEED:ALL
+[LOG] [2026-03-12T21:57:43.091Z] [WorkerFactory] 🏭 Creating DATAFEED for Pepperstone_62104204_DATAFEED:DATAFEED:ALL (Script: DatafeedWorker.js)
+[LOG] [2026-03-12T21:57:43.091Z] [SystemOrchestrator] 🚀 Spawned Worker: DATAFEED for Pepperstone_62104204_DATAFEED:DATAFEED:ALL
+[LOG] [2026-03-12T21:57:43.091Z] [SystemOrchestrator] ⏩ Symbol Discovery delegated to DatafeedWorker for Pepperstone_62104204_DATAFEED
+[LOG] [2026-03-12T21:57:43.109Z] [UnifiedBotProtocol] 📝 REGISTER REQUEST: Payload={"header":{"command":"REGISTER","botId":"FN_13885827_DATAFEED","func":"DATAFEED","symbol":"ALL","timestamp":1773363462},"botId":"FN_13885827_DATAFEED","func":"DATAFEED","symbol":"ALL","type":"REGISTER"}
+[LOG] [2026-03-12T21:57:43.109Z] [UnifiedBotProtocol] ✅ REGISTERING: FN_13885827_DATAFEED | DATAFEED | ALL
+[LOG] [2026-03-12T21:57:43.109Z] [WebSocketManager] 🔑 REGISTERED: FN_13885827_DATAFEED:DATAFEED:ALL (Transport: 39ffdda3-745c-451c-b610-7971bc8df9f2)
+[LOG] [2026-03-12T21:57:43.109Z] [SysOrch:Connect] 🟢 NEW CONNECTION: RoutingKey=FN_13885827_DATAFEED:DATAFEED:ALL, ID=FN_13885827_DATAFEED, Func=DATAFEED, Sym=ALL
+[LOG] [2026-03-12T21:57:43.109Z] [SysOrch:Connect] Registered NEW Bot Status: FN_13885827_DATAFEED:DATAFEED:ALL
+[LOG] [2026-03-12T21:57:43.109Z] [SystemOrchestrator] 🔌 Bot Connected: FN_13885827_DATAFEED (DATAFEED) [ALL]
+[LOG] [2026-03-12T21:57:43.110Z] [Sync] 🤝 Sending Configuration Handshake to FN_13885827_DATAFEED...
+[LOG] [2026-03-12T21:57:43.110Z] [Sync] ♻️ Resending Active Subscriptions for Reconnected Bot: FN_13885827_DATAFEED:DATAFEED:ALL
+[LOG] [2026-03-12T21:57:43.110Z] [WorkerFactory] 🏭 Creating DATAFEED for FN_13885827_DATAFEED:DATAFEED:ALL (Script: DatafeedWorker.js)
+[LOG] [2026-03-12T21:57:43.111Z] [SystemOrchestrator] 🚀 Spawned Worker: DATAFEED for FN_13885827_DATAFEED:DATAFEED:ALL
+[LOG] [2026-03-12T21:57:43.111Z] [SystemOrchestrator] ⏩ Symbol Discovery delegated to DatafeedWorker for FN_13885827_DATAFEED
+[LOG] [2026-03-12T21:57:43.125Z] [UnifiedBotProtocol] 📝 REGISTER REQUEST: Payload={"header":{"command":"REGISTER","botId":"FN_13885827_DATAFEED","func":"HISTORY","symbol":"GBPUSD","timestamp":1773363462},"botId":"FN_13885827_DATAFEED","func":"HISTORY","symbol":"GBPUSD","type":"REGISTER"}
+[LOG] [2026-03-12T21:57:43.125Z] [UnifiedBotProtocol] ✅ REGISTERING: FN_13885827_DATAFEED | HISTORY | GBPUSD
+[LOG] [2026-03-12T21:57:43.125Z] [WebSocketManager] 🔑 REGISTERED: FN_13885827_DATAFEED:HISTORY:GBPUSD (Transport: edc1fe33-2137-4f13-a45d-1927cef6957c)
+[LOG] [2026-03-12T21:57:43.125Z] [SysOrch:Connect] 🟢 NEW CONNECTION: RoutingKey=FN_13885827_DATAFEED:HISTORY:GBPUSD, ID=FN_13885827_DATAFEED, Func=HISTORY, Sym=GBPUSD
+[LOG] [2026-03-12T21:57:43.126Z] [SysOrch:Connect] Registered NEW Bot Status: FN_13885827_DATAFEED:HISTORY:GBPUSD
+[LOG] [2026-03-12T21:57:43.126Z] [SystemOrchestrator] 🔌 Bot Connected: FN_13885827_DATAFEED (HISTORY) [GBPUSD]
+[LOG] [2026-03-12T21:57:43.126Z] [WorkerFactory] 🏭 Creating HISTORY for FN_13885827_DATAFEED:HISTORY:GBPUSD (Script: HistoryWorker.js)
+[LOG] [2026-03-12T21:57:43.127Z] [SystemOrchestrator] 🚀 Spawned Worker: HISTORY for FN_13885827_DATAFEED:HISTORY:GBPUSD
+[LOG] [2026-03-12T21:57:43.128Z] [UnifiedBotProtocol] 📝 REGISTER REQUEST: Payload={"header":{"command":"REGISTER","botId":"Pepperstone_62104204_DATAFEED","func":"HISTORY","symbol":"ETHUSD","timestamp":1773363462},"botId":"Pepperstone_62104204_DATAFEED","func":"HISTORY","symbol":"ETHUSD","type":"REGISTER"}
+[LOG] [2026-03-12T21:57:43.128Z] [UnifiedBotProtocol] ✅ REGISTERING: Pepperstone_62104204_DATAFEED | HISTORY | ETHUSD
+[LOG] [2026-03-12T21:57:43.128Z] [WebSocketManager] 🔑 REGISTERED: Pepperstone_62104204_DATAFEED:HISTORY:ETHUSD (Transport: 5686bc00-f621-4783-bc04-5874c5b85d3b)
+[LOG] [2026-03-12T21:57:43.128Z] [SysOrch:Connect] 🟢 NEW CONNECTION: RoutingKey=Pepperstone_62104204_DATAFEED:HISTORY:ETHUSD, ID=Pepperstone_62104204_DATAFEED, Func=HISTORY, Sym=ETHUSD
+[LOG] [2026-03-12T21:57:43.129Z] [SysOrch:Connect] Registered NEW Bot Status: Pepperstone_62104204_DATAFEED:HISTORY:ETHUSD
+[LOG] [2026-03-12T21:57:43.130Z] [SystemOrchestrator] 🔌 Bot Connected: Pepperstone_62104204_DATAFEED (HISTORY) [ETHUSD]
+[LOG] [2026-03-12T21:57:43.130Z] [WorkerFactory] 🏭 Creating HISTORY for Pepperstone_62104204_DATAFEED:HISTORY:ETHUSD (Script: HistoryWorker.js)
+[LOG] [2026-03-12T21:57:43.131Z] [SystemOrchestrator] 🚀 Spawned Worker: HISTORY for Pepperstone_62104204_DATAFEED:HISTORY:ETHUSD
+[LOG] [2026-03-12T21:57:43.132Z] [Gateway] New Connection: 0bc03426-e610-45e1-a915-1ce2053a9aba
+[LOG] [2026-03-12T21:57:43.132Z] [Gateway] New Connection: 87e57a64-06ee-46b6-81af-27fff9408178
+[LOG] [2026-03-12T21:57:43.141Z] [SocketServer] Upgrade Request: /socket.io/?EIO=4&transport=websocket from 127.0.0.1
+[LOG] [2026-03-12T21:57:43.146Z] [Worker:Pepperstone_62104204_DATAFEED:DATAFEED:ALL] [22:57:43.145] [Init] 🚀 Worker Spawned for Pepperstone_62104204_DATAFEED:DATAFEED:ALL
+[LOG] [2026-03-12T21:57:43.150Z] [Socket] Client connected: xznoMzxKN_P90je1AAAD (User: admin)
+[LOG] [2026-03-12T21:57:43.150Z] [Worker:Pepperstone_62104204_DATAFEED:DATAFEED:ALL] [22:57:43.148] [DatafeedWorker] ✅ Found 1699 existing symbols for Broker 'eeef39f8-ec2d-4d80-a432-16cbe204e2b1'.
+[LOG] [2026-03-12T21:57:43.150Z] [Worker:Pepperstone_62104204_DATAFEED:DATAFEED:ALL] [22:57:43.149] ℹ️ Sending CMD_CONFIG_SYMBOLS for 2 configured symbols (RPC)...
+[LOG] [2026-03-12T21:57:43.151Z] [Worker:Pepperstone_62104204_DATAFEED:DATAFEED:ALL] [22:57:43.149] [DatafeedWorker] 🔄 Triggering Auto-Subscriptions (Stub)...
+[LOG] [2026-03-12T21:57:43.170Z] [Worker:FN_13885827_DATAFEED:DATAFEED:ALL] [22:57:43.169] [Init] 🚀 Worker Spawned for FN_13885827_DATAFEED:DATAFEED:ALL
+[LOG] [2026-03-12T21:57:43.172Z] [Worker:FN_13885827_DATAFEED:DATAFEED:ALL] [22:57:43.171] [DatafeedWorker] ✅ Found 76 existing symbols for Broker '504e20aa-403f-41ff-9d55-aeed39648955'.
+[LOG] [2026-03-12T21:57:43.173Z] [Worker:FN_13885827_DATAFEED:DATAFEED:ALL] [22:57:43.173] ℹ️ Sending CMD_CONFIG_SYMBOLS for 2 configured symbols (RPC)...
+[LOG] [2026-03-12T21:57:43.174Z] [Worker:FN_13885827_DATAFEED:DATAFEED:ALL] [22:57:43.174] [DatafeedWorker] 🔄 Triggering Auto-Subscriptions (Stub)...
+[LOG] [2026-03-12T21:57:43.178Z] [Worker:Pepperstone_62104204_DATAFEED:DATAFEED:ALL] [22:57:43.177] ✅ Config RPC Confirmed by Bot (27ms). Status: OK
+[LOG] [2026-03-12T21:57:43.186Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [22:57:43.185] [Init] 🚀 Worker Spawned for FN_13885827_DATAFEED:HISTORY:GBPUSD
+[LOG] [2026-03-12T21:57:43.187Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [22:57:43.187] [History] 🟢 Connected for GBPUSD. Starting history initialization.
+[LOG] [2026-03-12T21:57:43.187Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [22:57:43.187] [History] ➕ Added 17 TFs to Low Priority Queue.
+[LOG] [2026-03-12T21:57:43.189Z] [Worker:Pepperstone_62104204_DATAFEED:HISTORY:ETHUSD] [22:57:43.189] [Init] 🚀 Worker Spawned for Pepperstone_62104204_DATAFEED:HISTORY:ETHUSD
+[LOG] [2026-03-12T21:57:43.190Z] [SyncManager] syncSubscriptions called.Active Subs: 0.TargetBot: Pepperstone_62104204_DATAFEED:DATAFEED:ALL TargetSym: ALL 
+[LOG] [2026-03-12T21:57:43.190Z] [SyncManager] Current Active Subscriptions:  
+[LOG] [2026-03-12T21:57:43.191Z] [Worker:Pepperstone_62104204_DATAFEED:HISTORY:ETHUSD] [22:57:43.191] [History] 🟢 Connected for ETHUSD. Starting history initialization.
+[LOG] [2026-03-12T21:57:43.192Z] [Worker:Pepperstone_62104204_DATAFEED:HISTORY:ETHUSD] [22:57:43.191] [History] ➕ Added 17 TFs to Low Priority Queue.
+[LOG] [2026-03-12T21:57:43.207Z] [UnifiedBotProtocol] 📝 REGISTER REQUEST: Payload={"header":{"command":"REGISTER","botId":"Pepperstone_62104204_DATAFEED","func":"HISTORY","symbol":"BTCUSD","timestamp":1773363462},"botId":"Pepperstone_62104204_DATAFEED","func":"HISTORY","symbol":"BTCUSD","type":"REGISTER"}
+[LOG] [2026-03-12T21:57:43.208Z] [UnifiedBotProtocol] ✅ REGISTERING: Pepperstone_62104204_DATAFEED | HISTORY | BTCUSD
+[LOG] [2026-03-12T21:57:43.208Z] [WebSocketManager] 🔑 REGISTERED: Pepperstone_62104204_DATAFEED:HISTORY:BTCUSD (Transport: 0bc03426-e610-45e1-a915-1ce2053a9aba)
+[LOG] [2026-03-12T21:57:43.208Z] [SysOrch:Connect] 🟢 NEW CONNECTION: RoutingKey=Pepperstone_62104204_DATAFEED:HISTORY:BTCUSD, ID=Pepperstone_62104204_DATAFEED, Func=HISTORY, Sym=BTCUSD
+[LOG] [2026-03-12T21:57:43.208Z] [SysOrch:Connect] Registered NEW Bot Status: Pepperstone_62104204_DATAFEED:HISTORY:BTCUSD
+[LOG] [2026-03-12T21:57:43.208Z] [SystemOrchestrator] 🔌 Bot Connected: Pepperstone_62104204_DATAFEED (HISTORY) [BTCUSD]
+[LOG] [2026-03-12T21:57:43.208Z] [WorkerFactory] 🏭 Creating HISTORY for Pepperstone_62104204_DATAFEED:HISTORY:BTCUSD (Script: HistoryWorker.js)
+[LOG] [2026-03-12T21:57:43.209Z] [SystemOrchestrator] 🚀 Spawned Worker: HISTORY for Pepperstone_62104204_DATAFEED:HISTORY:BTCUSD
+[LOG] [2026-03-12T21:57:43.210Z] [SyncManager] syncSubscriptions called.Active Subs: 0.TargetBot: FN_13885827_DATAFEED:DATAFEED:ALL TargetSym: ALL 
+[LOG] [2026-03-12T21:57:43.210Z] [SyncManager] Current Active Subscriptions:  
+[LOG] [2026-03-12T21:57:43.210Z] [UnifiedBotProtocol] 📝 REGISTER REQUEST: Payload={"header":{"command":"REGISTER","botId":"FN_13885827_DATAFEED","func":"HISTORY","symbol":"EURUSD","timestamp":1773363462},"botId":"FN_13885827_DATAFEED","func":"HISTORY","symbol":"EURUSD","type":"REGISTER"}
+[LOG] [2026-03-12T21:57:43.210Z] [UnifiedBotProtocol] ✅ REGISTERING: FN_13885827_DATAFEED | HISTORY | EURUSD
+[LOG] [2026-03-12T21:57:43.210Z] [WebSocketManager] 🔑 REGISTERED: FN_13885827_DATAFEED:HISTORY:EURUSD (Transport: 87e57a64-06ee-46b6-81af-27fff9408178)
+[LOG] [2026-03-12T21:57:43.211Z] [SysOrch:Connect] 🟢 NEW CONNECTION: RoutingKey=FN_13885827_DATAFEED:HISTORY:EURUSD, ID=FN_13885827_DATAFEED, Func=HISTORY, Sym=EURUSD
+[LOG] [2026-03-12T21:57:43.211Z] [SysOrch:Connect] Registered NEW Bot Status: FN_13885827_DATAFEED:HISTORY:EURUSD
+[LOG] [2026-03-12T21:57:43.211Z] [SystemOrchestrator] 🔌 Bot Connected: FN_13885827_DATAFEED (HISTORY) [EURUSD]
+[LOG] [2026-03-12T21:57:43.211Z] [WorkerFactory] 🏭 Creating HISTORY for FN_13885827_DATAFEED:HISTORY:EURUSD (Script: HistoryWorker.js)
+[LOG] [2026-03-12T21:57:43.211Z] [SystemOrchestrator] 🚀 Spawned Worker: HISTORY for FN_13885827_DATAFEED:HISTORY:EURUSD
+[LOG] [2026-03-12T21:57:43.213Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [22:57:43.213] [History] 🛑 End of Data for GBPUSD M1. Flagging max_history. (RawBin Length: none, Type: none, Buffer? false)
+[LOG] [2026-03-12T21:57:43.226Z] [Worker:FN_13885827_DATAFEED:DATAFEED:ALL] [22:57:43.226] ✅ Config RPC Confirmed by Bot (53ms). Status: OK
+[LOG] [2026-03-12T21:57:43.256Z] [Worker:Pepperstone_62104204_DATAFEED:HISTORY:BTCUSD] [22:57:43.254] [Init] 🚀 Worker Spawned for Pepperstone_62104204_DATAFEED:HISTORY:BTCUSD
+[LOG] [2026-03-12T21:57:43.256Z] [Worker:Pepperstone_62104204_DATAFEED:HISTORY:BTCUSD] [22:57:43.255] [History] 🟢 Connected for BTCUSD. Starting history initialization.
+[LOG] [2026-03-12T21:57:43.256Z] [Worker:Pepperstone_62104204_DATAFEED:HISTORY:BTCUSD] [22:57:43.256] [History] ➕ Added 17 TFs to Low Priority Queue.
+[LOG] [2026-03-12T21:57:43.402Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [22:57:43.260] [Init] 🚀 Worker Spawned for FN_13885827_DATAFEED:HISTORY:EURUSD
+[LOG] [2026-03-12T21:57:43.402Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [22:57:43.261] [History] 🟢 Connected for EURUSD. Starting history initialization.
+[LOG] [2026-03-12T21:57:43.402Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [22:57:43.262] [History] ➕ Added 17 TFs to Low Priority Queue.
+[LOG] [2026-03-12T21:57:43.403Z] [Worker:Pepperstone_62104204_DATAFEED:HISTORY:ETHUSD] [22:57:43.403] [History] 🛑 End of Data for ETHUSD M1. Flagging max_history. (RawBin Length: none, Type: none, Buffer? false)
+[LOG] [2026-03-12T21:57:43.407Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [22:57:43.407] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T21:57:43.439Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [22:57:43.439] [History] 🛑 End of Data for EURUSD M1. Flagging max_history. (RawBin Length: none, Type: none, Buffer? false)
+[LOG] [2026-03-12T21:57:43.454Z] [Worker:Pepperstone_62104204_DATAFEED:HISTORY:ETHUSD] [22:57:43.453] [History] 🛑 End of Data for ETHUSD M2. Flagging max_history. (RawBin Length: none, Type: none, Buffer? false)
+[LOG] [2026-03-12T21:57:43.454Z] [Worker:Pepperstone_62104204_DATAFEED:HISTORY:BTCUSD] [22:57:43.454] [History] 🛑 End of Data for BTCUSD M1. Flagging max_history. (RawBin Length: none, Type: none, Buffer? false)
+[LOG] [2026-03-12T21:57:43.457Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [22:57:43.457] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T21:57:43.539Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [22:57:43.539] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T21:57:43.556Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [22:57:43.556] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T21:57:43.557Z] [Worker:Pepperstone_62104204_DATAFEED:HISTORY:BTCUSD] [22:57:43.556] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T21:57:43.558Z] [Worker:Pepperstone_62104204_DATAFEED:HISTORY:ETHUSD] [22:57:43.557] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T21:57:43.657Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [22:57:43.657] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T21:57:43.658Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [22:57:43.658] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T21:57:43.661Z] [Worker:Pepperstone_62104204_DATAFEED:HISTORY:ETHUSD] [22:57:43.660] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T21:57:43.661Z] [Worker:Pepperstone_62104204_DATAFEED:HISTORY:BTCUSD] [22:57:43.661] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T21:57:43.777Z] [Worker:Pepperstone_62104204_DATAFEED:HISTORY:BTCUSD] [22:57:43.776] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T21:57:43.778Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [22:57:43.777] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T21:57:43.778Z] [Worker:Pepperstone_62104204_DATAFEED:HISTORY:ETHUSD] [22:57:43.778] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T21:57:43.781Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [22:57:43.780] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T21:57:43.874Z] [Worker:Pepperstone_62104204_DATAFEED:HISTORY:BTCUSD] [22:57:43.874] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T21:57:43.889Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [22:57:43.888] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T21:57:43.890Z] [Worker:Pepperstone_62104204_DATAFEED:HISTORY:ETHUSD] [22:57:43.890] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T21:57:43.892Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [22:57:43.892] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T21:57:43.913Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [22:57:43.913] [History] 🛑 Boundary Reached for GBPUSD H1. Flagging max_history.
+[LOG] [2026-03-12T21:57:43.914Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [22:57:43.914] [History] 🛑 Boundary Reached for GBPUSD H2. Flagging max_history.
+[LOG] [2026-03-12T21:57:43.915Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [22:57:43.915] [History] 🛑 Boundary Reached for GBPUSD H3. Flagging max_history.
+[LOG] [2026-03-12T21:57:43.916Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [22:57:43.916] [History] 🛑 Boundary Reached for GBPUSD H4. Flagging max_history.
+[LOG] [2026-03-12T21:57:43.917Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [22:57:43.917] [History] 🛑 Boundary Reached for GBPUSD H6. Flagging max_history.
+[LOG] [2026-03-12T21:57:43.917Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [22:57:43.917] [History] 🛑 Boundary Reached for GBPUSD H8. Flagging max_history.
+[LOG] [2026-03-12T21:57:43.918Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [22:57:43.918] [History] 🛑 Boundary Reached for GBPUSD H12. Flagging max_history.
+[LOG] [2026-03-12T21:57:43.974Z] [Worker:Pepperstone_62104204_DATAFEED:HISTORY:BTCUSD] [22:57:43.974] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T21:57:43.996Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [22:57:43.986] [History] 💾 Decoded 1 bars from rawBin (Length: 48).
+[LOG] [2026-03-12T21:57:43.997Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [22:57:43.986] [History] 🏁 Reached maximum available broker history for GBPUSD D1 (minTime 1220486400000 >= oldestTime 1220486400000). Proceeding to next timeframe.
+[LOG] [2026-03-12T21:57:43.998Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [22:57:43.998] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T21:57:43.998Z] [Worker:Pepperstone_62104204_DATAFEED:HISTORY:ETHUSD] [22:57:43.998] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T21:57:44.027Z] [Worker:Pepperstone_62104204_DATAFEED:HISTORY:ETHUSD] [22:57:44.027] [History] 🛑 Boundary Reached for ETHUSD H1. Flagging max_history.
+[LOG] [2026-03-12T21:57:44.030Z] [Worker:Pepperstone_62104204_DATAFEED:HISTORY:ETHUSD] [22:57:44.029] [History] 🛑 Boundary Reached for ETHUSD H2. Flagging max_history.
+[LOG] [2026-03-12T21:57:44.032Z] [Worker:Pepperstone_62104204_DATAFEED:HISTORY:ETHUSD] [22:57:44.031] [History] 🛑 Boundary Reached for ETHUSD H3. Flagging max_history.
+[LOG] [2026-03-12T21:57:44.033Z] [Worker:Pepperstone_62104204_DATAFEED:HISTORY:ETHUSD] [22:57:44.033] [History] 🛑 Boundary Reached for ETHUSD H4. Flagging max_history.
+[LOG] [2026-03-12T21:57:44.035Z] [Worker:Pepperstone_62104204_DATAFEED:HISTORY:ETHUSD] [22:57:44.035] [History] 🛑 Boundary Reached for ETHUSD H6. Flagging max_history.
+[LOG] [2026-03-12T21:57:44.038Z] [Worker:Pepperstone_62104204_DATAFEED:HISTORY:ETHUSD] [22:57:44.037] [History] 🛑 Boundary Reached for ETHUSD H8. Flagging max_history.
+[LOG] [2026-03-12T21:57:44.039Z] [Worker:Pepperstone_62104204_DATAFEED:HISTORY:ETHUSD] [22:57:44.038] [History] 🛑 Boundary Reached for ETHUSD H12. Flagging max_history.
+[LOG] [2026-03-12T21:57:44.093Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [22:57:44.092] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T21:57:44.096Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [22:57:44.095] [History] 💾 Decoded 1 bars from rawBin (Length: 48).
+[LOG] [2026-03-12T21:57:44.097Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [22:57:44.096] [History] 🏁 Reached maximum available broker history for GBPUSD W1 (minTime 1220140800000 >= oldestTime 1220140800000). Proceeding to next timeframe.
+[LOG] [2026-03-12T21:57:44.097Z] [Worker:Pepperstone_62104204_DATAFEED:HISTORY:ETHUSD] [22:57:44.096] [History] 💾 Decoded 1 bars from rawBin (Length: 48).
+[LOG] [2026-03-12T21:57:44.097Z] [Worker:Pepperstone_62104204_DATAFEED:HISTORY:ETHUSD] [22:57:44.096] [History] 🏁 Reached maximum available broker history for ETHUSD D1 (minTime 1530230400000 >= oldestTime 1530230400000). Proceeding to next timeframe.
+[LOG] [2026-03-12T21:57:44.098Z] [Worker:Pepperstone_62104204_DATAFEED:HISTORY:BTCUSD] [22:57:44.096] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T21:57:44.121Z] [Worker:Pepperstone_62104204_DATAFEED:HISTORY:BTCUSD] [22:57:44.121] [History] 🛑 Boundary Reached for BTCUSD H1. Flagging max_history.
+[LOG] [2026-03-12T21:57:44.123Z] [Worker:Pepperstone_62104204_DATAFEED:HISTORY:BTCUSD] [22:57:44.123] [History] 🛑 Boundary Reached for BTCUSD H2. Flagging max_history.
+[LOG] [2026-03-12T21:57:44.124Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [22:57:44.124] [History] 🛑 Boundary Reached for EURUSD H1. Flagging max_history.
+[LOG] [2026-03-12T21:57:44.125Z] [Worker:Pepperstone_62104204_DATAFEED:HISTORY:BTCUSD] [22:57:44.124] [History] 🛑 Boundary Reached for BTCUSD H3. Flagging max_history.
+[LOG] [2026-03-12T21:57:44.126Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [22:57:44.126] [History] 🛑 Boundary Reached for EURUSD H2. Flagging max_history.
+[LOG] [2026-03-12T21:57:44.126Z] [Worker:Pepperstone_62104204_DATAFEED:HISTORY:BTCUSD] [22:57:44.126] [History] 🛑 Boundary Reached for BTCUSD H4. Flagging max_history.
+[LOG] [2026-03-12T21:57:44.127Z] [Worker:Pepperstone_62104204_DATAFEED:HISTORY:BTCUSD] [22:57:44.126] [History] 🛑 Boundary Reached for BTCUSD H6. Flagging max_history.
+[LOG] [2026-03-12T21:57:44.127Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [22:57:44.126] [History] 🛑 Boundary Reached for EURUSD H3. Flagging max_history.
+[LOG] [2026-03-12T21:57:44.128Z] [Worker:Pepperstone_62104204_DATAFEED:HISTORY:BTCUSD] [22:57:44.127] [History] 🛑 Boundary Reached for BTCUSD H8. Flagging max_history.
+[LOG] [2026-03-12T21:57:44.128Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [22:57:44.127] [History] 🛑 Boundary Reached for EURUSD H4. Flagging max_history.
+[LOG] [2026-03-12T21:57:44.128Z] [Worker:Pepperstone_62104204_DATAFEED:HISTORY:BTCUSD] [22:57:44.128] [History] 🛑 Boundary Reached for BTCUSD H12. Flagging max_history.
+[LOG] [2026-03-12T21:57:44.129Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [22:57:44.129] [History] 🛑 Boundary Reached for EURUSD H6. Flagging max_history.
+[LOG] [2026-03-12T21:57:44.129Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [22:57:44.129] [History] 🛑 Boundary Reached for EURUSD H8. Flagging max_history.
+[LOG] [2026-03-12T21:57:44.130Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [22:57:44.130] [History] 🛑 Boundary Reached for EURUSD H12. Flagging max_history.
+[LOG] [2026-03-12T21:57:44.203Z] [Worker:Pepperstone_62104204_DATAFEED:HISTORY:BTCUSD] [22:57:44.202] [History] 💾 Decoded 1 bars from rawBin (Length: 48).
+[LOG] [2026-03-12T21:57:44.203Z] [Worker:Pepperstone_62104204_DATAFEED:HISTORY:BTCUSD] [22:57:44.203] [History] 🏁 Reached maximum available broker history for BTCUSD D1 (minTime 1279324800000 >= oldestTime 1279324800000). Proceeding to next timeframe.
+[LOG] [2026-03-12T21:57:44.204Z] [Worker:Pepperstone_62104204_DATAFEED:HISTORY:ETHUSD] [22:57:44.203] [History] 💾 Decoded 1 bars from rawBin (Length: 48).
+[LOG] [2026-03-12T21:57:44.204Z] [Worker:Pepperstone_62104204_DATAFEED:HISTORY:ETHUSD] [22:57:44.203] [History] 🏁 Reached maximum available broker history for ETHUSD W1 (minTime 1529798400000 >= oldestTime 1529798400000). Proceeding to next timeframe.
+[LOG] [2026-03-12T21:57:44.205Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [22:57:44.203] [History] 💾 Decoded 1 bars from rawBin (Length: 48).
+[LOG] [2026-03-12T21:57:44.205Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [22:57:44.203] [History] 🏁 Reached maximum available broker history for GBPUSD MN1 (minTime 1220227200000 >= oldestTime 1220227200000). Proceeding to next timeframe.
+[LOG] [2026-03-12T21:57:44.206Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [22:57:44.205] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T21:57:44.206Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [22:57:44.206] [History] ⚠️ Batch contained only filtered (1970) data. Pausing fetch for this TF.
+[LOG] [2026-03-12T21:57:44.303Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [22:57:44.303] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T21:57:44.304Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [22:57:44.303] [History] ⚠️ Batch contained only filtered (1970) data. Pausing fetch for this TF.
+[LOG] [2026-03-12T21:57:44.319Z] [Worker:Pepperstone_62104204_DATAFEED:HISTORY:BTCUSD] [22:57:44.318] [History] 💾 Decoded 1 bars from rawBin (Length: 48).
+[LOG] [2026-03-12T21:57:44.319Z] [Worker:Pepperstone_62104204_DATAFEED:HISTORY:BTCUSD] [22:57:44.319] [History] 🏁 Reached maximum available broker history for BTCUSD W1 (minTime 1278806400000 >= oldestTime 1278806400000). Proceeding to next timeframe.
+[LOG] [2026-03-12T21:57:44.319Z] [Worker:Pepperstone_62104204_DATAFEED:HISTORY:ETHUSD] [22:57:44.318] [History] 💾 Decoded 1 bars from rawBin (Length: 48).
+[LOG] [2026-03-12T21:57:44.320Z] [Worker:Pepperstone_62104204_DATAFEED:HISTORY:ETHUSD] [22:57:44.319] [History] 🏁 Reached maximum available broker history for ETHUSD MN1 (minTime 1527811200000 >= oldestTime 1527811200000). Proceeding to next timeframe.
+[LOG] [2026-03-12T21:57:44.322Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [22:57:44.322] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T21:57:44.412Z] [Worker:Pepperstone_62104204_DATAFEED:HISTORY:BTCUSD] [22:57:44.411] [History] 💾 Decoded 1 bars from rawBin (Length: 48).
+[LOG] [2026-03-12T21:57:44.412Z] [Worker:Pepperstone_62104204_DATAFEED:HISTORY:BTCUSD] [22:57:44.412] [History] 🏁 Reached maximum available broker history for BTCUSD MN1 (minTime 1277942400000 >= oldestTime 1277942400000). Proceeding to next timeframe.
+[LOG] [2026-03-12T21:57:44.412Z] [Worker:Pepperstone_62104204_DATAFEED:HISTORY:ETHUSD] [22:57:44.412] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T21:57:44.413Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [22:57:44.412] [History] 💾 Decoded 273 bars from rawBin (Length: 13104).
+[LOG] [2026-03-12T21:57:44.415Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [22:57:44.413] [History] ⚠️ Batch contained only filtered (1970) data. Pausing fetch for this TF.
+[LOG] [2026-03-12T21:57:44.415Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [22:57:44.414] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T21:57:44.538Z] [Worker:Pepperstone_62104204_DATAFEED:HISTORY:BTCUSD] [22:57:44.538] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T21:57:44.539Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [22:57:44.538] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T21:57:44.539Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [22:57:44.538] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T21:57:44.539Z] [Worker:Pepperstone_62104204_DATAFEED:HISTORY:ETHUSD] [22:57:44.538] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T21:57:44.638Z] [Worker:Pepperstone_62104204_DATAFEED:HISTORY:ETHUSD] [22:57:44.637] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T21:57:44.640Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [22:57:44.638] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T21:57:44.640Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [22:57:44.639] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T21:57:44.643Z] [Worker:Pepperstone_62104204_DATAFEED:HISTORY:BTCUSD] [22:57:44.643] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T21:57:44.757Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [22:57:44.756] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T21:57:44.757Z] [Worker:Pepperstone_62104204_DATAFEED:HISTORY:BTCUSD] [22:57:44.757] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T21:57:44.757Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [22:57:44.757] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T21:57:44.758Z] [Worker:Pepperstone_62104204_DATAFEED:HISTORY:ETHUSD] [22:57:44.757] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T21:57:44.856Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [22:57:44.856] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T21:57:44.861Z] [Worker:Pepperstone_62104204_DATAFEED:HISTORY:BTCUSD] [22:57:44.861] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T21:57:44.864Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [22:57:44.864] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T21:57:44.864Z] [Worker:Pepperstone_62104204_DATAFEED:HISTORY:ETHUSD] [22:57:44.864] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T21:57:44.972Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [22:57:44.972] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T21:57:44.982Z] [Worker:Pepperstone_62104204_DATAFEED:HISTORY:BTCUSD] [22:57:44.981] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T21:57:44.985Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [22:57:44.984] [History] 🛑 End of Data for GBPUSD M2. Flagging max_history. (RawBin Length: none, Type: none, Buffer? false)
+[LOG] [2026-03-12T21:57:44.986Z] [Worker:Pepperstone_62104204_DATAFEED:HISTORY:ETHUSD] [22:57:44.985] [History] 🛑 End of Data for ETHUSD M3. Flagging max_history. (RawBin Length: none, Type: none, Buffer? false)
+[LOG] [2026-03-12T21:57:45.087Z] [Worker:Pepperstone_62104204_DATAFEED:HISTORY:ETHUSD] [22:57:45.087] [History] 🛑 End of Data for ETHUSD M5. Flagging max_history. (RawBin Length: none, Type: none, Buffer? false)
+[LOG] [2026-03-12T21:57:45.100Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [22:57:45.100] [History] 🛑 End of Data for GBPUSD M3. Flagging max_history. (RawBin Length: none, Type: none, Buffer? false)
+[LOG] [2026-03-12T21:57:45.107Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [22:57:45.100] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T21:57:45.205Z] [Worker:Pepperstone_62104204_DATAFEED:HISTORY:BTCUSD] [22:57:45.205] [History] 💾 Decoded 1000 bars from rawBin (Length: 48000).
+[LOG] [2026-03-12T21:57:45.216Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [22:57:45.215] [History] 🛑 End of Data for GBPUSD M5. Flagging max_history. (RawBin Length: none, Type: none, Buffer? false)
+[LOG] [2026-03-12T21:57:45.233Z] [Worker:Pepperstone_62104204_DATAFEED:HISTORY:ETHUSD] [22:57:45.233] [History] 🛑 End of Data for ETHUSD M10. Flagging max_history. (RawBin Length: none, Type: none, Buffer? false)
+[LOG] [2026-03-12T21:57:45.291Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [22:57:45.290] [History] 🛑 End of Data for EURUSD M2. Flagging max_history. (RawBin Length: none, Type: none, Buffer? false)
+[LOG] [2026-03-12T21:57:45.295Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [22:57:45.290] [History] 🛑 End of Data for GBPUSD M10. Flagging max_history. (RawBin Length: none, Type: none, Buffer? false)
+[LOG] [2026-03-12T21:57:45.330Z] [Worker:Pepperstone_62104204_DATAFEED:HISTORY:ETHUSD] [22:57:45.329] [History] 🛑 End of Data for ETHUSD M15. Flagging max_history. (RawBin Length: none, Type: none, Buffer? false)
+[LOG] [2026-03-12T21:57:45.404Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [22:57:45.404] [History] 🛑 End of Data for EURUSD M3. Flagging max_history. (RawBin Length: none, Type: none, Buffer? false)
+[LOG] [2026-03-12T21:57:45.406Z] [Worker:Pepperstone_62104204_DATAFEED:HISTORY:ETHUSD] [22:57:45.405] [History] 🛑 End of Data for ETHUSD M30. Flagging max_history. (RawBin Length: none, Type: none, Buffer? false)
+[LOG] [2026-03-12T21:57:45.418Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [22:57:45.418] [History] 🛑 End of Data for GBPUSD M15. Flagging max_history. (RawBin Length: none, Type: none, Buffer? false)
+[LOG] [2026-03-12T21:57:45.421Z] [Worker:Pepperstone_62104204_DATAFEED:HISTORY:BTCUSD] [22:57:45.419] [History] 🛑 End of Data for BTCUSD M2. Flagging max_history. (RawBin Length: none, Type: none, Buffer? false)
+[LOG] [2026-03-12T21:57:45.554Z] [Worker:FN_13885827_DATAFEED:HISTORY:GBPUSD] [22:57:45.554] [History] 🛑 End of Data for GBPUSD M30. Flagging max_history. (RawBin Length: none, Type: none, Buffer? false)
+[LOG] [2026-03-12T21:57:45.573Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [22:57:45.569] [History] 🛑 End of Data for EURUSD M5. Flagging max_history. (RawBin Length: none, Type: none, Buffer? false)
+[LOG] [2026-03-12T21:57:45.692Z] [Worker:Pepperstone_62104204_DATAFEED:HISTORY:BTCUSD] [22:57:45.689] [History] 🛑 End of Data for BTCUSD M3. Flagging max_history. (RawBin Length: none, Type: none, Buffer? false)
+[LOG] [2026-03-12T21:57:45.706Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [22:57:45.706] [History] 🛑 End of Data for EURUSD M10. Flagging max_history. (RawBin Length: none, Type: none, Buffer? false)
+[LOG] [2026-03-12T21:57:45.767Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [22:57:45.767] [History] 🛑 End of Data for EURUSD M15. Flagging max_history. (RawBin Length: none, Type: none, Buffer? false)
+[LOG] [2026-03-12T21:57:45.778Z] [Worker:Pepperstone_62104204_DATAFEED:HISTORY:BTCUSD] [22:57:45.777] [History] 🛑 End of Data for BTCUSD M5. Flagging max_history. (RawBin Length: none, Type: none, Buffer? false)
+[LOG] [2026-03-12T21:57:45.841Z] [Worker:FN_13885827_DATAFEED:HISTORY:EURUSD] [22:57:45.840] [History] 🛑 End of Data for EURUSD M30. Flagging max_history. (RawBin Length: none, Type: none, Buffer? false)
+[LOG] [2026-03-12T21:57:45.841Z] [Worker:Pepperstone_62104204_DATAFEED:HISTORY:BTCUSD] [22:57:45.841] [History] 🛑 End of Data for BTCUSD M10. Flagging max_history. (RawBin Length: none, Type: none, Buffer? false)
+[LOG] [2026-03-12T21:57:45.972Z] [Worker:Pepperstone_62104204_DATAFEED:HISTORY:BTCUSD] [22:57:45.971] [History] 🛑 End of Data for BTCUSD M15. Flagging max_history. (RawBin Length: none, Type: none, Buffer? false)
+[LOG] [2026-03-12T21:57:46.071Z] [Worker:Pepperstone_62104204_DATAFEED:HISTORY:BTCUSD] [22:57:46.071] [History] 🛑 End of Data for BTCUSD M30. Flagging max_history. (RawBin Length: none, Type: none, Buffer? false)
+[LOG] [2026-03-12T21:57:46.649Z] [Sync] ⚠️ Subscribe: Worker not found for Pepperstone_62104204_DATAFEED:TICK_SPY:BTCUSD
+[LOG] [2026-03-12T21:57:46.669Z] [StatusFlow] 📥 RX: Client Subscribe Pepperstone_62104204_DATAFEED:TICK_SPY:BTCUSD H8 (Status: UNKNOWN)
+[LOG] [2026-03-12T21:57:46.807Z] [Sync] ⚠️ Subscribe: Worker not found for Pepperstone_62104204_DATAFEED:TICK_SPY:ETHUSD
+[LOG] [2026-03-12T21:57:46.823Z] [StatusFlow] 📥 RX: Client Subscribe Pepperstone_62104204_DATAFEED:TICK_SPY:ETHUSD H8 (Status: UNKNOWN)
+[2026-03-12T21:57:47.315Z] [BLOCKING] Event Loop Lag: 331ms
+[LOG] [2026-03-12T21:57:47.316Z] [SystemOrchestrator] ⏩ Auto-Start logic is disabled in system configuration.
+[LOG] [2026-03-12T21:57:47.321Z] [Gateway] New Connection: 84c44ede-7223-4850-ae37-d8e9e112156a
+[LOG] [2026-03-12T21:57:47.322Z] [Gateway] New Connection: 1a7529b7-f920-4e05-9fdd-bb35f1ddd95d
+[LOG] [2026-03-12T21:57:47.324Z] [Gateway] New Connection: 17ab034d-7043-4c26-92e6-e46c56634095
+[LOG] [2026-03-12T21:57:47.326Z] [Gateway] New Connection: 6c9fe70d-e1b8-4ab2-beca-d73bbc96f0c3
+[LOG] [2026-03-12T21:57:47.327Z] [UnifiedBotProtocol] 📝 REGISTER REQUEST: Payload={"header":{"command":"REGISTER","botId":"FN_13885827_DATAFEED","func":"TICK_SPY","symbol":"GBPUSD","timestamp":1773363466},"botId":"FN_13885827_DATAFEED","func":"TICK_SPY","symbol":"GBPUSD","type":"REGISTER"}
+[LOG] [2026-03-12T21:57:47.328Z] [UnifiedBotProtocol] ✅ REGISTERING: FN_13885827_DATAFEED | TICK_SPY | GBPUSD
+[LOG] [2026-03-12T21:57:47.329Z] [WebSocketManager] 🔑 REGISTERED: FN_13885827_DATAFEED:TICK_SPY:GBPUSD (Transport: 84c44ede-7223-4850-ae37-d8e9e112156a)
+[LOG] [2026-03-12T21:57:47.330Z] [SysOrch:Connect] 🟢 NEW CONNECTION: RoutingKey=FN_13885827_DATAFEED:TICK_SPY:GBPUSD, ID=FN_13885827_DATAFEED, Func=TICK_SPY, Sym=GBPUSD
+[LOG] [2026-03-12T21:57:47.330Z] [SysOrch:Connect] Registered NEW Bot Status: FN_13885827_DATAFEED:TICK_SPY:GBPUSD
+[LOG] [2026-03-12T21:57:47.330Z] [SystemOrchestrator] 🔌 Bot Connected: FN_13885827_DATAFEED (TICK_SPY) [GBPUSD]
+[LOG] [2026-03-12T21:57:47.333Z] [Sync] ♻️ Resending Active Subscriptions for Reconnected Bot: FN_13885827_DATAFEED:TICK_SPY:GBPUSD
+[LOG] [2026-03-12T21:57:47.333Z] [WorkerFactory] 🏭 Creating TICK_SPY for FN_13885827_DATAFEED:TICK_SPY:GBPUSD (Script: SymbolWorker.js)
+[LOG] [2026-03-12T21:57:47.334Z] [SystemOrchestrator] 🚀 Spawned Worker: TICK_SPY for FN_13885827_DATAFEED:TICK_SPY:GBPUSD
+[LOG] [2026-03-12T21:57:47.336Z] [UnifiedBotProtocol] 📝 REGISTER REQUEST: Payload={"header":{"command":"REGISTER","botId":"Pepperstone_62104204_DATAFEED","func":"TICK_SPY","symbol":"BTCUSD","timestamp":1773363467},"botId":"Pepperstone_62104204_DATAFEED","func":"TICK_SPY","symbol":"BTCUSD","type":"REGISTER"}
+[LOG] [2026-03-12T21:57:47.340Z] [UnifiedBotProtocol] ✅ REGISTERING: Pepperstone_62104204_DATAFEED | TICK_SPY | BTCUSD
+[LOG] [2026-03-12T21:57:47.343Z] [WebSocketManager] 🔑 REGISTERED: Pepperstone_62104204_DATAFEED:TICK_SPY:BTCUSD (Transport: 1a7529b7-f920-4e05-9fdd-bb35f1ddd95d)
+[LOG] [2026-03-12T21:57:47.344Z] [SysOrch:Connect] 🟢 NEW CONNECTION: RoutingKey=Pepperstone_62104204_DATAFEED:TICK_SPY:BTCUSD, ID=Pepperstone_62104204_DATAFEED, Func=TICK_SPY, Sym=BTCUSD
+[LOG] [2026-03-12T21:57:47.344Z] [SysOrch:Connect] Registered NEW Bot Status: Pepperstone_62104204_DATAFEED:TICK_SPY:BTCUSD
+[LOG] [2026-03-12T21:57:47.345Z] [SystemOrchestrator] 🔌 Bot Connected: Pepperstone_62104204_DATAFEED (TICK_SPY) [BTCUSD]
+[LOG] [2026-03-12T21:57:47.345Z] [Sync] ♻️ Resending Active Subscriptions for Reconnected Bot: Pepperstone_62104204_DATAFEED:TICK_SPY:BTCUSD
+[LOG] [2026-03-12T21:57:47.346Z] [WorkerFactory] 🏭 Creating TICK_SPY for Pepperstone_62104204_DATAFEED:TICK_SPY:BTCUSD (Script: SymbolWorker.js)
+[LOG] [2026-03-12T21:57:47.347Z] [SystemOrchestrator] 🚀 Spawned Worker: TICK_SPY for Pepperstone_62104204_DATAFEED:TICK_SPY:BTCUSD
+[LOG] [2026-03-12T21:57:47.349Z] [UnifiedBotProtocol] 📝 REGISTER REQUEST: Payload={"header":{"command":"REGISTER","botId":"FN_13885827_DATAFEED","func":"TICK_SPY","symbol":"EURUSD","timestamp":1773363466},"botId":"FN_13885827_DATAFEED","func":"TICK_SPY","symbol":"EURUSD","type":"REGISTER"}
+[LOG] [2026-03-12T21:57:47.353Z] [UnifiedBotProtocol] ✅ REGISTERING: FN_13885827_DATAFEED | TICK_SPY | EURUSD
+[LOG] [2026-03-12T21:57:47.358Z] [WebSocketManager] 🔑 REGISTERED: FN_13885827_DATAFEED:TICK_SPY:EURUSD (Transport: 6c9fe70d-e1b8-4ab2-beca-d73bbc96f0c3)
+[LOG] [2026-03-12T21:57:47.362Z] [SysOrch:Connect] 🟢 NEW CONNECTION: RoutingKey=FN_13885827_DATAFEED:TICK_SPY:EURUSD, ID=FN_13885827_DATAFEED, Func=TICK_SPY, Sym=EURUSD
+[LOG] [2026-03-12T21:57:47.364Z] [SysOrch:Connect] Registered NEW Bot Status: FN_13885827_DATAFEED:TICK_SPY:EURUSD
+[LOG] [2026-03-12T21:57:47.365Z] [SystemOrchestrator] 🔌 Bot Connected: FN_13885827_DATAFEED (TICK_SPY) [EURUSD]
+[LOG] [2026-03-12T21:57:47.370Z] [Sync] ♻️ Resending Active Subscriptions for Reconnected Bot: FN_13885827_DATAFEED:TICK_SPY:EURUSD
+[LOG] [2026-03-12T21:57:47.373Z] [WorkerFactory] 🏭 Creating TICK_SPY for FN_13885827_DATAFEED:TICK_SPY:EURUSD (Script: SymbolWorker.js)
+[LOG] [2026-03-12T21:57:47.379Z] [SystemOrchestrator] 🚀 Spawned Worker: TICK_SPY for FN_13885827_DATAFEED:TICK_SPY:EURUSD
+[LOG] [2026-03-12T21:57:47.386Z] [UnifiedBotProtocol] 📝 REGISTER REQUEST: Payload={"header":{"command":"REGISTER","botId":"Pepperstone_62104204_DATAFEED","func":"TICK_SPY","symbol":"ETHUSD","timestamp":1773363467},"botId":"Pepperstone_62104204_DATAFEED","func":"TICK_SPY","symbol":"ETHUSD","type":"REGISTER"}
+[LOG] [2026-03-12T21:57:47.389Z] [UnifiedBotProtocol] ✅ REGISTERING: Pepperstone_62104204_DATAFEED | TICK_SPY | ETHUSD
+[LOG] [2026-03-12T21:57:47.394Z] [WebSocketManager] 🔑 REGISTERED: Pepperstone_62104204_DATAFEED:TICK_SPY:ETHUSD (Transport: 17ab034d-7043-4c26-92e6-e46c56634095)
+[LOG] [2026-03-12T21:57:47.395Z] [SysOrch:Connect] 🟢 NEW CONNECTION: RoutingKey=Pepperstone_62104204_DATAFEED:TICK_SPY:ETHUSD, ID=Pepperstone_62104204_DATAFEED, Func=TICK_SPY, Sym=ETHUSD
+[LOG] [2026-03-12T21:57:47.396Z] [SysOrch:Connect] Registered NEW Bot Status: Pepperstone_62104204_DATAFEED:TICK_SPY:ETHUSD
+[LOG] [2026-03-12T21:57:47.396Z] [SystemOrchestrator] 🔌 Bot Connected: Pepperstone_62104204_DATAFEED (TICK_SPY) [ETHUSD]
+[LOG] [2026-03-12T21:57:47.398Z] [Sync] ♻️ Resending Active Subscriptions for Reconnected Bot: Pepperstone_62104204_DATAFEED:TICK_SPY:ETHUSD
+[LOG] [2026-03-12T21:57:47.399Z] [WorkerFactory] 🏭 Creating TICK_SPY for Pepperstone_62104204_DATAFEED:TICK_SPY:ETHUSD (Script: SymbolWorker.js)
+[LOG] [2026-03-12T21:57:47.400Z] [SystemOrchestrator] 🚀 Spawned Worker: TICK_SPY for Pepperstone_62104204_DATAFEED:TICK_SPY:ETHUSD
+[LOG] [2026-03-12T21:57:47.465Z] [SyncManager] syncSubscriptions called.Active Subs: 2.TargetBot: FN_13885827_DATAFEED:TICK_SPY:GBPUSD TargetSym: ALL 
+[LOG] [2026-03-12T21:57:47.467Z] [SyncManager] Current Active Subscriptions: Pepperstone_62104204_DATAFEED:TICK_SPY:BTCUSD:H8, Pepperstone_62104204_DATAFEED:TICK_SPY:ETHUSD:H8 
+[LOG] [2026-03-12T21:57:47.469Z] [SyncManager] syncSubscriptions called.Active Subs: 2.TargetBot: Pepperstone_62104204_DATAFEED:TICK_SPY:BTCUSD TargetSym: ALL 
+[LOG] [2026-03-12T21:57:47.473Z] [SyncManager] Current Active Subscriptions: Pepperstone_62104204_DATAFEED:TICK_SPY:BTCUSD:H8, Pepperstone_62104204_DATAFEED:TICK_SPY:ETHUSD:H8 
+[LOG] [2026-03-12T21:57:47.510Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:GBPUSD] [22:57:47.470] [Init] 🚀 Worker Spawned for FN_13885827_DATAFEED:TICK_SPY:GBPUSD
+[LOG] [2026-03-12T21:57:47.511Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:GBPUSD] [22:57:47.473] DB Connected: GBPUSD.db
+[LOG] [2026-03-12T21:57:47.513Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:GBPUSD] [22:57:47.480] [Lifecycle] Bot Connected: FN_13885827_DATAFEED (CID: undefined). Triggering Gap Check...
+[LOG] [2026-03-12T21:57:47.513Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:GBPUSD] [22:57:47.480] [GapCheck:Trace] M1 OK. Age: 107480ms < Threshold 180000ms. Last: 2026-03-12T21:56:00.000Z
+[LOG] [2026-03-12T21:57:47.514Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:GBPUSD] [22:57:47.481] [GapCheck:Trace] M2 OK. Age: 227480ms < Threshold 360000ms. Last: 2026-03-12T21:54:00.000Z
+[LOG] [2026-03-12T21:57:47.515Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:GBPUSD] [22:57:47.481] [GapCheck:Trace] M3 OK. Age: 227480ms < Threshold 540000ms. Last: 2026-03-12T21:54:00.000Z
+[LOG] [2026-03-12T21:57:47.515Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:GBPUSD] [22:57:47.484] [GapCheck:Trace] M5 OK. Age: 467480ms < Threshold 900000ms. Last: 2026-03-12T21:50:00.000Z
+[LOG] [2026-03-12T21:57:47.516Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:GBPUSD] [22:57:47.484] [GapCheck:Trace] M10 OK. Age: 1067480ms < Threshold 1800000ms. Last: 2026-03-12T21:40:00.000Z
+[LOG] [2026-03-12T21:57:47.516Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:GBPUSD] [22:57:47.485] [GapCheck:Trace] M15 OK. Age: 1667480ms < Threshold 2700000ms. Last: 2026-03-12T21:30:00.000Z
+[LOG] [2026-03-12T21:57:47.519Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:GBPUSD] [22:57:47.486] [GapCheck:Trace] M30 OK. Age: 3467480ms < Threshold 5400000ms. Last: 2026-03-12T21:00:00.000Z
+[LOG] [2026-03-12T21:57:47.522Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:GBPUSD] [22:57:47.486] [GapCheck:Trace] H1 OK. Age: 7067480ms < Threshold 10800000ms. Last: 2026-03-12T20:00:00.000Z
+[LOG] [2026-03-12T21:57:47.525Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:GBPUSD] [22:57:47.487] [GapCheck:Trace] H2 OK. Age: 10667480ms < Threshold 21600000ms. Last: 2026-03-12T19:00:00.000Z
+[LOG] [2026-03-12T21:57:47.527Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:GBPUSD] [22:57:47.487] [GapCheck:Trace] H3 OK. Age: 14267480ms < Threshold 32400000ms. Last: 2026-03-12T18:00:00.000Z
+[LOG] [2026-03-12T21:57:47.527Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:GBPUSD] [22:57:47.488] [GapCheck:Trace] H4 OK. Age: 17867480ms < Threshold 43200000ms. Last: 2026-03-12T17:00:00.000Z
+[LOG] [2026-03-12T21:57:47.528Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:GBPUSD] [22:57:47.488] [GapCheck:Trace] H6 OK. Age: 25067480ms < Threshold 64800000ms. Last: 2026-03-12T15:00:00.000Z
+[LOG] [2026-03-12T21:57:47.528Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:GBPUSD] [22:57:47.488] [GapCheck:Trace] H8 OK. Age: 32267480ms < Threshold 86400000ms. Last: 2026-03-12T13:00:00.000Z
+[LOG] [2026-03-12T21:57:47.529Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:GBPUSD] [22:57:47.489] [GapCheck:Trace] H12 OK. Age: 46667480ms < Threshold 129600000ms. Last: 2026-03-12T09:00:00.000Z
+[LOG] [2026-03-12T21:57:47.529Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:GBPUSD] [22:57:47.489] [GapCheck:Trace] D1 OK. Age: 79067480ms < Threshold 259200000ms. Last: 2026-03-12T00:00:00.000Z
+[LOG] [2026-03-12T21:57:47.529Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:GBPUSD] [22:57:47.489] [GapCheck:Trace] W1 OK. Age: 1029467480ms < Threshold 1814400000ms. Last: 2026-03-01T00:00:00.000Z
+[LOG] [2026-03-12T21:57:47.530Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:GBPUSD] [22:57:47.489] [GapCheck:Trace] MN1 OK. Age: 3448667480ms < Threshold 7776000000ms. Last: 2026-02-01T00:00:00.000Z
+[LOG] [2026-03-12T21:57:47.563Z] [SyncManager] syncSubscriptions called.Active Subs: 2.TargetBot: FN_13885827_DATAFEED:TICK_SPY:EURUSD TargetSym: ALL 
+[LOG] [2026-03-12T21:57:47.563Z] [SyncManager] Current Active Subscriptions: Pepperstone_62104204_DATAFEED:TICK_SPY:BTCUSD:H8, Pepperstone_62104204_DATAFEED:TICK_SPY:ETHUSD:H8 
+[LOG] [2026-03-12T21:57:47.564Z] [SyncManager] syncSubscriptions called.Active Subs: 2.TargetBot: Pepperstone_62104204_DATAFEED:TICK_SPY:ETHUSD TargetSym: ALL 
+[LOG] [2026-03-12T21:57:47.565Z] [SyncManager] Current Active Subscriptions: Pepperstone_62104204_DATAFEED:TICK_SPY:BTCUSD:H8, Pepperstone_62104204_DATAFEED:TICK_SPY:ETHUSD:H8 
+[LOG] [2026-03-12T21:57:47.572Z] [Worker:Pepperstone_62104204_DATAFEED:TICK_SPY:BTCUSD] [22:57:47.484] [Init] 🚀 Worker Spawned for Pepperstone_62104204_DATAFEED:TICK_SPY:BTCUSD
+[LOG] [2026-03-12T21:57:47.576Z] [Worker:Pepperstone_62104204_DATAFEED:TICK_SPY:BTCUSD] [22:57:47.488] DB Connected: BTCUSD.db
+[LOG] [2026-03-12T21:57:47.577Z] [Worker:Pepperstone_62104204_DATAFEED:TICK_SPY:BTCUSD] [22:57:47.491] [Lifecycle] Bot Connected: Pepperstone_62104204_DATAFEED (CID: undefined). Triggering Gap Check...
+[LOG] [2026-03-12T21:57:47.578Z] [Worker:Pepperstone_62104204_DATAFEED:TICK_SPY:BTCUSD] [22:57:47.492] [GapCheck:Trace] M1 OK. Age: 107491ms < Threshold 180000ms. Last: 2026-03-12T21:56:00.000Z
+[LOG] [2026-03-12T21:57:47.578Z] [Worker:Pepperstone_62104204_DATAFEED:TICK_SPY:BTCUSD] [22:57:47.493] [GapCheck:Trace] M2 OK. Age: 227491ms < Threshold 360000ms. Last: 2026-03-12T21:54:00.000Z
+[LOG] [2026-03-12T21:57:47.579Z] [Worker:Pepperstone_62104204_DATAFEED:TICK_SPY:BTCUSD] [22:57:47.493] [GapCheck:Trace] M3 OK. Age: 227491ms < Threshold 540000ms. Last: 2026-03-12T21:54:00.000Z
+[LOG] [2026-03-12T21:57:47.579Z] [Worker:Pepperstone_62104204_DATAFEED:TICK_SPY:BTCUSD] [22:57:47.497] [GapCheck:Trace] M5 OK. Age: 467491ms < Threshold 900000ms. Last: 2026-03-12T21:50:00.000Z
+[LOG] [2026-03-12T21:57:47.580Z] [Worker:Pepperstone_62104204_DATAFEED:TICK_SPY:BTCUSD] [22:57:47.498] [GapCheck:Trace] M10 OK. Age: 1067491ms < Threshold 1800000ms. Last: 2026-03-12T21:40:00.000Z
+[LOG] [2026-03-12T21:57:47.580Z] [Worker:Pepperstone_62104204_DATAFEED:TICK_SPY:BTCUSD] [22:57:47.498] [GapCheck:Trace] M15 OK. Age: 1667491ms < Threshold 2700000ms. Last: 2026-03-12T21:30:00.000Z
+[LOG] [2026-03-12T21:57:47.580Z] [Worker:Pepperstone_62104204_DATAFEED:TICK_SPY:BTCUSD] [22:57:47.499] [GapCheck:Trace] M30 OK. Age: 3467491ms < Threshold 5400000ms. Last: 2026-03-12T21:00:00.000Z
+[LOG] [2026-03-12T21:57:47.581Z] [Worker:Pepperstone_62104204_DATAFEED:TICK_SPY:BTCUSD] [22:57:47.499] [GapCheck:Trace] H1 OK. Age: 7067491ms < Threshold 10800000ms. Last: 2026-03-12T20:00:00.000Z
+[LOG] [2026-03-12T21:57:47.581Z] [Worker:Pepperstone_62104204_DATAFEED:TICK_SPY:BTCUSD] [22:57:47.499] [GapCheck:Trace] H2 OK. Age: 10667491ms < Threshold 21600000ms. Last: 2026-03-12T19:00:00.000Z
+[LOG] [2026-03-12T21:57:47.582Z] [Worker:Pepperstone_62104204_DATAFEED:TICK_SPY:BTCUSD] [22:57:47.500] [GapCheck:Trace] H3 OK. Age: 14267491ms < Threshold 32400000ms. Last: 2026-03-12T18:00:00.000Z
+[LOG] [2026-03-12T21:57:47.583Z] [Worker:Pepperstone_62104204_DATAFEED:TICK_SPY:BTCUSD] [22:57:47.500] [GapCheck:Trace] H4 OK. Age: 17867491ms < Threshold 43200000ms. Last: 2026-03-12T17:00:00.000Z
+[LOG] [2026-03-12T21:57:47.583Z] [Worker:Pepperstone_62104204_DATAFEED:TICK_SPY:BTCUSD] [22:57:47.500] [GapCheck:Trace] H6 OK. Age: 25067491ms < Threshold 64800000ms. Last: 2026-03-12T15:00:00.000Z
+[LOG] [2026-03-12T21:57:47.585Z] [Worker:Pepperstone_62104204_DATAFEED:TICK_SPY:BTCUSD] [22:57:47.500] [GapCheck:Trace] H8 OK. Age: 32267491ms < Threshold 86400000ms. Last: 2026-03-12T13:00:00.000Z
+[LOG] [2026-03-12T21:57:47.586Z] [Worker:Pepperstone_62104204_DATAFEED:TICK_SPY:BTCUSD] [22:57:47.500] [GapCheck:Trace] H12 OK. Age: 46667491ms < Threshold 129600000ms. Last: 2026-03-12T09:00:00.000Z
+[LOG] [2026-03-12T21:57:47.587Z] [Worker:Pepperstone_62104204_DATAFEED:TICK_SPY:BTCUSD] [22:57:47.501] [GapCheck:Trace] D1 OK. Age: 79067491ms < Threshold 259200000ms. Last: 2026-03-12T00:00:00.000Z
+[LOG] [2026-03-12T21:57:47.588Z] [Worker:Pepperstone_62104204_DATAFEED:TICK_SPY:BTCUSD] [22:57:47.501] [GapCheck:Trace] W1 OK. Age: 1029467491ms < Threshold 1814400000ms. Last: 2026-03-01T00:00:00.000Z
+[LOG] [2026-03-12T21:57:47.589Z] [Worker:Pepperstone_62104204_DATAFEED:TICK_SPY:BTCUSD] [22:57:47.503] [GapCheck:Trace] MN1 OK. Age: 3448667491ms < Threshold 7776000000ms. Last: 2026-02-01T00:00:00.000Z
+[LOG] [2026-03-12T21:57:47.594Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [22:57:47.510] [Init] 🚀 Worker Spawned for FN_13885827_DATAFEED:TICK_SPY:EURUSD
+[LOG] [2026-03-12T21:57:47.595Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [22:57:47.514] DB Connected: EURUSD.db
+[LOG] [2026-03-12T21:57:47.596Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [22:57:47.516] [Lifecycle] Bot Connected: FN_13885827_DATAFEED (CID: undefined). Triggering Gap Check...
+[LOG] [2026-03-12T21:57:47.596Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [22:57:47.517] [GapCheck:Trace] M1 OK. Age: 167517ms < Threshold 180000ms. Last: 2026-03-12T21:55:00.000Z
+[LOG] [2026-03-12T21:57:47.596Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [22:57:47.518] [GapCheck:Trace] M2 OK. Age: 227517ms < Threshold 360000ms. Last: 2026-03-12T21:54:00.000Z
+[LOG] [2026-03-12T21:57:47.597Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [22:57:47.518] [GapCheck:Trace] M3: STALE (Age: 587517ms > 540000). Triggering Update.
+[LOG] [2026-03-12T21:57:47.597Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [22:57:47.521] [Sync] 📤 Smart Sync (RPC) for EURUSD M3. UTC MS: 1773352080000 -> Broker Sec: 1773362880
+[LOG] [2026-03-12T21:57:47.598Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [22:57:47.527] [GapCheck:Trace] M5 OK. Age: 467517ms < Threshold 900000ms. Last: 2026-03-12T21:50:00.000Z
+[LOG] [2026-03-12T21:57:47.598Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [22:57:47.528] [GapCheck:Trace] M10 OK. Age: 1067517ms < Threshold 1800000ms. Last: 2026-03-12T21:40:00.000Z
+[LOG] [2026-03-12T21:57:47.600Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [22:57:47.529] [GapCheck:Trace] M15 OK. Age: 1667517ms < Threshold 2700000ms. Last: 2026-03-12T21:30:00.000Z
+[LOG] [2026-03-12T21:57:47.601Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [22:57:47.529] [GapCheck:Trace] M30 OK. Age: 3467517ms < Threshold 5400000ms. Last: 2026-03-12T21:00:00.000Z
+[LOG] [2026-03-12T21:57:47.602Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [22:57:47.530] [GapCheck:Trace] H1 OK. Age: 7067517ms < Threshold 10800000ms. Last: 2026-03-12T20:00:00.000Z
+[LOG] [2026-03-12T21:57:47.604Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [22:57:47.530] [GapCheck:Trace] H2 OK. Age: 10667517ms < Threshold 21600000ms. Last: 2026-03-12T19:00:00.000Z
+[LOG] [2026-03-12T21:57:47.605Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [22:57:47.530] [GapCheck:Trace] H3 OK. Age: 14267517ms < Threshold 32400000ms. Last: 2026-03-12T18:00:00.000Z
+[LOG] [2026-03-12T21:57:47.606Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [22:57:47.531] [GapCheck:Trace] H4 OK. Age: 17867517ms < Threshold 43200000ms. Last: 2026-03-12T17:00:00.000Z
+[LOG] [2026-03-12T21:57:47.607Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [22:57:47.531] [GapCheck:Trace] H6 OK. Age: 25067517ms < Threshold 64800000ms. Last: 2026-03-12T15:00:00.000Z
+[LOG] [2026-03-12T21:57:47.607Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [22:57:47.531] [GapCheck:Trace] H8 OK. Age: 32267517ms < Threshold 86400000ms. Last: 2026-03-12T13:00:00.000Z
+[LOG] [2026-03-12T21:57:47.607Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [22:57:47.531] [GapCheck:Trace] H12 OK. Age: 46667517ms < Threshold 129600000ms. Last: 2026-03-12T09:00:00.000Z
+[LOG] [2026-03-12T21:57:47.607Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [22:57:47.531] [GapCheck:Trace] D1 OK. Age: 79067517ms < Threshold 259200000ms. Last: 2026-03-12T00:00:00.000Z
+[LOG] [2026-03-12T21:57:47.608Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [22:57:47.532] [GapCheck:Trace] W1 OK. Age: 1029467517ms < Threshold 1814400000ms. Last: 2026-03-01T00:00:00.000Z
+[LOG] [2026-03-12T21:57:47.609Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [22:57:47.532] [GapCheck:Trace] MN1 OK. Age: 3448667517ms < Threshold 7776000000ms. Last: 2026-02-01T00:00:00.000Z
+[LOG] [2026-03-12T21:57:47.611Z] [Worker:Pepperstone_62104204_DATAFEED:TICK_SPY:ETHUSD] [22:57:47.542] [Init] 🚀 Worker Spawned for Pepperstone_62104204_DATAFEED:TICK_SPY:ETHUSD
+[LOG] [2026-03-12T21:57:47.612Z] [Worker:Pepperstone_62104204_DATAFEED:TICK_SPY:ETHUSD] [22:57:47.545] DB Connected: ETHUSD.db
+[LOG] [2026-03-12T21:57:47.612Z] [Worker:Pepperstone_62104204_DATAFEED:TICK_SPY:ETHUSD] [22:57:47.547] [Lifecycle] Bot Connected: Pepperstone_62104204_DATAFEED (CID: undefined). Triggering Gap Check...
+[LOG] [2026-03-12T21:57:47.614Z] [Worker:Pepperstone_62104204_DATAFEED:TICK_SPY:ETHUSD] [22:57:47.548] [GapCheck:Trace] M1 OK. Age: 107547ms < Threshold 180000ms. Last: 2026-03-12T21:56:00.000Z
+[LOG] [2026-03-12T21:57:47.615Z] [Worker:Pepperstone_62104204_DATAFEED:TICK_SPY:ETHUSD] [22:57:47.548] [GapCheck:Trace] M2 OK. Age: 227547ms < Threshold 360000ms. Last: 2026-03-12T21:54:00.000Z
+[LOG] [2026-03-12T21:57:47.615Z] [Worker:Pepperstone_62104204_DATAFEED:TICK_SPY:ETHUSD] [22:57:47.549] [GapCheck:Trace] M3 OK. Age: 227547ms < Threshold 540000ms. Last: 2026-03-12T21:54:00.000Z
+[LOG] [2026-03-12T21:57:47.616Z] [Worker:Pepperstone_62104204_DATAFEED:TICK_SPY:ETHUSD] [22:57:47.549] [GapCheck:Trace] M5 OK. Age: 467547ms < Threshold 900000ms. Last: 2026-03-12T21:50:00.000Z
+[LOG] [2026-03-12T21:57:47.616Z] [Worker:Pepperstone_62104204_DATAFEED:TICK_SPY:ETHUSD] [22:57:47.549] [GapCheck:Trace] M10 OK. Age: 1067547ms < Threshold 1800000ms. Last: 2026-03-12T21:40:00.000Z
+[LOG] [2026-03-12T21:57:47.617Z] [Worker:Pepperstone_62104204_DATAFEED:TICK_SPY:ETHUSD] [22:57:47.550] [GapCheck:Trace] M15 OK. Age: 1667547ms < Threshold 2700000ms. Last: 2026-03-12T21:30:00.000Z
+[LOG] [2026-03-12T21:57:47.617Z] [Worker:Pepperstone_62104204_DATAFEED:TICK_SPY:ETHUSD] [22:57:47.550] [GapCheck:Trace] M30 OK. Age: 3467547ms < Threshold 5400000ms. Last: 2026-03-12T21:00:00.000Z
+[LOG] [2026-03-12T21:57:47.619Z] [Worker:Pepperstone_62104204_DATAFEED:TICK_SPY:ETHUSD] [22:57:47.550] [GapCheck:Trace] H1 OK. Age: 7067547ms < Threshold 10800000ms. Last: 2026-03-12T20:00:00.000Z
+[LOG] [2026-03-12T21:57:47.620Z] [Worker:Pepperstone_62104204_DATAFEED:TICK_SPY:ETHUSD] [22:57:47.551] [GapCheck:Trace] H2 OK. Age: 10667547ms < Threshold 21600000ms. Last: 2026-03-12T19:00:00.000Z
+[LOG] [2026-03-12T21:57:47.621Z] [Worker:Pepperstone_62104204_DATAFEED:TICK_SPY:ETHUSD] [22:57:47.551] [GapCheck:Trace] H3 OK. Age: 14267547ms < Threshold 32400000ms. Last: 2026-03-12T18:00:00.000Z
+[LOG] [2026-03-12T21:57:47.621Z] [Worker:Pepperstone_62104204_DATAFEED:TICK_SPY:ETHUSD] [22:57:47.551] [GapCheck:Trace] H4 OK. Age: 17867547ms < Threshold 43200000ms. Last: 2026-03-12T17:00:00.000Z
+[LOG] [2026-03-12T21:57:47.622Z] [Worker:Pepperstone_62104204_DATAFEED:TICK_SPY:ETHUSD] [22:57:47.551] [GapCheck:Trace] H6 OK. Age: 25067547ms < Threshold 64800000ms. Last: 2026-03-12T15:00:00.000Z
+[LOG] [2026-03-12T21:57:47.622Z] [Worker:Pepperstone_62104204_DATAFEED:TICK_SPY:ETHUSD] [22:57:47.552] [GapCheck:Trace] H8 OK. Age: 32267547ms < Threshold 86400000ms. Last: 2026-03-12T13:00:00.000Z
+[LOG] [2026-03-12T21:57:47.622Z] [Worker:Pepperstone_62104204_DATAFEED:TICK_SPY:ETHUSD] [22:57:47.553] [GapCheck:Trace] H12 OK. Age: 46667547ms < Threshold 129600000ms. Last: 2026-03-12T09:00:00.000Z
+[LOG] [2026-03-12T21:57:47.623Z] [Worker:Pepperstone_62104204_DATAFEED:TICK_SPY:ETHUSD] [22:57:47.553] [GapCheck:Trace] D1 OK. Age: 79067547ms < Threshold 259200000ms. Last: 2026-03-12T00:00:00.000Z
+[LOG] [2026-03-12T21:57:47.623Z] [Worker:Pepperstone_62104204_DATAFEED:TICK_SPY:ETHUSD] [22:57:47.554] [GapCheck:Trace] W1 OK. Age: 1029467547ms < Threshold 1814400000ms. Last: 2026-03-01T00:00:00.000Z
+[LOG] [2026-03-12T21:57:47.623Z] [Worker:Pepperstone_62104204_DATAFEED:TICK_SPY:ETHUSD] [22:57:47.554] [GapCheck:Trace] MN1 OK. Age: 3448667547ms < Threshold 7776000000ms. Last: 2026-02-01T00:00:00.000Z
+[LOG] [2026-03-12T21:57:47.678Z] [!!! ALARM-FLOW-BACKEND 1 - GET /api/history !!!] Received request: routingKey=Pepperstone_62104204_DATAFEED:HISTORY:BTCUSD, tf=H8
+[LOG] [2026-03-12T21:57:47.698Z] [SocketServer] History Gap for BTCUSD H8. Req: 10000, Found: 5102. Triggering BACKGROUND fetch from 1625720400000.
+[LOG] [2026-03-12T21:57:47.710Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [22:57:47.650] [Sync] 📥 Ingesting 2 bars from RPC for M3.
+[LOG] [2026-03-12T21:57:47.710Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [22:57:47.652] [Sync] 💾 Persisted 2 bars for M3
+[LOG] [2026-03-12T21:57:47.711Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [22:57:47.652] [Queue] ✅ No pending tasks for M3. Sending SYNC_COMPLETE.
+[LOG] [2026-03-12T21:57:47.711Z] [Sync] ✅ Worker Reports SYNC_COMPLETE for EURUSD M3
+[LOG] [2026-03-12T21:57:47.765Z] [!!! ALARM-FLOW-BACKEND 1 - GET /api/history !!!] Received request: routingKey=Pepperstone_62104204_DATAFEED:HISTORY:BTCUSD, tf=H8
+[LOG] [2026-03-12T21:57:47.790Z] [SocketServer] History Gap for BTCUSD H8. Req: 10000, Found: 5102. Triggering BACKGROUND fetch from 1625720400000.
+[2026-03-12T21:57:47.890Z] [BLOCKING] Event Loop Lag: 75ms
+[LOG] [2026-03-12T21:57:47.972Z] [!!! ALARM-FLOW-BACKEND 1 - GET /api/history !!!] Received request: routingKey=Pepperstone_62104204_DATAFEED:HISTORY:ETHUSD, tf=H8
+[LOG] [2026-03-12T21:57:47.993Z] [SocketServer] History Gap for ETHUSD H8. Req: 10000, Found: 5102. Triggering BACKGROUND fetch from 1625720400000.
+[2026-03-12T21:57:48.430Z] [BLOCKING] Event Loop Lag: 40ms
+[2026-03-12T21:57:53.133Z] [BLOCKING] Event Loop Lag: 166ms
+[LOG] [2026-03-12T21:58:02.293Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [22:58:02.293] [BarData] 🚨 GAP DETECTED for M1. Triggering Sync.
+[LOG] [2026-03-12T21:58:02.294Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [22:58:02.294] [Sync] 📤 Smart Sync (RPC) for EURUSD M1. UTC MS: 1773352500000 -> Broker Sec: 1773363300
+[LOG] [2026-03-12T21:58:02.318Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [22:58:02.318] [Sync] 📥 Ingesting 2 bars from RPC for M1.
+[LOG] [2026-03-12T21:58:02.321Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [22:58:02.321] [Sync] 💾 Persisted 2 bars for M1
+[LOG] [2026-03-12T21:58:02.322Z] [Worker:FN_13885827_DATAFEED:TICK_SPY:EURUSD] [22:58:02.321] [Queue] ✅ No pending tasks for M1. Sending SYNC_COMPLETE.
+[LOG] [2026-03-12T21:58:02.323Z] [Sync] ✅ Worker Reports SYNC_COMPLETE for EURUSD M1
+
+--- 📊 TOP 10 LOG SOURCES (Last Minute) ---
+[35] [Worker:FN_N_DATAFEED:HISTORY:GBPUSD] [N:N:N.N] 
+[35] [Worker:Pepperstone_N_DATAFEED:HISTORY:BTCUSD] [N:N
+[35] [Worker:FN_N_DATAFEED:HISTORY:EURUSD] [N:N:N.N] 
+[33] [Worker:Pepperstone_N_DATAFEED:HISTORY:ETHUSD] [N:N
+[29] [Worker:FN_N_DATAFEED:TICK_SPY:EURUSD] [N:N:N.N]
+[20] [Worker:FN_N_DATAFEED:TICK_SPY:GBPUSD] [N:N:N.N]
+[20] [Worker:Pepperstone_N_DATAFEED:TICK_SPY:BTCUSD] [N:N
+[20] [Worker:Pepperstone_N_DATAFEED:TICK_SPY:ETHUSD] [N:N
+[10] [UnifiedBotProtocol] 📝 REGISTER REQUEST: Payload={"header":
+[6] [Sync] ♻️ Resending Active Subscriptions for Reconnected Bot
+-------------------------------------------

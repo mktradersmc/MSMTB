@@ -2140,9 +2140,6 @@ export const ChartContainer = React.forwardRef<ChartContainerHandle, ChartContai
                         labelBackgroundColor: '#000000',
                     },
                 },
-                localization: {
-                    priceFormatter: (p: number) => p.toFixed(precision),
-                },
                 handleScale: {
                     mouseWheel: false,
                 },
@@ -2191,6 +2188,21 @@ export const ChartContainer = React.forwardRef<ChartContainerHandle, ChartContai
         if (seriesBRef.current) {
             seriesBRef.current.applyOptions({
                 priceFormat: { type: 'price', precision: precision, minMove: minMove },
+            });
+        }
+
+        // Update Chart Localization (fixes the price scale digits)
+        chartARef.current.applyOptions({
+            localization: {
+                priceFormatter: (p: number) => p.toFixed(precision),
+            }
+        });
+        
+        if (chartBRef.current) {
+            chartBRef.current.applyOptions({
+                localization: {
+                    priceFormatter: (p: number) => p.toFixed(precision),
+                }
             });
         }
 

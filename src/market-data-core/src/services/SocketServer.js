@@ -533,8 +533,9 @@ class SocketServer {
                 }
 
                 // ✅ BACKFILL LOGIC: NON-BLOCKING - Respond immediately with partial data
-                if (candles.length < limit && to && !backtestId) {
-                    console.log(`[SocketServer] History Gap for ${symbol} ${timeframe}. Req: ${limit}, Found: ${candles.length}. Triggering BACKGROUND fetch from ${to}.`);
+                if (candles.length < limit && !backtestId) {
+                    const fetchTo = to || (candles.length > 0 ? candles[0].time : null);
+                    console.log(`[SocketServer] History Gap for ${symbol} ${timeframe}. Req: ${limit}, Found: ${candles.length}. Triggering BACKGROUND fetch from ${fetchTo}.`);
 
                     // STRICT CHECK: Is Bot Online?
                     const targetBotId = systemOrchestrator.resolveBotId(symbol);

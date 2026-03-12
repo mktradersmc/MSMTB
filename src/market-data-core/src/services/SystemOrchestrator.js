@@ -1522,16 +1522,16 @@ class SystemOrchestrator {
             this.processHistoryBatch(symbol, msg.content, msg.botId, msg.timeframe);
         }
         else if (msg.type === 'HISTORY_UPDATE') {
-            const { symbol: hSymbol, timeframe, candles } = msg.content || msg.payload;
+            const payload = msg.content || msg.payload || msg;
+            const { symbol: hSymbol, timeframe, count } = payload;
             const targetSymbol = hSymbol || symbol;
 
-            if (this.socketServer && this.socketServer.io && candles && candles.length > 0) {
-                const roomName = routingKey || targetSymbol;
-                this.socketServer.io.to(roomName).emit('history_update', {
-                    routingKey: routingKey,
+            if (this.socketServer && this.socketServer.io) {
+                // Ensure the signal is broadcast to all charts so they can trigger fetchHistory
+                this.socketServer.io.emit('HISTORY_UPDATE', {
                     symbol: targetSymbol,
                     timeframe,
-                    candles
+                    count
                 });
             }
         }

@@ -234,10 +234,18 @@ export function useChartData({ symbol, timeframe, botId, isActivePane, backtestI
             }
         };
 
+        const onHistoryUpdate = (payload: any) => {
+            if (payload.symbol === symbol && payload.timeframe === timeframe) {
+                console.log(`[useChartData] 📚 HISTORY UPDATE for ${symbol} ${timeframe}. Triggering Smart Merge...`);
+                fetchHistory(true);
+            }
+        };
+
         // 0. Listen for SYNC Events
         const { communicationHub } = require('../services/CommunicationHub');
         communicationHub.on('SYNC_COMPLETE', onSyncComplete);
         communicationHub.on('SYNC_ERROR', onSyncError);
+        communicationHub.on('HISTORY_UPDATE', onHistoryUpdate);
 
         // 3. LISTEN FOR RECONNECT (Gap Fill Fix)
         // If socket reconnects, we might have missed SYNC_COMPLETE.
@@ -265,7 +273,6 @@ export function useChartData({ symbol, timeframe, botId, isActivePane, backtestI
         };
         communicationHub.on('sanity_update', onSanityUpdate);
 
-        // 1. Check Initial Sync Status (Fix for Race Condition)
         const checkSyncStatus = async () => {
             if (backtestId) {
                 console.log(`[useChartData] ✅ Initial Status Check: Bypassing for Backtest mode. Fetching immediately.`);
@@ -306,7 +313,7 @@ export function useChartData({ symbol, timeframe, botId, isActivePane, backtestI
         checkSyncStatus();
 
         // 2. Subscribe
-        const subId = `sub_${symbol}_${timeframe}_${Date.now()}`;
+        const subId = `sub_${symbol}_${timeframe}_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
         const adapter = datafeedRef.current;
 
         if (adapter) {
@@ -453,6 +460,7 @@ export function useChartData({ symbol, timeframe, botId, isActivePane, backtestI
             if (adapter) adapter.unsubscribeBars(subId);
             communicationHub.off('SYNC_COMPLETE', onSyncComplete);
             communicationHub.off('SYNC_ERROR', onSyncError);
+            communicationHub.off('HISTORY_UPDATE', onHistoryUpdate);
             communicationHub.off('connect', onReconnect);
             communicationHub.off('sanity_update', onSanityUpdate);
             if (backtestId) {

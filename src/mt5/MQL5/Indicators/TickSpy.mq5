@@ -20,24 +20,24 @@
 class CCommandSubscribe : public CBaseCommand {
    CTickSpyService* s; public: CCommandSubscribe(CTickSpyService* _s){s=_s;}
    virtual string Name() { return "CMD_SUBSCRIBE_TICKS"; }
-   virtual bool Execute(CJAVal *p, CJAVal &r) { s.ProcessSubscribeCommand(p, true, r); return true; }
+   virtual bool Execute(CJAVal *p, CJAVal &r, uchar &outBinaryPayload[]) { s.ProcessSubscribeCommand(p, true, r); return true; }
 };
 class CCommandUnsubscribe : public CBaseCommand {
    CTickSpyService* s; public: CCommandUnsubscribe(CTickSpyService* _s){s=_s;}
    virtual string Name() { return "CMD_UNSUBSCRIBE_TICKS"; }
-   virtual bool Execute(CJAVal *p, CJAVal &r) { s.ProcessSubscribeCommand(p, false, r); return true; }
+   virtual bool Execute(CJAVal *p, CJAVal &r, uchar &outBinaryPayload[]) { s.ProcessSubscribeCommand(p, false, r); return true; }
 };
 class CCommandStartSynchronizedUpdate : public CBaseCommand {
    CTickSpyService* s; public: CCommandStartSynchronizedUpdate(CTickSpyService* _s){s=_s;}
    virtual string Name() { return "CMD_START_SYNCHRONIZED_UPDATE"; }
-   virtual bool Execute(CJAVal *p, CJAVal &r) { 
-       return s.ProcessStartSynchronizedUpdate(p, r); 
+   virtual bool Execute(CJAVal *p, CJAVal &r, uchar &outBinaryPayload[]) { 
+       return s.ProcessStartSynchronizedUpdate(p, r, outBinaryPayload); 
    }
 };
 class CCommandGetCurrentBar : public CBaseCommand {
    CTickSpyService* s; public: CCommandGetCurrentBar(CTickSpyService* _s){s=_s;}
    virtual string Name() { return "CMD_GET_CURRENT_BAR"; }
-   virtual bool Execute(CJAVal *p, CJAVal &r) { 
+   virtual bool Execute(CJAVal *p, CJAVal &r, uchar &outBinaryPayload[]) { 
        return s.ProcessGetCurrentBar(p, r); 
    }
 };

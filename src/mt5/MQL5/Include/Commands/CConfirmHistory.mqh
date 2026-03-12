@@ -17,7 +17,7 @@ class CConfirmHistory : public CBaseCommand
 public:
    virtual string Name() { return "CMD_CONFIRM_HISTORY"; }
    
-   virtual bool Execute(CJAVal *payload, CJAVal &responsePayload)
+   virtual bool Execute(CJAVal *payload, CJAVal &responsePayload, uchar &outBinaryPayload[])
    {
       // 1. Timestamp-based confirmation (Batch)
       long timestamp = 0;
@@ -47,3 +47,4 @@ public:
       return true;
    }
 };
+

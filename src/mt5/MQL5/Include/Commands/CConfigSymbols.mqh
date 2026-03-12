@@ -22,7 +22,7 @@ public:
    
    virtual string Name() { return "CMD_CONFIG_SYMBOLS"; }
    
-   virtual bool Execute(CJAVal *payload, CJAVal &responsePayload)
+   virtual bool Execute(CJAVal *payload, CJAVal &responsePayload, uchar &outBinaryPayload[])
    {
        if(m_services == NULL) return false;
        
@@ -76,3 +76,4 @@ public:
 };
 
 #endif
+

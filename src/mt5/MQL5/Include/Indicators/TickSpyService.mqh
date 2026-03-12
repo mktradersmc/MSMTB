@@ -82,7 +82,18 @@ public:
    
    // --- Command Handlers ---
    
-   bool ProcessStartSynchronizedUpdate(CJAVal *payload, CJAVal &response)
+   // --- Struct Packing Helpers for Little Endian ---
+   void PackLongToBytes(long value, uchar &dst[], int offset) {
+       for(int j=0; j<8; j++) dst[offset+j] = (uchar)((value >> (j*8)) & 0xFF);
+   }
+   
+   void PackDoubleToBytes(double value, uchar &dst[], int offset) {
+       union DoubleRaw { double d; long l; } dr;
+       dr.d = value;
+       for(int j=0; j<8; j++) dst[offset+j] = (uchar)((dr.l >> (j*8)) & 0xFF);
+   }
+
+   bool ProcessStartSynchronizedUpdate(CJAVal *payload, CJAVal &response, uchar &outBinaryData[])
    {
        if (payload == NULL) return false;
        
@@ -118,7 +129,6 @@ public:
                 PrintFormat("[TickSpyService] Gap Fill Empty: Stop (%s) < Start (%s). Already up-to-date.", TimeToString(stop), TimeToString(start));
                 UpdateLastBarTime(tf, stop);
                 response["status"] = "OK";
-                response["data"].Set(new CJAVal()); // Empty array
                 response["timeframe"] = tf; // CRITICAL for Worker Correlation
                 return true;
            }
@@ -135,23 +145,25 @@ public:
             return true; // Command executed, but result is error
         }
         
-        // Populate Response Data
-        CJAVal data;
+        // 1. Prepare Binary Array
+        int barSize = 48;
+        ArrayResize(outBinaryData, copied * barSize);
+        
         for(int i=0; i<copied; i++) {
-            CJAVal bar;
-            bar["time"] = (long)rates[i].time;
-            bar["open"] = rates[i].open;
-            bar["high"] = rates[i].high;
-            bar["low"] = rates[i].low;
-            bar["close"] = rates[i].close;
-            bar["volume"] = (long)rates[i].tick_volume;
-            data.Add(bar);
+            int offset = i * barSize;
+            PackLongToBytes((long)rates[i].time, outBinaryData, offset);
+            PackDoubleToBytes(rates[i].open, outBinaryData, offset+8);
+            PackDoubleToBytes(rates[i].high, outBinaryData, offset+16);
+            PackDoubleToBytes(rates[i].low, outBinaryData, offset+24);
+            PackDoubleToBytes(rates[i].close, outBinaryData, offset+32);
+            PackLongToBytes((long)rates[i].tick_volume, outBinaryData, offset+40);
         }
-        response["content"].Set(data);
+        
         response["status"] = "OK";
         response["timeframe"] = tf; // CRITICAL for Worker Correlation
+        response["count"] = (long)copied;
         
-        PrintFormat("[TickSpyService] ✅ Prepared Response (%d bars). First Bar: Time=%I64d.", copied, rates[0].time);
+        PrintFormat("[TickSpyService] ✅ Prepared Binary Response (%d bars, %d bytes). First Bar: Time=%I64d.", copied, ArraySize(outBinaryData), rates[0].time);
             
         // CRITICAL: Update Pointer to the LAST SENT BAR (Time[1])
         UpdateLastBarTime(tf, rates[copied-1].time); // rates is sorted by time ascending
@@ -248,30 +260,27 @@ public:
         MqlRates rates[];
         if (CopyRates(_Symbol, period, index, 1, rates) == 1) {
             string tf = GetTimeframeString(period);
-            
-            // PROTOCOL V3 (Strict):
-            // Index 0 = EV_BAR_UPDATE (Forming)
-            // Index 1+ = EV_BAR_CLOSED (Persistable)
             string type = (index == 0) ? "EV_BAR_UPDATE" : "EV_BAR_CLOSED";
-            
-
             
             CJAVal data;
             data["symbol"] = m_identitySymbol;
-            data["timeframe"] = tf;
+            data["timeframe"] = tf; // <-- V3 Binary Protocol Fallback Target for Node.js
+            data["count"] = 1;
             
-            CJAVal candle;
-            candle["time"] = (long)rates[0].time;
-            candle["open"] = rates[0].open;
-            candle["high"] = rates[0].high;
-            candle["low"] = rates[0].low;
-            candle["close"] = rates[0].close;
-            candle["volume"] = (long)rates[0].tick_volume;
+            // 1. Prepare Binary Array (48 bytes for 1 bar)
+            int barSize = 48;
+            uchar binaryData[];
+            ArrayResize(binaryData, barSize);
             
-            data["candle"].Set(candle);
+            PackLongToBytes((long)rates[0].time, binaryData, 0);
+            PackDoubleToBytes(rates[0].open, binaryData, 8);
+            PackDoubleToBytes(rates[0].high, binaryData, 16);
+            PackDoubleToBytes(rates[0].low, binaryData, 24);
+            PackDoubleToBytes(rates[0].close, binaryData, 32);
+            PackLongToBytes((long)rates[0].tick_volume, binaryData, 40);
             
-            // Send via Strict Protocol Helper (Header is auto-generated)
-            m_wsClient.SendProtocolMessage(type, data);
+            // Send via Strict Binary Protocol Helper
+            m_wsClient.SendBinaryWithHeader(type, data, binaryData, "");
         }
     }
     void CheckNewBar() 

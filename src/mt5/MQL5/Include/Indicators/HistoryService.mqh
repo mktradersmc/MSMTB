@@ -26,7 +26,7 @@ public:
       m_identitySymbol = symbol;
    }
    
-   bool HandleFetchHistory(CJAVal *payload, CJAVal &response) 
+   bool HandleFetchHistory(CJAVal *payload, CJAVal &response, uchar &outBinaryData[]) 
    {
        if (CheckPointer(payload) == POINTER_INVALID) return false;
        
@@ -50,10 +50,6 @@ public:
        
        int copied = 0;
        
-       // Logic: Fetch 'count' bars backwards from 'fromTime'
-       // MQL5 `CopyRates(symbol, tf, start_time, count, rates)`:
-       // "Gets count bars from the bar corresponding to start_time." -> goes backwards from start_time!
-       
        if (fromTime > 0) {
            datetime start = (datetime)fromTime - 1;
            if (fromTime > 20000000000) start = (datetime)(fromTime / 1000) - 1; // MS correction
@@ -63,32 +59,60 @@ public:
            copied = CopyRates(symbol, tf, 0, count, rates);
        }
        
-       CJAVal data;
+       // 1. Prepare Binary Array
+       // Each bar: time(long:8), open(double:8), high(double:8), low(double:8), close(double:8), volume(long:8) = 48 bytes
+       int barSize = 48;
+       ArrayResize(outBinaryData, copied * barSize);
        
        if (copied > 0) {
            for(int i=0; i<copied; i++) {
-               CJAVal bar;
-               bar["time"] = (long)rates[i].time;
-               bar["open"] = rates[i].open;
-               bar["high"] = rates[i].high;
-               bar["low"] = rates[i].low;
-               bar["close"] = rates[i].close;
-               bar["volume"] = (long)rates[i].tick_volume;
-               data.Add(bar);
+               int offset = i * barSize;
+               
+               PackLongToBytes((long)rates[i].time, outBinaryData, offset);
+               PackDoubleToBytes(rates[i].open, outBinaryData, offset+8);
+               PackDoubleToBytes(rates[i].high, outBinaryData, offset+16);
+               PackDoubleToBytes(rates[i].low, outBinaryData, offset+24);
+               PackDoubleToBytes(rates[i].close, outBinaryData, offset+32);
+               PackLongToBytes((long)rates[i].tick_volume, outBinaryData, offset+40);
            }
        }
        
-       response["symbol"] = symbol;
-       response["timeframe"] = tfStr;
-       response["count"] = (long)copied;
-       response["data"].Set(data);
-       response["status"] = "OK";
+       // Note: We need helper StructToTime/Double for clean LE conversion.
+       // However, to keep it fast and compatible, we can just use `FileWriteStruct` in memory? No, MQL5 doesn't have Memory streams easily.
+       // Better approach: Cast array directly if possible, but MQL5 limits pointer casts. Let's write the Helpers.
        
-       Print("[HistoryService] Fetched ", copied, " bars for ", symbol, " ", tfStr);
-       return true;
+        int err = GetLastError();
+        response["symbol"] = symbol;
+        response["timeframe"] = tfStr;
+        response["count"] = (long)copied;
+        
+        if (copied <= 0 && err == 4401) {
+            response["status"] = "WAIT";
+            response["message"] = "Building history";
+            PrintFormat("[HistoryService] ⏳ Waiting for history building (%s %s)", symbol, tfStr);
+        } else if (copied <= 0 && err != 0 && err != 4401) {
+            response["status"] = "ERROR";
+            response["message"] = "CopyRates Error " + IntegerToString(err);
+            PrintFormat("[HistoryService] ❌ CopyRates Error %d for %s %s", err, symbol, tfStr);
+        } else {
+            response["status"] = "OK";
+        }
+        
+        if (copied > 0) Print("[HistoryService] Fetched ", copied, " bars for ", symbol, " ", tfStr);
+        return true;
    }
    
-   // SendHistoryBatch Removed
+   // --- Struct Packing Helpers for Little Endian ---
+   void PackLongToBytes(long value, uchar &dst[], int offset) {
+       for(int j=0; j<8; j++) dst[offset+j] = (uchar)((value >> (j*8)) & 0xFF);
+   }
+   
+   void PackDoubleToBytes(double value, uchar &dst[], int offset) {
+       // MQL5 allows union casting
+       union DoubleRaw { double d; long l; } dr;
+       dr.d = value;
+       for(int j=0; j<8; j++) dst[offset+j] = (uchar)((dr.l >> (j*8)) & 0xFF);
+   }
    
    ENUM_TIMEFRAMES StringToTimeframe(string tfStr)
    {

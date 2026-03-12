@@ -30,11 +30,12 @@ public:
    
    virtual string Name() { return "CMD_START_SYNCHRONIZED_UPDATE"; }
    
-   virtual bool Execute(CJAVal *payload, CJAVal &responsePayload)
+   virtual bool Execute(CJAVal *payload, CJAVal &responsePayload, uchar &outBinaryPayload[])
    {
       if(m_service == NULL) return false;
       
       // Delegate to Service and pass Response object for population
-      return m_service.ProcessStartSynchronizedUpdate(payload, responsePayload);
+      return m_service.ProcessStartSynchronizedUpdate(payload, responsePayload, outBinaryPayload);
    }
 };
+

@@ -36,6 +36,7 @@ class SystemConfigService {
             projectRoot: "C:\\awesome-cockpit",
             systemUsername: "admin",
             systemPassword: "admin",
+            autoStartBots: true,
             backend: {
                 port: 3005,
                 useSSL: false

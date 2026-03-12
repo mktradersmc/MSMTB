@@ -19,7 +19,7 @@ public:
    
    virtual string Name() { return "CMD_GET_INITIAL_DATA"; }
    
-   virtual bool Execute(CJAVal *payload, CJAVal &responsePayload)
+   virtual bool Execute(CJAVal *payload, CJAVal &responsePayload, uchar &outBinaryPayload[])
    {
       if(m_service == NULL) return false;
       m_service.ProcessInitialDataCommand(payload);
@@ -27,3 +27,4 @@ public:
       return true;
    }
 };
+

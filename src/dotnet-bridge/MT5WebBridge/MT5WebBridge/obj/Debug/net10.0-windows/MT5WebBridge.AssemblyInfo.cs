@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("MT5WebBridge")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+5eb618100f2ed6ac0d43a355ec5b07105d44b565")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+eb2376ce418c029fba7365f9d822e4aadf5ed2e8")]
 [assembly: System.Reflection.AssemblyProductAttribute("MT5WebBridge")]
 [assembly: System.Reflection.AssemblyTitleAttribute("MT5WebBridge")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

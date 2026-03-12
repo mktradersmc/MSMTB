@@ -19,5 +19,5 @@ class ICommandHandler
 public:
    // Returns true if command was found and executed.
    // Populates resultPayload with the DATA to be sent back.
-   virtual bool Dispatch(string command, CJAVal &payload, CJAVal &resultPayload) = 0;
+   virtual bool Dispatch(string command, CJAVal &payload, CJAVal &resultPayload, uchar &outBinaryPayload[]) = 0;
 };

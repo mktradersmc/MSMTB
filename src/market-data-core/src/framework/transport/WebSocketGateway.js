@@ -69,12 +69,38 @@ class WebSocketGateway {
             manager.touch(transportId);
 
             try {
-                const str = message.toString();
+                let jsonStr = "";
+                let binaryBlob = null;
 
+                // MQL5 V3 Binary Protocol Check
+                if (Buffer.isBuffer(message)) {
+                    // Packet struct: [4 byte JSON Length (Little Endian)][JSON Bytes][Binary Bytes]
+                    if (message.length >= 4) {
+                        const jsonLen = message.readUInt32LE(0);
+                        
+                        // Sanity check: ensure buffer actually contains the full JSON string
+                        if (message.length >= 4 + jsonLen) {
+                            jsonStr = message.toString('utf8', 4, 4 + jsonLen);
+                            
+                            // Extract remaining bytes as Binary Blob
+                            if (message.length > 4 + jsonLen) {
+                                binaryBlob = message.slice(4 + jsonLen);
+                            }
+                        } else {
+                            throw new Error(`Invalid Binary Frame: Buffer length ${message.length} too small for JSON length ${jsonLen}`);
+                        }
+                    } else {
+                        // Very small buffer? Fallback to string
+                        jsonStr = message.toString();
+                    }
+                } else {
+                    // Plain Text Frame (e.g. from tests or old bots)
+                    jsonStr = message.toString();
+                }
 
                 // DELEGATE TO UNIFIED PROTOCOL (The Brain)
-                // Gateway is now "dumb"
-                await protocol.handle(transport, str);
+                // Passing the extracted binaryBlob as a 3rd parameter
+                await protocol.handle(transport, jsonStr, binaryBlob);
 
             } catch (e) {
                 console.error(`[Gateway] Error processing message:`, e.message);

@@ -16,7 +16,7 @@ public:
    
    virtual string Name() { return "CMD_SHUTDOWN"; }
    
-   virtual bool Execute(CJAVal *payload, CJAVal &responsePayload)
+   virtual bool Execute(CJAVal *payload, CJAVal &responsePayload, uchar &outBinaryPayload[])
    {
        Print("[CShutdownCommand] 🛑 CMD_SHUTDOWN Received! Shutting down terminal.");
        
@@ -29,3 +29,4 @@ public:
        return true; 
    }
 };
+

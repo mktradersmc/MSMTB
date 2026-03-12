@@ -37,7 +37,7 @@ public:
    // string Dispatch(CJAVal *request)
    
    // ICommandHandler Implementation
-   virtual bool Dispatch(string cmdName, CJAVal &payload, CJAVal &resultPayload)
+   virtual bool Dispatch(string cmdName, CJAVal &payload, CJAVal &resultPayload, uchar &outBinaryPayload[])
    {
       // 2. Lookup Command
       CBaseCommand *cmd = NULL;
@@ -51,7 +51,7 @@ public:
       // 3. Execute
       Print("[CCommandManager] ▶️ Executing: ", cmdName);
       
-      if(cmd.Execute(&payload, resultPayload))
+      if(cmd.Execute(&payload, resultPayload, outBinaryPayload))
       {
          Print("[CCommandManager] ✅ Executed: ", cmdName);
          return true;

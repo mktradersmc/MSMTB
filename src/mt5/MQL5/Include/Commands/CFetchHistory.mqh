@@ -19,12 +19,13 @@ public:
 
    virtual string Name() { return "CMD_FETCH_HISTORY"; }
    
-   virtual bool Execute(CJAVal *payload, CJAVal &responsePayload)
+   virtual bool Execute(CJAVal *payload, CJAVal &responsePayload, uchar &outBinaryPayload[])
    {
       if(m_service == NULL) return false;
       
       // Synchronous Call
       // HandleFetchHistory now populates responsePayload directly (status, data, etc.)
-      return m_service.HandleFetchHistory(payload, responsePayload);
+      return m_service.HandleFetchHistory(payload, responsePayload, outBinaryPayload);
    }
 };
+

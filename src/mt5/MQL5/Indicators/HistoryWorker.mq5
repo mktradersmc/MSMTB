@@ -99,10 +99,15 @@ void OnTimer()
                       if(json["header"].HasKey("request_id")) requestId = json["header"]["request_id"].ToStr();
 
                       // Strict Dispatch (bool return)
-                      if (g_CmdManager.Dispatch(cmd, json, result)) {
+                      uchar outBinaryPayload[];
+                      if (g_CmdManager.Dispatch(cmd, json, result, outBinaryPayload)) {
                           string responseType = (cmd != "") ? cmd + "_RESPONSE" : "RESPONSE";
                           // result["type"] = responseType; // Removed: Type is in Header now
-                          g_wsClient.SendProtocolMessage(responseType, result, requestId);
+                          if (ArraySize(outBinaryPayload) > 0) {
+                              g_wsClient.SendBinaryWithHeader(responseType, result, outBinaryPayload, requestId);
+                          } else {
+                              g_wsClient.SendProtocolMessage(responseType, result, requestId);
+                          }
                       }
                   }
              }

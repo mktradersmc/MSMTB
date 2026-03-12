@@ -211,13 +211,59 @@ class HistoryWorker extends AbstractWorker {
         const response = await this.sendRpc(cmd.type, cmd, 60000);
 
         // Process Response
+        let data = [];
+        let rawBin = response._rawBinary;
+        
+        // --- IPC Buffer Rehydration ---
+        if (rawBin && !Buffer.isBuffer(rawBin)) {
+            if (rawBin.type === 'Buffer' && Array.isArray(rawBin.data)) {
+                rawBin = Buffer.from(rawBin.data);
+            } else if (rawBin instanceof Uint8Array || Array.isArray(rawBin)) {
+                rawBin = Buffer.from(rawBin);
+            } else if (typeof rawBin === 'object' && rawBin[0] !== undefined) {
+                rawBin = Buffer.from(Object.values(rawBin));
+            }
+        }
+
+        if (rawBin && Buffer.isBuffer(rawBin) && rawBin.length >= 48) {
+            const b = rawBin;
+            const barCount = Math.floor(b.length / 48);
+            for (let i = 0; i < barCount; i++) {
+                const offset = i * 48;
+                const chunk = Buffer.alloc(48);
+                b.copy(chunk, 0, offset, offset + 48);
+                
+                data.push({
+                    time: Number(b.readBigInt64LE(offset)),
+                    open: b.readDoubleLE(offset + 8),
+                    high: b.readDoubleLE(offset + 16),
+                    low: b.readDoubleLE(offset + 24),
+                    close: b.readDoubleLE(offset + 32),
+                    volume: Number(b.readBigInt64LE(offset + 40)),
+                    _raw_binary: chunk
+                });
+            }
+        } else {
+            const payload = response.content || response;
+            data = Array.isArray(payload) ? payload : (payload.content || payload.data || []);
+        }
+
         const payload = response.content || response;
-        const data = Array.isArray(payload) ? payload : (payload.content || payload.data || []);
+        if (payload && payload.status === 'WAIT') {
+            this.log(`[History] ⏳ Broker building history for ${symbol} ${timeframe}. Waiting 5s before retry...`);
+            setTimeout(() => {
+                this.requestQueue.low.push(task);
+                this.processQueue();
+            }, 5000);
+            return;
+        }
 
         if (!Array.isArray(data) || data.length === 0) {
-            this.log(`[History] 🛑 End of Data for ${symbol} ${timeframe}. Flagging max_history.`);
+            this.log(`[History] 🛑 End of Data for ${symbol} ${timeframe}. Flagging max_history. (RawBin Length: ${rawBin ? rawBin.length : 'none'}, Type: ${rawBin ? typeof rawBin : 'none'}, Buffer? ${Buffer.isBuffer(rawBin)})`);
             this.maxHistoryReached.add(`${symbol}_${timeframe}`);
             return;
+        } else {
+            this.log(`[History] 💾 Decoded ${data.length} bars from rawBin (Length: ${rawBin ? rawBin.length : 'none'}).`);
         }
 
         // Ensure chronological order for reliable gap detection
@@ -261,7 +307,8 @@ class HistoryWorker extends AbstractWorker {
                 low: raw.l || raw.low,
                 close: raw.c || raw.close,
                 tick_volume: raw.v || raw.volume || raw.tick_volume,
-                is_complete: 1
+                is_complete: 1,
+                _raw_binary: raw._raw_binary
             });
 
             if (timeMs < minTime) minTime = timeMs;
@@ -281,9 +328,9 @@ class HistoryWorker extends AbstractWorker {
             if (sdb) {
                 try {
                     const tableName = `candles_${timeframe}`;
-                    sdb.exec(`CREATE TABLE IF NOT EXISTS ${tableName} (time INTEGER PRIMARY KEY, open REAL, high REAL, low REAL, close REAL, tick_volume INTEGER, spread INTEGER, volume REAL, is_complete INTEGER DEFAULT 1)`);
+                    sdb.exec(`CREATE TABLE IF NOT EXISTS ${tableName} (time INTEGER PRIMARY KEY, open REAL, high REAL, low REAL, close REAL, tick_volume INTEGER, spread INTEGER, volume REAL, is_complete INTEGER DEFAULT 1, _raw_binary BLOB)`);
 
-                    const insert = sdb.prepare(`INSERT OR REPLACE INTO ${tableName} (time, open, high, low, close, tick_volume, is_complete) VALUES (@time, @open, @high, @low, @close, @tick_volume, 1)`);
+                    const insert = sdb.prepare(`INSERT OR REPLACE INTO ${tableName} (time, open, high, low, close, tick_volume, is_complete, _raw_binary) VALUES (@time, @open, @high, @low, @close, @tick_volume, 1, @_raw_binary)`);
                     const insertMany = sdb.transaction((cats) => {
                         for (const cat of cats) insert.run(cat);
                     });

@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("AwesomeCockpit.NT8.Bridge")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+0e48fd37b553e1302e72a501f496fa58e9b44545")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+eb2376ce418c029fba7365f9d822e4aadf5ed2e8")]
 [assembly: System.Reflection.AssemblyProductAttribute("AwesomeCockpit.NT8.Bridge")]
 [assembly: System.Reflection.AssemblyTitleAttribute("AwesomeCockpit.NT8.Bridge")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

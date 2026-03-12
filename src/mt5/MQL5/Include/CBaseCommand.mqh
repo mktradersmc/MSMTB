@@ -26,7 +26,7 @@ public:
 
    virtual string    Name() = 0;
    
-   virtual bool      Execute(CJAVal *payload, CJAVal &responsePayload) = 0;
+   virtual bool      Execute(CJAVal *payload, CJAVal &responsePayload, uchar &outBinaryPayload[]) = 0;
 
    // Helper: Validate required fields
    bool Validate(string field, CJAVal *data)

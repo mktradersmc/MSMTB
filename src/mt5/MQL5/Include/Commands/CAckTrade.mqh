@@ -19,7 +19,7 @@ public:
 
    virtual string Name() { return "CMD_ACK_TRADE"; }
    
-   virtual bool Execute(CJAVal *payload, CJAVal &responsePayload)
+   virtual bool Execute(CJAVal *payload, CJAVal &responsePayload, uchar &outBinaryPayload[])
    {
       if(m_service == NULL) return false;
       if(!Validate("id", payload)) return false;
@@ -30,3 +30,4 @@ public:
       return true;
    }
 };
+

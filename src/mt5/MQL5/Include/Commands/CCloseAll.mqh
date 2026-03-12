@@ -17,7 +17,7 @@ class CCloseAll : public CBaseCommand
 public:
    virtual string Name() { return "CMD_CLOSE_ALL"; }
    
-   virtual bool Execute(CJAVal *payload, CJAVal &responsePayload)
+   virtual bool Execute(CJAVal *payload, CJAVal &responsePayload, uchar &outBinaryPayload[])
    {
       // Optional Magic Filter
       string reason = "API Command CLOSE_ALL";
@@ -27,3 +27,4 @@ public:
       return true;
    }
 };
+

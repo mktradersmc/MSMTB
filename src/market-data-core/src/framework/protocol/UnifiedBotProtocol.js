@@ -24,11 +24,17 @@ class UnifiedBotProtocol {
      * Handle an incoming message from a Bot.
      * @param {Object} transport - The transport adapter (id, send, close)
      * @param {Object} rawMessage - The raw JSON object from the socket (or parsed envelope)
+     * @param {Buffer} binaryBlob - Optional raw binary payload attached via MQL5 V3 Binary Protocol
      */
-    async handle(transport, rawMessage) {
+    async handle(transport, rawMessage, binaryBlob = null) {
         try {
             // 1. Normalize
             let msg = this.normalize(rawMessage);
+            
+            // Attach raw binary so downstream workers can process it without string conversions
+            if (binaryBlob) {
+                msg._rawBinary = binaryBlob;
+            }
 
             // 1.4 GLOBAL PAYLOAD PARSING
             // Ensure payload/content is an object, not a JSON string.

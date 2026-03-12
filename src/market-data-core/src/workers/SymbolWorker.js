@@ -39,7 +39,7 @@ class SymbolWorker extends AbstractWorker {
             const tfs = ['M1', 'M2', 'M3', 'M5', 'M10', 'M15', 'M30', 'H1', 'H2', 'H3', 'H4', 'H6', 'H8', 'H12', 'D1', 'W1', 'MN1'];
             tfs.forEach(tf => {
                 const tableName = `candles_${tf}`;
-                this.db.exec(`CREATE TABLE IF NOT EXISTS ${tableName} (time INTEGER PRIMARY KEY, open REAL, high REAL, low REAL, close REAL, tick_volume INTEGER, spread INTEGER, volume REAL, is_complete INTEGER DEFAULT 1)`);
+                this.db.exec(`CREATE TABLE IF NOT EXISTS ${tableName} (time INTEGER PRIMARY KEY, open REAL, high REAL, low REAL, close REAL, tick_volume INTEGER, spread INTEGER, volume REAL, is_complete INTEGER DEFAULT 1, _raw_binary BLOB)`);
                 this.syncState.set(tf, this.STATUS.READY);
             });
             this.log(`DB Connected: ${this.symbol}.db`);
@@ -128,17 +128,51 @@ class SymbolWorker extends AbstractWorker {
      * @param {Boolean} isComplete Force completion status based on event type
      */
     handleBarEvent(msg, isComplete) {
-        let payload = msg.content || msg.payload || {};
-        if (typeof payload === 'string') {
-            try { payload = JSON.parse(payload); } catch (e) {
-                this.error(`Failed to parse Bar Event payload: ${payload}`);
-                return;
+        // v3 Payload standard: timeframe is either in the base object, header, or payload
+        let timeframe = msg.timeframe || (msg.header && msg.header.timeframe) || (msg.payload && msg.payload.timeframe) || (msg.content && msg.content.timeframe);
+        let candle = null;
+        
+        // --- 1. MQL5 V3 Binary Protocol Support (IPC Buffer Rehydration) ---
+        let rawBin = msg._rawBinary;
+        if (rawBin && !Buffer.isBuffer(rawBin)) {
+            // IPC often converts Buffers to { type: 'Buffer', data: [...] } or { "0": 123, "1": 45 ... } or Uint8Array
+            if (rawBin.type === 'Buffer' && Array.isArray(rawBin.data)) {
+                rawBin = Buffer.from(rawBin.data);
+            } else if (rawBin instanceof Uint8Array || Array.isArray(rawBin)) {
+                rawBin = Buffer.from(rawBin);
+            } else if (typeof rawBin === 'object' && rawBin[0] !== undefined) {
+                // Object representation {"0":152,"1":29...}
+                rawBin = Buffer.from(Object.values(rawBin));
             }
         }
-        const { timeframe, candle } = payload;
+
+        if (rawBin && Buffer.isBuffer(rawBin) && rawBin.length >= 48) {
+            const b = rawBin;
+            // Parse 48-byte struct: time(long), open(double), high(double), low(double), close(double), volume(long)
+            candle = {
+                time: Number(b.readBigInt64LE(0)),
+                open: b.readDoubleLE(8),
+                high: b.readDoubleLE(16),
+                low: b.readDoubleLE(24),
+                close: b.readDoubleLE(32),
+                volume: Number(b.readBigInt64LE(40)),
+                _raw_binary: rawBin
+            };
+        } else {
+            // --- 2. Fallback JSON Parsing (Legacy Bots or NT8) ---
+            let payload = msg.content || msg.payload || {};
+            if (typeof payload === 'string') {
+                try { payload = JSON.parse(payload); } catch (e) {
+                    this.error(`Failed to parse Bar Event payload: ${payload}`);
+                    return;
+                }
+            }
+            candle = payload.candle;
+            if (!timeframe && payload.timeframe) timeframe = payload.timeframe;
+        }
 
         if (!timeframe || !candle) {
-            console.log(`[SymbolWorker:${this.symbol}] ❌ No timeframe or candle in Bar Event payload: ${JSON.stringify(payload)}`);
+            console.log(`[SymbolWorker:${this.symbol}] ❌ No timeframe or candle in Bar Event payload: ${JSON.stringify(msg)}`);
             return; // Silent Guard
         }
 
@@ -147,13 +181,9 @@ class SymbolWorker extends AbstractWorker {
         let brokerSec = time;
         if (brokerSec > 10000000000) brokerSec = Math.floor(brokerSec / 1000);
 
-
-
         const isHighTimeframe = timeframe.startsWith('D') || timeframe.startsWith('W') || timeframe.startsWith('MN');
         let timeMS;
         if (isHighTimeframe) {
-            // For D1/W1/MN, DO NOT convert to UTC. Keep the Broker's 00:00:00 as UTC 00:00:00
-            // This ensures Lightweight Charts aligns the candle with the correct calendar day
             timeMS = brokerSec * 1000;
         } else {
             timeMS = tzService.convertBrokerToUtcMs(this.botId || 'default', brokerSec);
@@ -166,23 +196,21 @@ class SymbolWorker extends AbstractWorker {
             low: parseFloat(low),
             close: parseFloat(close),
             tick_volume: parseInt(volume),
-            is_complete: isComplete
+            is_complete: isComplete ? 1 : 0,
+            _raw_binary: candle._raw_binary || null
         };
 
-        // 1. DATA INTEGRITY FILTER
         if (timeMS < 946684800000) return; // Drop invalid
 
-        // 2. GAP DETECTION (Only check on CLOSED bars or strictly sequential updates)
-        // (Simplified for V3: Only check on Closed or if time jumped significantly)
         if (isComplete) {
-            const lastCandle = this.getLastCandle(timeframe); // getLastCandle will be updated to only fetch is_complete=1
+            const lastCandle = this.getLastCandle(timeframe); 
             if (lastCandle) {
                 const tfMs = this.getPeriodMs(timeframe);
                 if (timeMS > lastCandle.time + tfMs + 500) {
                     this.log(`[BarData] 🚨 GAP DETECTED for ${timeframe}. Triggering Sync.`);
                     const lastTimeSec = Math.floor(lastCandle.time / 1000);
                     this.handleSynchronizedUpdate({ timeframe, mode: 'GAP_FILL', lastTime: lastTimeSec, count: 5000 });
-                    return; // Don't save gap data yet? Or save and fill? Usually fill first.
+                    return; 
                 }
             }
             this.updateStatus(timeframe, this.STATUS.READY);
@@ -191,21 +219,19 @@ class SymbolWorker extends AbstractWorker {
             }
         }
 
-        // 3. PERSIST ALWAYS (Both Live and Closed)
-        // We write every incoming tick to the DB. `isComplete` flag determines if it's forming or finalized.
+        // 3. PERSIST ALWAYS
         this.saveCandle(timeframe, dbCandle);
 
         // 4. BROADCAST (Both Live and Closed)
-        // Map to internal event names for Hub if needed, or keep 1:1
-        // User Requirement: "Wir haben doch umgestellt auf EV_BAR_CLOSED und EV_BAR_UPDATE"
         const type = isComplete ? 'EV_BAR_CLOSED' : 'EV_BAR_UPDATE';
         this.sendToHub(type, {
             symbol: this.symbol,
             timeframe: timeframe,
             candle: {
-                ...dbCandle
+                ...dbCandle,
+                is_complete: isComplete
             },
-            botId: this.botId // Identity Added (Fixes Routing Identity Error)
+            botId: this.botId 
         });
     }
 
@@ -233,15 +259,86 @@ class SymbolWorker extends AbstractWorker {
     }
 
     handleHistorySnapshot(msg) {
-        // SystemOrchestrator sends { type: ..., content: { candles, timeframe } }
-        // We need to unwrap 'candles' as the content array.
         const payload = msg.content || {};
-        const content = payload.candles; // The Array
-        const timeframe = payload.timeframe;
+        const timeframe = payload.timeframe || msg.timeframe;
 
-        if (!content || !Array.isArray(content) || content.length === 0) {
-            this.log(`[Sync:Trace] ⚠️ Received empty HISTORY_SNAPSHOT for ${timeframe}. Setting READY.`);
-            this.updateStatus(timeframe, this.STATUS.READY); // FIX: Don't get stuck in SYNCING
+        let dbCandles = [];
+        const isHighTimeframe = timeframe.startsWith('D') || timeframe.startsWith('W') || timeframe.startsWith('MN');
+        let maxTime = 0;
+
+        // --- 1. MQL5 V3 Binary Protocol Support (Bulk) ---
+        if (msg._rawBinary && Buffer.isBuffer(msg._rawBinary)) {
+            const b = msg._rawBinary;
+            const barCount = Math.floor(b.length / 48);
+            
+            if (barCount > 0) {
+                // this.log(`[Sync] 📥 Ingesting ${barCount} bars from Binary Payload (${b.length} bytes) for ${timeframe}.`);
+                for (let i = 0; i < barCount; i++) {
+                    const offset = i * 48;
+                    const c = {
+                        time: Number(b.readBigInt64LE(offset)),
+                        open: b.readDoubleLE(offset + 8),
+                        high: b.readDoubleLE(offset + 16),
+                        low: b.readDoubleLE(offset + 24),
+                        close: b.readDoubleLE(offset + 32),
+                        volume: Number(b.readBigInt64LE(offset + 40))
+                    };
+                    
+                    let timeMS = c.time;
+                    if (timeMS < 10000000000) {
+                        if (isHighTimeframe) {
+                            timeMS = timeMS * 1000;
+                        } else {
+                            timeMS = tzService.convertBrokerToUtc(this.botId || 'default', timeMS) * 1000;
+                        }
+                    }
+
+                    if (timeMS > maxTime) maxTime = timeMS;
+                    dbCandles.push({
+                        time: timeMS,
+                        open: c.open,
+                        high: c.high,
+                        low: c.low,
+                        close: c.close,
+                        tick_volume: c.volume
+                    });
+                }
+            }
+        } else {
+            // --- 2. Fallback JSON Parsing ---
+            const content = payload.candles || payload.data || [];
+            if (!content || !Array.isArray(content) || content.length === 0) {
+                this.log(`[Sync:Trace] ⚠️ Received empty HISTORY_SNAPSHOT for ${timeframe}. Setting READY.`);
+                this.updateStatus(timeframe, this.STATUS.READY); 
+                return;
+            }
+
+            // this.log(`[Sync] 📥 Ingesting ${content.length} bars for ${timeframe}. First Bar Sample: ${JSON.stringify(content[0])}`);
+            dbCandles = content.map(c => {
+                let timeMS = c.time;
+                if (timeMS < 10000000000) {
+                    if (isHighTimeframe) {
+                        timeMS = timeMS * 1000;
+                    } else {
+                        const timeSec = tzService.convertBrokerToUtc(this.botId || 'default', timeMS);
+                        timeMS = timeSec * 1000;
+                    }
+                }
+                if (timeMS > maxTime) maxTime = timeMS;
+                return {
+                    time: timeMS,
+                    open: c.open,
+                    high: c.high,
+                    low: c.low,
+                    close: c.close,
+                    tick_volume: c.volume 
+                };
+            });
+        }
+
+        if (dbCandles.length === 0) {
+            this.log(`[Sync:Trace] ⚠️ Processed 0 valid bars for ${timeframe}. Setting READY.`);
+            this.updateStatus(timeframe, this.STATUS.READY);
             return;
         }
 
@@ -256,43 +353,8 @@ class SymbolWorker extends AbstractWorker {
         // Success - Clear Retry Count
         if (this.retryCounts) this.retryCounts.delete(timeframe);
 
-        this.log(`[Sync] 📥 Ingesting ${content.length} bars for ${timeframe}. First Bar Sample: ${JSON.stringify(content[0])}`);
-
-        const isHighTimeframe = timeframe.startsWith('D') || timeframe.startsWith('W') || timeframe.startsWith('MN');
-
-        // 1. Save to DB
-        let maxTime = 0;
-        const dbCandles = content.map(c => {
-            let timeMS = c.time;
-            // FIX: Convert Broker Time (Seconds) to UTC (MS)
-            // If < 10B, it's seconds. If > 10B, likely MS (but MQL5 usually sends seconds).
-            // We TRUST tzService to handle the conversion from Broker Seconds -> UTC Seconds.
-            // But we need to be careful if it's already MS.
-            // TickSpy usually sends SECONDS.
-
-            if (timeMS < 10000000000) {
-                if (isHighTimeframe) {
-                    // For HTF, treat Broker 00:00 as UTC 00:00 to avoid duplicates
-                    timeMS = timeMS * 1000;
-                } else {
-                    const timeSec = tzService.convertBrokerToUtc(this.botId || 'default', timeMS);
-                    timeMS = timeSec * 1000;
-                }
-            }
-
-            if (timeMS > maxTime) maxTime = timeMS;
-            return {
-                time: timeMS,
-                open: c.open,
-                high: c.high,
-                low: c.low,
-                close: c.close,
-                tick_volume: c.volume // TickSpy sends 'volume' as tick_volume usually
-            };
-        });
-
         this.saveCandleBatch(timeframe, dbCandles);
-        this.log(`[Sync] 💾 Persisted ${content.length} bars for ${timeframe} to DB.`);
+        this.log(`[Sync] 💾 Persisted ${dbCandles.length} bars for ${timeframe} to DB.`);
 
         // 2. Emit Data Update (Fast UI Refresh)
         this.sendToHub('HISTORY_UPDATE', {
@@ -316,7 +378,7 @@ class SymbolWorker extends AbstractWorker {
     saveCandleBatch(tf, candles) {
         try {
             const tableName = `candles_${tf}`;
-            const insert = this.db.prepare(`INSERT OR REPLACE INTO ${tableName} (time, open, high, low, close, tick_volume, is_complete) VALUES (@time, @open, @high, @low, @close, @tick_volume, 1)`);
+            const insert = this.db.prepare(`INSERT OR REPLACE INTO ${tableName} (time, open, high, low, close, tick_volume, is_complete, _raw_binary) VALUES (@time, @open, @high, @low, @close, @tick_volume, 1, @_raw_binary)`);
 
             const insertMany = this.db.transaction((cats) => {
                 for (const cat of cats) insert.run(cat);
@@ -546,8 +608,42 @@ class SymbolWorker extends AbstractWorker {
             const response = await this.sendRpc(cmd.type, cmd, 60000); // 60s Timeout
 
             // 3. Process Response (Standard Protocol v3)
-            const payload = response.content || response; // content is preferred
-            const data = Array.isArray(payload) ? payload : (payload.content || payload.data || []);
+            let data = [];
+            let rawBin = response._rawBinary;
+            
+            // --- IPC Buffer Rehydration ---
+            if (rawBin && !Buffer.isBuffer(rawBin)) {
+                if (rawBin.type === 'Buffer' && Array.isArray(rawBin.data)) {
+                    rawBin = Buffer.from(rawBin.data);
+                } else if (rawBin instanceof Uint8Array || Array.isArray(rawBin)) {
+                    rawBin = Buffer.from(rawBin);
+                } else if (typeof rawBin === 'object' && rawBin[0] !== undefined) {
+                    rawBin = Buffer.from(Object.values(rawBin));
+                }
+            }
+
+            if (rawBin && Buffer.isBuffer(rawBin)) {
+                const b = rawBin;
+                const barCount = Math.floor(b.length / 48);
+                for (let i = 0; i < barCount; i++) {
+                    const offset = i * 48;
+                    const chunk = Buffer.alloc(48);
+                    b.copy(chunk, 0, offset, offset + 48);
+                    
+                    data.push({
+                        time: Number(b.readBigInt64LE(offset)),
+                        open: b.readDoubleLE(offset + 8),
+                        high: b.readDoubleLE(offset + 16),
+                        low: b.readDoubleLE(offset + 24),
+                        close: b.readDoubleLE(offset + 32),
+                        volume: Number(b.readBigInt64LE(offset + 40)),
+                        _raw_binary: chunk
+                    });
+                }
+            } else {
+                const payload = response.content || response; // content is preferred
+                data = Array.isArray(payload) ? payload : (payload.content || payload.data || []);
+            }
 
             // Validate
             if (!Array.isArray(data)) {
@@ -583,7 +679,8 @@ class SymbolWorker extends AbstractWorker {
                         high: c.high,
                         low: c.low,
                         close: c.close,
-                        tick_volume: c.volume // TickSpy sends 'volume' as tick_volume
+                        tick_volume: c.volume, // TickSpy sends 'volume' as tick_volume
+                        _raw_binary: c._raw_binary
                     };
                 });
 
@@ -681,8 +778,8 @@ class SymbolWorker extends AbstractWorker {
             // But for handleBarData calls, it will be explicit.
             const isComplete = (candle.is_complete !== undefined) ? (candle.is_complete ? 1 : 0) : 1;
 
-            const stmt = this.db.prepare(`INSERT OR REPLACE INTO candles_${tf} (time, open, high, low, close, tick_volume, is_complete) VALUES (@time, @open, @high, @low, @close, @tick_volume, @is_complete)`);
-            stmt.run({ ...candle, time: timeMS, is_complete: isComplete });
+            const stmt = this.db.prepare(`INSERT OR REPLACE INTO candles_${tf} (time, open, high, low, close, tick_volume, is_complete, _raw_binary) VALUES (@time, @open, @high, @low, @close, @tick_volume, @is_complete, @_raw_binary)`);
+            stmt.run({ ...candle, time: timeMS, is_complete: isComplete, _raw_binary: candle._raw_binary || null });
         } catch (e) {
             this.error(`DB Save Error: ${e.message}`);
         }

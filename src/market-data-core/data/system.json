@@ -3,5 +3,6 @@
     "systemUsername": "admin",
     "systemPassword": "admin",
     "ntUsername": "mktrader_mmxm",
-    "ntPassword": "xPz8H17r$Nx&r10"
+    "ntPassword": "xPz8H17r$Nx&r10",
+    "autoStartBots": false
 }

@@ -2052,6 +2052,7 @@ void CTradingExpert::ProcessSingleMessage(CJAVal &msg, CJAVal &outputArray)
         // --- COMMAND DISPATCHER ---
         // Try Command Manager first
         CJAVal resultPayload;
+        uchar outBinaryPayload[];
         
         // Unbox payload if present (Standard SystemOrchestrator Envelope)
         CJAVal* dispatchData = &msg;
@@ -2061,7 +2062,7 @@ void CTradingExpert::ProcessSingleMessage(CJAVal &msg, CJAVal &outputArray)
             dispatchData = msg["content"];
         }
         
-        bool dispatchSuccess = m_cmdManager.Dispatch(type, *dispatchData, resultPayload);
+        bool dispatchSuccess = m_cmdManager.Dispatch(type, *dispatchData, resultPayload, outBinaryPayload);
         
         if (dispatchSuccess || (resultPayload.HasKey("message") && resultPayload["message"].ToStr() != ("Unknown command: " + type))) {
              string reqId = "";
@@ -2076,7 +2077,11 @@ void CTradingExpert::ProcessSingleMessage(CJAVal &msg, CJAVal &outputArray)
              }
              
              string responseType = (type != "") ? type + "_RESPONSE" : "RESPONSE";
-             m_wsClient.SendProtocolMessage(responseType, resultPayload, reqId);
+             if (ArraySize(outBinaryPayload) > 0) {
+                 m_wsClient.SendBinaryWithHeader(responseType, resultPayload, outBinaryPayload, reqId);
+             } else {
+                 m_wsClient.SendProtocolMessage(responseType, resultPayload, reqId);
+             }
              return;
         }
         

@@ -27,7 +27,7 @@ class CTradeExecute : public CBaseCommand
 public:
    virtual string Name() { return "CMD_EXECUTE_TRADE"; }
    
-   virtual bool Execute(CJAVal *payload, CJAVal &responsePayload)
+   virtual bool Execute(CJAVal *payload, CJAVal &responsePayload, uchar &outBinaryPayload[])
    {
       // Basic Validation
       // Validation now handled inside Expert logic for centralized response
@@ -45,3 +45,4 @@ public:
       return true;
    }
 };
+

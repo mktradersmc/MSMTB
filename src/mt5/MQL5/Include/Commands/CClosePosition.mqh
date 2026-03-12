@@ -17,7 +17,7 @@ class CClosePosition : public CBaseCommand
 public:
    virtual string Name() { return "CMD_CLOSE_POSITION"; }
    
-   virtual bool Execute(CJAVal *payload, CJAVal &responsePayload)
+   virtual bool Execute(CJAVal *payload, CJAVal &responsePayload, uchar &outBinaryPayload[])
    {
       if(!Validate("id", payload)) return false;
       // Action is implicitly CLOSE or explicitly CLOSE_PARTIAL
@@ -34,3 +34,4 @@ public:
       return true;
    }
 };
+

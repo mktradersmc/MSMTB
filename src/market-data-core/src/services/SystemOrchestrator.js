@@ -189,7 +189,12 @@ class SystemOrchestrator {
 
         // TASK: Auto-Start Offline Terminals
         setTimeout(() => {
-            this.autoStartInstances();
+            const currentConfig = require('./SystemConfigService').getConfig();
+            if (currentConfig.autoStartBots !== false) {
+                this.autoStartInstances();
+            } else {
+                console.log(`[SystemOrchestrator] ⏩ Auto-Start logic is disabled in system configuration.`);
+            }
         }, 5000); // 5 second delay to let the backend fully breathe and WMI to populate
     }
 

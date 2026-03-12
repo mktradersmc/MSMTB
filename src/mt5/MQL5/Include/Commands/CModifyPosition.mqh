@@ -17,7 +17,7 @@ class CModifyPosition : public CBaseCommand
 public:
    virtual string Name() { return "CMD_MODIFY_POSITION"; }
    
-   virtual bool Execute(CJAVal *payload, CJAVal &responsePayload)
+   virtual bool Execute(CJAVal *payload, CJAVal &responsePayload, uchar &outBinaryPayload[])
    {
       // ID (Magic) Check
       if(!Validate("id", payload)) return false;
@@ -35,3 +35,4 @@ public:
       return true;
    }
 };
+

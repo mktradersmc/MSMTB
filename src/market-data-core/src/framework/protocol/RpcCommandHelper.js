@@ -131,7 +131,22 @@ class RpcCommandHelper extends EventEmitter {
             // Check Status
             // MQL5 sends specific ERROR payloads sometimes.
             // Protocol says: status="ERROR" in payload implies rejection.
-            const payload = msg.payload || msg.content || {}; // Access payload safely
+            let payload = msg.payload || msg.content || {}; // Access payload safely
+            
+            // --- FIX: Forward Binary Data to the Worker Promise ---
+            // If the gateway attached a _rawBinary property to the envelope,
+            // we MUST inject it into the resolved payload so the worker can rehydrate it.
+            if (msg._rawBinary) {
+                // If payload is an array (legacy), we must convert it or attach it as a property
+                // Since our protocol now returns an object for responses { status: "OK", ... }
+                // we can safely append it.
+                if (Array.isArray(payload)) {
+                    const wrap = { data: payload, _rawBinary: msg._rawBinary };
+                    payload = wrap;
+                } else if (typeof payload === 'object') {
+                    payload._rawBinary = msg._rawBinary;
+                }
+            }
 
             // If payload is an array, it's definitely not an error object with a .status property
             if (!Array.isArray(payload) && payload.status === 'ERROR') {

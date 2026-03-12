@@ -56,6 +56,7 @@ public:
    bool              SendRaw(string json); 
    bool              SendProtocolMessage(string command, CJAVal &payload, string requestId=""); // NEW: Strict Envelope
    bool              SendBinary(ushort &data[], int size); 
+   bool              SendBinaryWithHeader(string command, CJAVal &payload, const uchar &binaryData[], string requestId=""); // NEW: Binary Framing
    bool              GetNextMessage(string &outMessage);
    
    string            GetBotId() { return m_botId; } 
@@ -195,25 +196,11 @@ bool CWebSocketClient::SendProtocolMessage(string command, CJAVal &payload, stri
 {
    if(!m_connected || m_handle <= 0) return false;
 
-   CJAVal envelope;
-   
-   // 1. HEADER (Mandatory Fields)
-   envelope["header"]["command"] = command;
-   envelope["header"]["botId"] = m_botId;       
-   envelope["header"]["func"] = m_function;     
-   envelope["header"]["symbol"] = m_symbol;     
-   envelope["header"]["timestamp"] = (long)TimeCurrent();
-   
-   // Optional Request ID (Sync only)
-   if (requestId != "") {
-       envelope["header"]["request_id"] = requestId;
-   }
-
-   // 2. PAYLOAD
-   envelope["payload"].Set(&payload);
-
-   // 3. SEND RAW
-   return SendRaw(envelope.Serialize());
+   // Enforce Universal Binary Framing: 
+   // We will pass the command, payload, and an empty binary array to SendBinaryWithHeader, 
+   // which manages the packet struct: [4 byte JSON Length][JSON Bytes][Binary Bytes]
+   uchar emptyBinaryPayload[];
+   return SendBinaryWithHeader(command, payload, emptyBinaryPayload, requestId);
 }
 
 //+------------------------------------------------------------------+
@@ -223,6 +210,79 @@ bool CWebSocketClient::SendBinary(ushort &data[], int size)
 {
    if(!m_connected || m_handle <= 0) return false;
    WS_SendBin(m_handle, data, size);
+   return true;
+}
+
+//+------------------------------------------------------------------+
+//| SendBinaryWithHeader (Binary Framing Protocol)                   |
+//+------------------------------------------------------------------+
+bool CWebSocketClient::SendBinaryWithHeader(string command, CJAVal &payload, const uchar &binaryData[], string requestId="")
+{
+   if(!m_connected || m_handle <= 0) return false;
+
+   // 1. Build Metadata Header (JSON)
+   CJAVal envelope;
+   envelope["header"]["command"] = command;
+   envelope["header"]["botId"] = m_botId;       
+   envelope["header"]["func"] = m_function;     
+   envelope["header"]["symbol"] = m_symbol;     
+   envelope["header"]["timestamp"] = (long)TimeCurrent();
+   
+   if (requestId != "") {
+       envelope["header"]["request_id"] = requestId;
+   }
+   envelope["payload"].Set(&payload);
+   
+   string jsonStr = envelope.Serialize();
+   
+   // 2. Convert JSON String to Bytes (UTF-8, without Null Terminator)
+   uchar jsonBytes[];
+   int jsonLen = StringToCharArray(jsonStr, jsonBytes, 0, WHOLE_ARRAY, CP_UTF8) - 1; // -1 to drop null terminator
+   
+   int payloadLen = ArraySize(binaryData);
+   
+   // 3. Assemble Final Buffer: [4 Byte Length] + [JSON Bytes] + [Binary Payload]
+   // Total size = 4 + jsonLen + payloadLen
+   int totalSize = 4 + jsonLen + payloadLen;
+   uchar finalBuffer[];
+   ArrayResize(finalBuffer, totalSize);
+   
+   // 3.1 Write 4-Byte Int (Little Endian)
+   finalBuffer[0] = (uchar)(jsonLen & 0xFF);
+   finalBuffer[1] = (uchar)((jsonLen >> 8) & 0xFF);
+   finalBuffer[2] = (uchar)((jsonLen >> 16) & 0xFF);
+   finalBuffer[3] = (uchar)((jsonLen >> 24) & 0xFF);
+   
+   // 3.2 Write JSON Bytes
+   ArrayCopy(finalBuffer, jsonBytes, 4, 0, jsonLen);
+   
+   // 3.3 Write Binary Payload
+   ArrayCopy(finalBuffer, binaryData, 4 + jsonLen, 0, payloadLen);
+   
+   // 4. Send using WS_SendBin
+   // C# bridge expects ushort[] because of legacy reasons in the wrapper,
+   // but DLL takes pointers. We can cast uchar[] to ushort[] by lying about size,
+   // or just use WS_SendBin natively if the DLL supports it.
+   // WAIT: WS_SendBin takes (ushort &data[], int size) where size is bytes.
+   // We must create a temporary ushort array that overlays the uchar memory.
+   
+   int ushortElements = (totalSize + 1) / 2;
+   ushort sendBuffer[];
+   ArrayResize(sendBuffer, ushortElements);
+   // Clean buffer
+   ArrayInitialize(sendBuffer, 0);
+   
+   // Copy raw bytes into ushort array (Memory copy is clean in MQL5)
+   for(int i = 0; i < totalSize; i++) {
+       int ushortIdx = i / 2;
+       if (i % 2 == 0) {
+           sendBuffer[ushortIdx] |= finalBuffer[i]; // Lower byte
+       } else {
+           sendBuffer[ushortIdx] |= (finalBuffer[i] << 8); // Upper byte
+       }
+   }
+   
+   WS_SendBin(m_handle, sendBuffer, totalSize);
    return true;
 }
 
@@ -298,24 +358,24 @@ void CWebSocketClient::Process()
        
        // Dispatch
        CJAVal result(NULL, jtUNDEF);
-       bool success = m_commandHandler.Dispatch(cmd, payload, result);
+       uchar binaryPayload[];
+       bool success = m_commandHandler.Dispatch(cmd, payload, result, binaryPayload);
        
        if(success) {
            Print("[WS] ✅ Dispatch Success. Formatting Response...");
            // AUTO-WRAP & SEND RESPONSE
-           // We strict-type the response command name: <CMD>_RESPONSE
            string respCmd = cmd + "_RESPONSE";
            
-           string envelope = FormatResponseEnvelope(respCmd, result, reqId, "OK");
-           Print("[WS] ✉️ Sending Raw Response (Len: ", StringLen(envelope), ") for ", reqId);
-           SendRaw(envelope);
-           // Print("[WS] ↩️ Auto-Responded to ", cmd, " (ID: ", reqId, ")");
+           // Extract just the payload part of the envelope logic to use in the binary framer
+           int binSize = ArraySize(binaryPayload);
+           Print("[WS] ✉️ Sending Binary Response (JSON + ", binSize, " bytes) for ", reqId);
+           SendBinaryWithHeader(respCmd, result, binaryPayload, reqId);
        } else {
-           // Optional: Send ERROR response?
+           // ERROR Response
            if(StringFind(cmd, "_RESPONSE") < 0) {
-              // It was a Request, but failed. Send Error.
-              if(!result.HasKey("message")) { result["message"] = "Unknown Command or Execution Failed"; } string envelope = FormatResponseEnvelope(cmd + "_RESPONSE", result, reqId, "ERROR");
-              SendRaw(envelope);
+              if(!result.HasKey("message")) { result["message"] = "Unknown Command or Execution Failed"; } 
+              uchar emptyBin[];
+              SendBinaryWithHeader(cmd + "_RESPONSE", result, emptyBin, reqId);
            }
        }
    }

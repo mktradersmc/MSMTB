@@ -16,6 +16,7 @@ export function SystemView() {
     const [sysPassword, setSysPassword] = useState('');
     const [sysNtUsername, setSysNtUsername] = useState('');
     const [sysNtPassword, setSysNtPassword] = useState('');
+    const [sysAutoStartBots, setSysAutoStartBots] = useState(true);
     const [isSavingSystem, setIsSavingSystem] = useState(false);
     const [sysMesg, setSysMesg] = useState<{ type: 'success' | 'error', text: string } | null>(null);
 
@@ -31,6 +32,7 @@ export function SystemView() {
                         setSysUsername(data.config.systemUsername || '');
                         setSysNtUsername(data.config.ntUsername || '');
                         setSysNtPassword(data.config.ntPassword || '');
+                        setSysAutoStartBots(data.config.autoStartBots ?? true);
                     }
                 }
             } catch (err) {
@@ -52,7 +54,8 @@ export function SystemView() {
                     systemUsername: sysUsername,
                     systemPassword: sysPassword ? sysPassword : undefined,
                     ntUsername: sysNtUsername,
-                    ntPassword: sysNtPassword ? sysNtPassword : undefined
+                    ntPassword: sysNtPassword ? sysNtPassword : undefined,
+                    autoStartBots: sysAutoStartBots
                 })
             });
 
@@ -175,6 +178,27 @@ export function SystemView() {
                                     </select>
                                     <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none" size={14} />
                                 </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    {/* System Behavior - NEW */}
+                    <section className="border border-slate-200 dark:border-slate-800 rounded-lg overflow-hidden bg-white dark:bg-slate-900">
+                        <div className="bg-slate-50 dark:bg-slate-900/50 px-4 py-2 border-b border-slate-200 dark:border-slate-800 text-xs font-bold text-slate-500 uppercase tracking-wider">
+                            System Behavior
+                        </div>
+                        <div className="p-4 flex gap-4 items-center">
+                            <div className="flex-1">
+                                <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1.5">Auto-Start Terminals on Boot</label>
+                                <p className="text-[10px] text-slate-500">Automatically launches configured MT5 and NT8 terminals when the backend orchestrator starts up.</p>
+                            </div>
+                            <div>
+                                <button
+                                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-slate-900 ${sysAutoStartBots ? 'bg-indigo-600' : 'bg-slate-300 dark:bg-slate-700'}`}
+                                    onClick={() => setSysAutoStartBots(!sysAutoStartBots)}
+                                >
+                                    <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${sysAutoStartBots ? 'translate-x-6' : 'translate-x-1'}`} />
+                                </button>
                             </div>
                         </div>
                     </section>

@@ -19,7 +19,7 @@ public:
    
    virtual string Name() { return "CMD_UNSUBSCRIBE_TICKS"; }
    
-   virtual bool Execute(CJAVal *payload, CJAVal &responsePayload)
+   virtual bool Execute(CJAVal *payload, CJAVal &responsePayload, uchar &outBinaryPayload[])
    {
       if(m_services == NULL) return false;
       
@@ -31,3 +31,4 @@ public:
       return true;
    }
 };
+

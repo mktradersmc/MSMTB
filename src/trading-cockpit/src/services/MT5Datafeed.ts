@@ -151,7 +151,7 @@ export class MT5Datafeed implements IDatafeed {
             // Start light (1k) to get Chart visible instantly. Pagination fills the rest.
             const reqLimit = firstDataRequest ? 1000 : 20000;
 
-            let url = `${getBaseUrl()}/api/history?routingKey=${routingKey}&timeframe=${tf}&limit=${reqLimit}`;
+            let url = `${getBaseUrl()}/api/history?routingKey=${routingKey}&timeframe=${tf}&limit=${reqLimit}&format=binary`;
             if (!firstDataRequest && to) {
                 // Pagination: Load OLDER than 'to'
                 url += `&to=${Math.floor(to * 1000)}`;
@@ -176,31 +176,57 @@ export class MT5Datafeed implements IDatafeed {
                 return;
             }
 
-            const data = await res.json();
-            const count = data.candles?.length || 0;
-            console.log(`%c [MT5Datafeed] (d) HISTORY RESULT: Received ${count} candles.`, count === 0 ? "color: red; font-weight: bold;" : "color: lime;");
+            let bars: any[] = [];
+            let count = 0;
+            const contentType = res.headers.get('content-type') || '';
+            const isPartial = res.headers.get('X-Sync-Partial') === 'true';
 
-            if (data.success && data.candles && count > 0) {
-                // ... Mapping Logik ...
-                const bars = data.candles.map((c: any) => {
-                    // Universal Timestamp Fix: Support both Sec and MS
-                    let t = Number(c.time);
-                    if (t > 100000000000) {
-                        t = t / 1000; // Convert MS to Sec
-                    }
-                    return {
+            if (contentType.includes('application/octet-stream')) {
+                const buffer = await res.arrayBuffer();
+                const view = new DataView(buffer);
+                const bytes = buffer.byteLength;
+                count = Math.floor(bytes / 48);
+                
+                for (let i = 0; i < count; i++) {
+                    const offset = i * 48;
+                    let t = Number(view.getBigInt64(offset, true));
+                    if (t > 100000000000) t = t / 1000;
+                    
+                    bars.push({
                         time: t,
-                        open: c.open,
-                        high: c.high,
-                        low: c.low,
-                        close: c.close,
-                        volume: c.volume || 0
-                    };
-                });
+                        open: view.getFloat64(offset + 8, true),
+                        high: view.getFloat64(offset + 16, true),
+                        low: view.getFloat64(offset + 24, true),
+                        close: view.getFloat64(offset + 32, true),
+                        volume: Number(view.getBigInt64(offset + 40, true)) || 0
+                    });
+                }
+                
+                bars.sort((a, b) => a.time - b.time);
+                console.log(`%c [MT5Datafeed] (d) BINARY HISTORY: Decoded ${count} candles.`, count === 0 ? "color: red; font-weight: bold;" : "color: lime;");
+            } else {
+                const data = await res.json();
+                count = data.candles?.length || 0;
+                console.log(`%c [MT5Datafeed] (d) JSON HISTORY: Received ${count} candles.`, count === 0 ? "color: red; font-weight: bold;" : "color: lime;");
 
-                // Sorting is crucial
-                bars.sort((a: any, b: any) => a.time - b.time);
+                if (data.success && data.candles && count > 0) {
+                    bars = data.candles.map((c: any) => {
+                        let t = Number(c.time);
+                        if (t > 100000000000) t = t / 1000; 
+                        return {
+                            time: t,
+                            open: c.open,
+                            high: c.high,
+                            low: c.low,
+                            close: c.close,
+                            volume: c.volume || 0
+                        };
+                    });
+                    bars.sort((a: any, b: any) => a.time - b.time);
+                }
+            }
 
+            if (count > 0) {
                 // MERGE LIVE CACHE (Fix for Flicker on Reset)
                 const cacheKey = `${symbol}_${tf}`;
                 const cachedBar = this.lastBars.get(cacheKey);

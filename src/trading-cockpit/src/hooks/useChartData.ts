@@ -81,30 +81,64 @@ export function useChartData({ symbol, timeframe, botId, isActivePane, backtestI
             const routingKey = effectiveBotId ? `${effectiveBotId}:HISTORY:${symbol}` : symbol;
 
             console.log(`[!!! ALARM-FLOW-FRONTEND 5.2 - fetchHistory] botId = ${effectiveBotId}, RoutingKey = ${routingKey}, limit = ${targetTotal}`);
-            let url = `${getBaseUrl()}/api/history?routingKey=${routingKey}&timeframe=${timeframe}&limit=${targetTotal}&_=${Date.now()}`;
+            let url = `${getBaseUrl()}/api/history?routingKey=${routingKey}&timeframe=${timeframe}&limit=${targetTotal}&format=binary&_=${Date.now()}`;
             if (backtestId) url += `&backtestId=${backtestId}`;
 
             const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
             const headers: Record<string, string> = token ? { 'Authorization': `Bearer ${token}` } : {};
 
             let res = await fetch(url, { headers });
-            let response = await res.json();
+            
+            let gatheredBars: any[] = [];
+            const contentType = res.headers.get('content-type') || '';
+            const isPartial = res.headers.get('X-Sync-Partial') === 'true';
+            
+            if (contentType.includes('application/octet-stream')) {
+                const buffer = await res.arrayBuffer();
+                const view = new DataView(buffer);
+                const bytes = buffer.byteLength;
+                const candleCount = Math.floor(bytes / 48);
+                
+                // console.log(`[useChartData] ⚡ Binary Decode: ${bytes} bytes -> ${candleCount} bars.`);
+                
+                for (let i = 0; i < candleCount; i++) {
+                    const offset = i * 48;
+                    // MQL5 / Node SQLite chunks are written in Little-Endian
+                    let t = Number(view.getBigInt64(offset, true));
+                    if (t > 100000000000) t = t / 1000;
+                    
+                    gatheredBars.push({
+                        time: t,
+                        open: view.getFloat64(offset + 8, true),
+                        high: view.getFloat64(offset + 16, true),
+                        low: view.getFloat64(offset + 24, true),
+                        close: view.getFloat64(offset + 32, true),
+                        volume: Number(view.getBigInt64(offset + 40, true)) || 0
+                    });
+                }
+                
+                // Candles arrive in time DESC order from backend DB query. Sort ASC for chart.
+                gatheredBars.sort((a, b) => a.time - b.time);
+                
+            } else {
+                let response = await res.json();
 
-            if (!response.success || !response.candles) {
-                console.warn("[useChartData] Initial fetch failed or empty.");
-                setIsLoading(false);
-                isLoadingRef.current = false;
-                return;
+                if (!response.success || !response.candles) {
+                    console.warn("[useChartData] Initial fetch failed or empty.");
+                    setIsLoading(false);
+                    isLoadingRef.current = false;
+                    return;
+                }
+
+                gatheredBars = response.candles.map((c: any) => {
+                    let t = Number(c.time);
+                    if (t > 100000000000) t = t / 1000;
+                    return {
+                        time: t,
+                        open: c.open, high: c.high, low: c.low, close: c.close, volume: c.volume || 0
+                    };
+                }).sort((a: any, b: any) => a.time - b.time);
             }
-
-            let gatheredBars = response.candles.map((c: any) => {
-                let t = Number(c.time);
-                if (t > 100000000000) t = t / 1000;
-                return {
-                    time: t,
-                    open: c.open, high: c.high, low: c.low, close: c.close, volume: c.volume || 0
-                };
-            }).sort((a: any, b: any) => a.time - b.time);
 
             // Set Initial Data or Merge
             if (gatheredBars.length > 0) {

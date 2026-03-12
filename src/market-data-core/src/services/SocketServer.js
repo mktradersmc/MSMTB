@@ -575,6 +575,40 @@ class SocketServer {
                     }
                 }
 
+                if (req.query.format === 'binary') {
+                    // Pre-allocate buffer for all candles (48 bytes each)
+                    const outBuffer = Buffer.alloc(candles.length * 48);
+                    
+                    for (let i = 0; i < candles.length; i++) {
+                        const c = candles[i];
+                        const offset = i * 48;
+                        // Fast path: if we have the original 48-byte sqlite BLOB, just copy it
+                        if (c._raw_binary && Buffer.isBuffer(c._raw_binary) && c._raw_binary.length === 48) {
+                            c._raw_binary.copy(outBuffer, offset);
+                            
+                            // CRITICAL FIX: The time inside _raw_binary is unadjusted MT5 Broker Time (Seconds).
+                            // But c.time is the normalized UTC Time (Milliseconds). 
+                            // We MUST overwrite the first 8 bytes of the copied chunk with the correct UTC time, 
+                            // otherwise we get timezone overlaps, huge gaps, and duplicate timestamps in the frontend!
+                            outBuffer.writeBigInt64LE(BigInt(c.time), offset);
+                        } else {
+                            // Synthesis path (hot candles or missing blob): write manually
+                            outBuffer.writeBigInt64LE(BigInt(c.time), offset);
+                            outBuffer.writeDoubleLE(Number(c.open) || 0, offset + 8);
+                            outBuffer.writeDoubleLE(Number(c.high) || 0, offset + 16);
+                            outBuffer.writeDoubleLE(Number(c.low) || 0, offset + 24);
+                            outBuffer.writeDoubleLE(Number(c.close) || 0, offset + 32);
+                            outBuffer.writeBigInt64LE(BigInt(c.volume || 1), offset + 40);
+                        }
+                    }
+                    
+                    // We can use a custom header to indicate partial status, if needed,
+                    // but usually binary requests are greedy. Let's send a custom header.
+                    res.setHeader('X-Sync-Partial', (candles.length < limit && to) ? 'true' : 'false');
+                    res.setHeader('Content-Type', 'application/octet-stream');
+                    return res.send(outBuffer);
+                }
+
                 // ✅ IMMEDIATE RESPONSE with partial flag
                 res.json({
                     success: true,

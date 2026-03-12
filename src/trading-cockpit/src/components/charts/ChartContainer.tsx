@@ -424,6 +424,63 @@ export const ChartContainer = React.forwardRef<ChartContainerHandle, ChartContai
 
     }, [aggregatedTrades, symbol]); // Re-run when trades change or symbol changes
 
+    // --- LIVE INDICATOR SYNC LOGIC ---
+    const prevLiveCandleRef = useRef<{ time: number, high: number, low: number, close: number } | null>(null);
+
+    const triggerIndicatorFetch = () => {
+        if (!chartReady || dataARef.current.length === 0) return;
+        
+        const plugins = indicatorPluginsRef.current;
+        activeIndicators.forEach(ind => {
+            if (!ind.visible) return;
+            const plugin = plugins.get(ind.instanceId);
+            const def = indicatorRegistry.get(ind.defId);
+
+            if (plugin && def && def.dataFetcher) {
+                if (pendingFetchesRef.current.has(ind.instanceId)) {
+                    pendingFetchesRef.current.get(ind.instanceId)?.abort();
+                }
+                const controller = new AbortController();
+                pendingFetchesRef.current.set(ind.instanceId, controller);
+
+                const currentDataA = dataARef.current;
+                const fromTime = currentDataA.length > 0 ? currentDataA[0].time : Math.floor(Date.now() / 1000) - 86400 * 30;
+                const toTime = currentDataA.length > 0 ? currentDataA[currentDataA.length - 1].time : Math.floor(Date.now() / 1000);
+
+                let enrichedSettings = { ...ind.settings };
+                const activeWs = workspaces.find(w => w.id === activeWorkspaceId);
+                if (activeWs) {
+                    const otherSymbols = activeWs.panes
+                        .filter(p => p.symbol && p.symbol !== symbol)
+                        .map(p => p.symbol);
+                    enrichedSettings.other_symbols = Array.from(new Set(otherSymbols));
+                }
+
+                def.dataFetcher({
+                    symbol: symbol,
+                    timeframe: timeframe,
+                    from: (fromTime as number) * 1000,
+                    to: (toTime as number) * 1000,
+                    settings: enrichedSettings,
+                    backtestId: activeSession?.id,
+                    signal: controller.signal
+                }).then(data => {
+                    if (pendingFetchesRef.current.get(ind.instanceId) === controller) {
+                        pendingFetchesRef.current.delete(ind.instanceId);
+                    }
+
+                    const pluginAsAny = plugin as any;
+                    if (pluginAsAny.updateSessions) pluginAsAny.updateSessions(data);
+                    if (pluginAsAny.updateDivergences) pluginAsAny.updateDivergences(data);
+                }).catch(e => {
+                    if (e.name !== 'AbortError') {
+                        console.error("Indicator Tick Data Fetch Failed", e);
+                    }
+                });
+            }
+        });
+    };
+
     // --- CONTEXT MENU HOOK ---
     const {
         menuState,
@@ -456,6 +513,29 @@ export const ChartContainer = React.forwardRef<ChartContainerHandle, ChartContai
                         p.updateCandle(candle);
                     }
                 });
+
+                // --- REAL-TIME BACKEND SYNC (STATELESS HIGH/LOW FILTER) ---
+                const prev = prevLiveCandleRef.current;
+                
+                // stateless trigger condition: new candle or expand high/low
+                const isNewCandle = !prev || prev.time !== candle.time;
+                const expandedHigh = prev && candle.high > prev.high;
+                const expandedLow = prev && candle.low < prev.low;
+
+                if (isNewCandle || expandedHigh || expandedLow) {
+                    triggerIndicatorFetch();
+                    
+                    // update ref
+                    prevLiveCandleRef.current = {
+                        time: candle.time,
+                        high: candle.high,
+                        low: candle.low,
+                        close: candle.close
+                    };
+                } else if (prev && prev.time === candle.time) {
+                    // Update closing price tracking without triggering fetch
+                    prev.close = candle.close;
+                }
             }
         },
         getLatestCandle: () => {
@@ -1957,8 +2037,6 @@ export const ChartContainer = React.forwardRef<ChartContainerHandle, ChartContai
     }, [activeIndicators, symbol, timeframe, chartReady, dataVersion]);
 
     // --- PUSH DATA TO PLUGINS ON TICK ---
-    const prevLiveCandleRef = useRef<{ time: number, high: number, low: number, close: number } | null>(null);
-
     useEffect(() => {
         if (!chartReady || dataA.length === 0) return;
         const plugins = indicatorPluginsRef.current;
@@ -1973,85 +2051,19 @@ export const ChartContainer = React.forwardRef<ChartContainerHandle, ChartContai
             if (pluginAsAny.updateData) {
                 pluginAsAny.updateData(dataA);
             }
-            // updateLiveCandle plugin interface is deprecated.
-            // The latest candle is intrinsically in dataA and DB.
         });
 
-        // --- REAL-TIME BACKEND SYNC (STATELESS HIGH/LOW FILTER) ---
-        const prev = prevLiveCandleRef.current;
-
-        // stateless trigger condition: new candle or expand high/low
-        const isNewCandle = !prev || prev.time !== latestCandle.time;
-        const expandedHigh = latestCandle.close === latestCandle.high;
-        const expandedLow = latestCandle.close === latestCandle.low;
-
-        if (isNewCandle || expandedHigh || expandedLow) {
-
-            // update ref
-            prevLiveCandleRef.current = {
-                time: latestCandle.time,
-                high: latestCandle.high,
-                low: latestCandle.low,
-                close: latestCandle.close
-            };
-
-            activeIndicators.forEach(ind => {
-                if (!ind.visible) return;
-                const plugin = plugins.get(ind.instanceId);
-                const def = indicatorRegistry.get(ind.defId);
-
-                if (plugin && def && def.dataFetcher) {
-
-                    if (pendingFetchesRef.current.has(ind.instanceId)) {
-                        pendingFetchesRef.current.get(ind.instanceId)?.abort();
-                    }
-                    const controller = new AbortController();
-                    pendingFetchesRef.current.set(ind.instanceId, controller);
-
-                    // Fetch Data logic
-                    const currentDataA = dataARef.current;
-                    const fromTime = currentDataA.length > 0 ? currentDataA[0].time : Math.floor(Date.now() / 1000) - 86400 * 30;
-                    const toTime = currentDataA.length > 0 ? currentDataA[currentDataA.length - 1].time : Math.floor(Date.now() / 1000);
-
-                    // Inject other_symbols automatically from workspace
-                    let enrichedSettings = { ...ind.settings };
-                    const activeWs = workspaces.find(w => w.id === activeWorkspaceId);
-                    if (activeWs) {
-                        const otherSymbols = activeWs.panes
-                            .filter(p => p.symbol && p.symbol !== symbol)
-                            .map(p => p.symbol);
-                        enrichedSettings.other_symbols = Array.from(new Set(otherSymbols));
-                    }
-
-                    def.dataFetcher({
-                        symbol: symbol,
-                        timeframe: timeframe,
-                        from: (fromTime as number) * 1000,
-                        to: (toTime as number) * 1000,
-                        settings: enrichedSettings,
-                        backtestId: activeSession?.id,
-                        signal: controller.signal
-                    }).then(data => {
-                        // clear abort controller tracking
-                        if (pendingFetchesRef.current.get(ind.instanceId) === controller) {
-                            pendingFetchesRef.current.delete(ind.instanceId);
-                        }
-
-                        const pluginAsAny = plugin as any;
-                        if (pluginAsAny.updateSessions) {
-                            pluginAsAny.updateSessions(data);
-                        }
-                        if (pluginAsAny.updateDivergences) {
-                            pluginAsAny.updateDivergences(data);
-                        }
-                    }).catch(e => {
-                        if (e.name !== 'AbortError') {
-                            console.error("Indicator Tick Data Fetch Failed", e);
-                        }
-                    });
-                }
-            });
-        }
+        // Trigger an indicator fetch whenever React state (dataA) updates.
+        // This ensures the closed candle state is synced, and fills any gaps.
+        triggerIndicatorFetch();
+        
+        // Also update the live candle ref so expansion logic has a correct baseline
+        prevLiveCandleRef.current = {
+            time: latestCandle.time,
+            high: latestCandle.high,
+            low: latestCandle.low,
+            close: latestCandle.close
+        };
 
     }, [dataA, chartReady]);
 

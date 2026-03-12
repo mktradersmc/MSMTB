@@ -253,12 +253,30 @@ export class ICTSessionsPlugin extends BaseWidget<ICTSessionsState> {
             const sessionColor = this.getColorForSession(session.session_type, settings);
             const boxColor = this.hexToRgba(sessionColor, settings.box_transparency || 0.1);
 
-            const width = validX2 - validX1;
+            let width = validX2 - validX1;
+            
+            // FIX: If width is 0 (session only has 1 candle and start === end), it won't draw.
+            // Give it the visual width of exactly 1 candle (bar spacing).
+            if (width <= 0 && validX1 !== -100) {
+                // Approximate candle width based on TimeScale spacing
+                const spacing = timeScale.options().barSpacing;
+                // Shift x1 back by half spacing and x2 forward by half spacing to center on the candle
+                const halfSpace = spacing / 2;
+                validX2 = validX1 + halfSpace;
+                // Since validX1 is let's leave validX1 as a const but we can't re-assign it.
+                // We just render slightly to the left.
+                width = spacing;
+            }
+
             const height = yLow - yHigh; // High price has lower Y value
 
             // DRAW BOX
             ctx.fillStyle = boxColor;
-            ctx.fillRect(validX1, yHigh, width, height);
+            
+            // Adjust starting X if we applied the single-candle width fix
+            const drawX1 = (width === timeScale.options().barSpacing) ? validX1 - (width / 2) : validX1;
+
+            ctx.fillRect(drawX1, yHigh, width, height);
 
             // DRAW PIVOTS (Hi/Lo)
             ctx.beginPath();
@@ -284,10 +302,13 @@ export class ICTSessionsPlugin extends BaseWidget<ICTSessionsState> {
             const safeXLineEndHigh = xLineEndHigh !== null ? xLineEndHigh : validX2; // Fallback to box end if line end is null
 
             ctx.setLineDash(this.getLineDash(settings.high_line_style || 'Dashed'));
-            ctx.moveTo(validX1, yHigh);
+            ctx.moveTo(drawX1, yHigh);
             // If safeXLineEndHigh < validX1, we might still draw backwards if coordinate mapping is weird.
             // Force Math.max for coordinates too if needed, but time clamp should suffice.
-            const drawnXHigh = Math.max(validX1, safeXLineEndHigh);
+            
+            // FIX: Use `drawX1 + width` to ensure the line matches the single-candle box width at minimum
+            const drawnXHigh = Math.max(drawX1 + width, safeXLineEndHigh);
+            
             ctx.lineTo(drawnXHigh, yHigh);
             ctx.stroke();
 
@@ -307,8 +328,11 @@ export class ICTSessionsPlugin extends BaseWidget<ICTSessionsState> {
             ctx.beginPath(); // New path for low
             ctx.setLineDash(this.getLineDash(settings.low_line_style || 'Dashed'));
             ctx.strokeStyle = sessionColor; // Reset stroke just in case
-            ctx.moveTo(validX1, yLow);
-            const drawnXLow = Math.max(validX1, safeXLineEndLow);
+            ctx.moveTo(drawX1, yLow);
+            
+            // FIX: Use `drawX1 + width` to ensure the line matches the single-candle box width at minimum
+            const drawnXLow = Math.max(drawX1 + width, safeXLineEndLow);
+            
             ctx.lineTo(drawnXLow, yLow);
 
             ctx.stroke();

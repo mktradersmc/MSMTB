@@ -560,6 +560,12 @@ export const ChartContainer = React.forwardRef<ChartContainerHandle, ChartContai
             if (chartARef.current) {
                 // Precise sync: use setVisibleLogicalRange
                 try {
+                    // GUARD: Do not accept incoming scroll syncs if we are currently loading or have no data.
+                    // This prevents "jump recoil" when charts finish loading at different times.
+                    if (isLoading || dataARef.current.length === 0) {
+                        return; // Ignore sync, we are not ready. ViewState/fitContent will handle our initial zoom.
+                    }
+
                     // LOOP PROTECTION: Lock for 20ms to cover async event dispatch
                     isProgrammaticUpdate.current = true;
                     // TRACE 0162

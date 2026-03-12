@@ -789,11 +789,11 @@ export const ChartContainer = React.forwardRef<ChartContainerHandle, ChartContai
             });
         };
         if (chartReady) {
-            console.log(`[ChartContainer] Applying Timezone: ${selectedTimezone}`);
+            console.log(`[ChartContainer] Applying Timezone: ${selectedTimezone} for timeframe: ${timeframe}`);
             applyTimezone(chartARef.current);
             applyTimezone(chartBRef.current);
         }
-    }, [selectedTimezone, chartReady]);
+    }, [selectedTimezone, timeframe, chartReady]);
 
     // Sync AutoScale state from chart
     useEffect(() => {

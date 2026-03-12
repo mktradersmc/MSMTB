@@ -1634,23 +1634,26 @@ export const ChartContainer = React.forwardRef<ChartContainerHandle, ChartContai
                     const lenDiff = processedData.length - prevDataLengthRef.current;
                     const newLastTime = processedData[processedData.length - 1].time as number;
 
-                    // Allow strictly 0 (update last) or 1 (new tick)
+                    // Allow strictly 0 (update last) or up to 5 (new ticks during latency)
                     // GUARD: Ensure we never try to update with PAST data (Time Reversion) which crashes LWC
                     const isTickUpdate = lenDiff === 0 && newLastTime === prevLastTimeRef.current;
-                    const isNewBar = lenDiff > 0 && lenDiff <= 2 && newLastTime > prevLastTimeRef.current;
+                    const isNewBar = lenDiff > 0 && lenDiff <= 5 && newLastTime > prevLastTimeRef.current;
 
                     if (isTickUpdate || isNewBar) {
                         try {
                             // Apply Updates
-                            const lastCandle = processedData[processedData.length - 1];
-                            seriesARef.current.update(lastCandle);
-
-                            // If we added 2 candles (rare), update the one before too?
-                            // update() only affects the specific time.
-                            if (lenDiff === 2) {
-                                const secondLast = processedData[processedData.length - 2];
-                                seriesARef.current.update(secondLast); // Update previous just in case
-                                seriesARef.current.update(lastCandle); // Then last
+                            const lastIdx = processedData.length - 1;
+                            
+                            // If we added multiple candles since last render, carefully update all new ones in sequence
+                            if (lenDiff > 0) {
+                                for (let i = lenDiff; i >= 0; i--) {
+                                    if (processedData[lastIdx - i]) {
+                                        seriesARef.current.update(processedData[lastIdx - i]);
+                                    }
+                                }
+                            } else {
+                                // Just update the newest tick
+                                seriesARef.current.update(processedData[lastIdx]);
                             }
 
                             // Restore Programmatic Crosshair if active on Chart A
@@ -1663,7 +1666,7 @@ export const ChartContainer = React.forwardRef<ChartContainerHandle, ChartContai
                             }
 
                             appliedIncremental = true;
-                            // console.log(`[ChartContainer:Diagnose] Incremental Tick Applied. Last: ${lastCandle.time}`);
+                            // console.log(`[ChartContainer:Diagnose] Incremental Tick Applied. Last: ${processedData[lastIdx].time}`);
                         } catch (e) {
                             console.warn("[ChartContainer] Incremental update failed, falling back to setData", e);
                             appliedIncremental = false;

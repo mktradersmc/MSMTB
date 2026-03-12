@@ -148,63 +148,52 @@ export function useChartData({ symbol, timeframe, botId, isActivePane, backtestI
                     return;
                 }
 
-                // MERGE LIVE CANDLE (Fix for Initial Fetch Flicker)
-                // In LIVE mode, the websocket is the authority. 
-                // In BACKTEST mode, the history fetch IS the authority (progresses on step). We must not overwrite it.
-                if (!backtestId) {
-                    const liveCandle = lastCandleRef.current;
-                    if (liveCandle) {
-                        const lastFetched = gatheredBars[gatheredBars.length - 1];
-                        if (!lastFetched || lastFetched.time < liveCandle.time) {
-                            gatheredBars.push(liveCandle);
-                        } else if (lastFetched.time === liveCandle.time) {
-                            gatheredBars[gatheredBars.length - 1] = liveCandle;
+                setData(prevData => {
+                    let newData = [...gatheredBars];
+
+                    // MERGE LIVE CANDLE (Fix for Initial Fetch Flicker)
+                    // In LIVE mode, the websocket is the authority. 
+                    // In BACKTEST mode, the history fetch IS the authority (progresses on step). We must not overwrite it.
+                    if (!backtestId) {
+                        const liveCandle = lastCandleRef.current;
+                        if (liveCandle) {
+                            const lastFetched = newData[newData.length - 1];
+                            if (!lastFetched || lastFetched.time < liveCandle.time) {
+                                newData.push({ ...liveCandle });
+                            } else if (lastFetched.time === liveCandle.time) {
+                                newData[newData.length - 1] = { ...liveCandle };
+                            }
                         }
                     }
-                }
 
-                if (isMerge) {
-                    // SMART MERGE: Integrate new chunk into existing data
-                    // Filter out bars that are already in 'data' (deduplication)
-                    // But beware: 'data' state might be stale in closure?
-                    // We can use functional update or assume 'data' is reasonably fresh if no rapid updates.
-                    // Better: We just update 'data' by slicing.
-
-                    console.log(`[useChartData] 🧬 Smart Merge: Integrating ${gatheredBars.length} bars...`);
-
-                    setData(prevData => {
-                        if (prevData.length === 0) return [...gatheredBars];
-
-                        const firstNewTime = gatheredBars[0].time;
-                        const lastNewTime = gatheredBars[gatheredBars.length - 1].time;
+                    if (isMerge && prevData.length > 0) {
+                        // SMART MERGE: Integrate new chunk into existing data functionally
+                        console.log(`[useChartData] 🧬 Smart Merge: Integrating ${newData.length} bars...`);
+                        
+                        const firstNewTime = newData[0].time;
+                        const lastNewTime = newData[newData.length - 1].time;
 
                         const nonOverlappingOld = prevData.filter(d => d.time < firstNewTime);
                         const nonOverlappingNew = prevData.filter(d => d.time > lastNewTime);
 
-                        return [...nonOverlappingOld, ...gatheredBars, ...nonOverlappingNew];
-                    });
-
-                    // Update Horizon
-                    const latest = gatheredBars[gatheredBars.length - 1];
-                    lastCandleRef.current = { ...latest };
-                    setHorizonData(generatePhantomBars(latest.time, latest.close, timeframe));
-
-                    // Stop loop if merging
-                    setIsLoading(false);
-                    isLoadingRef.current = false;
-                    historyLoadedRef.current = true;
-                    return;
-                } else {
-                    // FRESH LOAD
-                    setData([...gatheredBars]);
-                    lastCandleRef.current = { ...gatheredBars[gatheredBars.length - 1] };
-                    if (gatheredBars.length > 0) {
-                        setHorizonData(generatePhantomBars(gatheredBars[gatheredBars.length - 1].time, gatheredBars[gatheredBars.length - 1].close, timeframe));
-
-                        setIsLoading(false);
-                        historyLoadedRef.current = true;
+                        newData = [...nonOverlappingOld, ...newData, ...nonOverlappingNew];
                     }
-                }
+
+                    // Update Horizon and Last Candle Source of Truth based on the FINAL merged array
+                    if (newData.length > 0) {
+                        const latest = newData[newData.length - 1];
+                        lastCandleRef.current = { ...latest };
+                        // Note: setState callbacks should ideally be side-effect free, 
+                        // but setHorizonData within setData is safe enough in React 18+ batching.
+                        setHorizonData(generatePhantomBars(latest.time, latest.close, timeframe));
+                    }
+
+                    return newData;
+                });
+
+                setIsLoading(false);
+                isLoadingRef.current = false;
+                historyLoadedRef.current = true;
             }
 
             setIsLoading(false);

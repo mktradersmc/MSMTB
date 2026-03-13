@@ -1532,18 +1532,30 @@ double CTradingExpert::CalculatePositionSize(string symbol, double riskPercent, 
     
     if(entryPrice <= 0 || stopLoss <= 0 || entryPrice == stopLoss) return m_config.Limit_MinLot;
     
-    ENUM_ORDER_TYPE orderType = (direction == 1) ? ORDER_TYPE_BUY : ORDER_TYPE_SELL;
-    double lossForOneLot = 0.0;
     double lotSize = m_config.Limit_MinLot;
+    double lossForOneLot = 0.0;
+    ENUM_ORDER_TYPE orderType = (direction == 1) ? ORDER_TYPE_BUY : ORDER_TYPE_SELL;
     
-    // Server-side perfect calculation of exactly 1 standard lot
-    if(!OrderCalcProfit(orderType, symbol, 1.0, entryPrice, stopLoss, lossForOneLot))
+    bool calcSuccess = false;
+    for(int i=0; i<4; i++)
     {
-        Print("[TradingExpert] ⚠️ OrderCalcProfit failed! Falling back to raw tick math.");
+        if(OrderCalcProfit(orderType, symbol, 1.0, entryPrice, stopLoss, lossForOneLot) && MathAbs(lossForOneLot) > 0.0)
+        {
+            calcSuccess = true;
+            break;
+        }
+        Sleep(250);
+    }
+    
+    if(!calcSuccess)
+    {
+        Print("[TradingExpert] ⚠️ OrderCalcProfit failed after 4 retries! Falling back to raw tick math.");
         int slPoints = (int)(MathAbs(entryPrice - stopLoss) / SymbolInfoDouble(symbol, SYMBOL_POINT));
         double tickValue = SymbolInfoDouble(symbol, SYMBOL_TRADE_TICK_VALUE);
         double tickSize = SymbolInfoDouble(symbol, SYMBOL_TRADE_TICK_SIZE);
+        
         if(slPoints == 0 || tickSize == 0) return m_config.Limit_MinLot;
+        
         double lossValue = slPoints * SymbolInfoDouble(symbol, SYMBOL_POINT);
         lotSize = riskAmount / ( (lossValue / tickSize) * tickValue );
     }
@@ -1551,7 +1563,6 @@ double CTradingExpert::CalculatePositionSize(string symbol, double riskPercent, 
     {
         double absLoss = MathAbs(lossForOneLot);
         Print("[TradingExpert] Risk Engine - 1.0 Lot = $", absLoss, " Loss. Target RiskAmount = $", riskAmount);
-        if(absLoss == 0) return m_config.Limit_MinLot;
         lotSize = riskAmount / absLoss;
     }
     

@@ -78,9 +78,9 @@ namespace AwesomeCockpit.NT8.Bridge
                         req.Request(new Action<BarsRequest, ErrorCode, string>((barsReq, errorCode, errorMsg) =>
                         {
                             if (errorCode != ErrorCode.NoError)
-                                NinjaTrader.Code.Output.Process($"[Stream] Init Error {symbol} {timeframe}: {errorMsg}", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
+                                BridgeLogger.Log($"[Stream] Init Error {symbol} {timeframe}: {errorMsg}");
                             else
-                                NinjaTrader.Code.Output.Process($"[Stream] Armed for {symbol} {timeframe} ({barsReq.Bars.Count} context)", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
+                                BridgeLogger.Log($"[Stream] Armed for {symbol} {timeframe} ({barsReq.Bars.Count} context)");
                         }));
                     }));
                 }
@@ -91,7 +91,7 @@ namespace AwesomeCockpit.NT8.Bridge
             }
             catch (Exception ex)
             {
-                NinjaTrader.Code.Output.Process($"[Stream] Failed to init {symbol} {timeframe}: {ex.Message}", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
+                BridgeLogger.Log($"[Stream] Failed to init {symbol} {timeframe}: {ex.Message}");
             }
         }
 
@@ -163,7 +163,7 @@ namespace AwesomeCockpit.NT8.Bridge
                     };
 
                     var closedEventPayload = new { symbol = symbol, timeframe = timeframe, candle = closedBarPayload };
-                    BridgeLogger.Log($"[Stream] EV_BAR_CLOSED -> {symbol} {timeframe} Time: {e.BarsSeries.GetTime(ctx.LastIndex):yyyy-MM-dd HH:mm:ss} C: {e.BarsSeries.GetClose(ctx.LastIndex)} | Unix: {unixTimeMsClosed}");
+                    // BridgeLogger.Log($"[Stream] EV_BAR_CLOSED -> {symbol} {timeframe} Time: {e.BarsSeries.GetTime(ctx.LastIndex):yyyy-MM-dd HH:mm:ss} C: {e.BarsSeries.GetClose(ctx.LastIndex)} | Unix: {unixTimeMsClosed}");
                     _socket.SendProtocolMessage("EV_BAR_CLOSED", closedEventPayload, currentBotId, "TICK_SPY", symbol);
                 }
                 ctx.LastIndex = currentIdx;
@@ -184,7 +184,7 @@ namespace AwesomeCockpit.NT8.Bridge
             };
 
             var updateEventPayload = new { symbol = symbol, timeframe = timeframe, candle = updateBarPayload };
-            BridgeLogger.Log($"[Stream] EV_BAR_UPDATE -> {symbol} {timeframe} Time: {e.BarsSeries.GetTime(currentIdx):yyyy-MM-dd HH:mm:ss} C: {e.BarsSeries.GetClose(currentIdx)} | Unix: {unixTimeMsAct}");
+            // BridgeLogger.Log($"[Stream] EV_BAR_UPDATE -> {symbol} {timeframe} Time: {e.BarsSeries.GetTime(currentIdx):yyyy-MM-dd HH:mm:ss} C: {e.BarsSeries.GetClose(currentIdx)} | Unix: {unixTimeMsAct}");
             _socket.SendProtocolMessage("EV_BAR_UPDATE", updateEventPayload, currentBotId, "TICK_SPY", symbol);
         }
 
@@ -265,7 +265,7 @@ namespace AwesomeCockpit.NT8.Bridge
                     }
                 }
                 catch (Exception ex) { }
-                NinjaTrader.Code.Output.Process($"[Sync] WARNING: Could not automatically resolve Front Month for Master '{symbol}'.", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
+                BridgeLogger.Log($"[Sync] WARNING: Could not automatically resolve Front Month for Master '{symbol}'.");
             }
 
             // It's not a master symbol string (e.g. it's already "ES 03-26" or "EURUSD" or AAPL)
@@ -283,7 +283,7 @@ namespace AwesomeCockpit.NT8.Bridge
                 Instrument inst = ResolveInstrument(symbol);
                 if (inst == null)
                 {
-                    NinjaTrader.Code.Output.Process($"Antigravity: Unknown symbol {symbol} for subscription.", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
+                    BridgeLogger.Log($"Antigravity: Unknown symbol {symbol} for subscription.");
                     return;
                 }
 
@@ -294,7 +294,7 @@ namespace AwesomeCockpit.NT8.Bridge
                 };
                 if (_activeSubscriptions.TryAdd(symbol, sub))
                 {
-                    NinjaTrader.Code.Output.Process($"AwesomeCockpit: Initializing SymbolTracker for {symbol}", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
+                    BridgeLogger.Log($"AwesomeCockpit: Initializing SymbolTracker for {symbol}");
                 }
                 else
                 {
@@ -308,7 +308,7 @@ namespace AwesomeCockpit.NT8.Bridge
                 {
                     if (sub.LivestreamedTimeframes.Add(timeframe))
                     {
-                        NinjaTrader.Code.Output.Process($"AwesomeCockpit: Unlocked EV_BAR_UPDATE live streaming for {symbol} {timeframe}", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
+                        BridgeLogger.Log($"AwesomeCockpit: Unlocked EV_BAR_UPDATE live streaming for {symbol} {timeframe}");
                         if (!sub.ActiveStreams.ContainsKey(timeframe))
                         {
                             InstantiateBarsStream(sub, symbol, timeframe);
@@ -385,7 +385,7 @@ namespace AwesomeCockpit.NT8.Bridge
                     lock (sub.LivestreamedTimeframes)
                     {
                         sub.LivestreamedTimeframes.Remove(timeframe);
-                        NinjaTrader.Code.Output.Process($"AwesomeCockpit: Locked EV_BAR_UPDATE live streaming for {symbol} {timeframe}", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
+                        BridgeLogger.Log($"AwesomeCockpit: Locked EV_BAR_UPDATE live streaming for {symbol} {timeframe}");
                     }
                 }
             }
@@ -481,12 +481,12 @@ namespace AwesomeCockpit.NT8.Bridge
 
             }, null, timeToWait, Timeout.InfiniteTimeSpan);
 
-            NinjaTrader.Code.Output.Process($"[Rollover] Scheduled volume-based rollover flush check for {targetTime:yyyy-MM-dd HH:mm:ss} local.", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
+            BridgeLogger.Log($"[Rollover] Scheduled volume-based rollover flush check for {targetTime:yyyy-MM-dd HH:mm:ss} local.");
         }
 
         private void CheckForRollovers()
         {
-            NinjaTrader.Code.Output.Process($"[Rollover] Running Nightly Rollover/Volume verification...", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
+            BridgeLogger.Log($"[Rollover] Running Nightly Rollover/Volume verification...");
 
             foreach (var kvp in _activeSubscriptions)
             {
@@ -524,7 +524,7 @@ namespace AwesomeCockpit.NT8.Bridge
 
             if (newVolume > oldVolume)
             {
-                NinjaTrader.Code.Output.Process($"[Rollover] Volume check passed! Requesting flush and resync for {masterSymbolRaw}.", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
+                BridgeLogger.Log($"[Rollover] Volume check passed! Requesting flush and resync for {masterSymbolRaw}.");
 
                 // 1. Alert Backend to Wipe and Resync (Self-Healing)
                 var payload = new
@@ -543,7 +543,7 @@ namespace AwesomeCockpit.NT8.Bridge
             }
             else
             {
-                NinjaTrader.Code.Output.Process($"[Rollover] Volume check failed. {currentLockedInst.FullName} still holds more volume. Delaying Roll to next night.", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
+                BridgeLogger.Log($"[Rollover] Volume check failed. {currentLockedInst.FullName} still holds more volume. Delaying Roll to next night.");
             }
         }
 
@@ -586,19 +586,19 @@ namespace AwesomeCockpit.NT8.Bridge
 
         public void StartSynchronizedUpdate(string symbol, string timeframe, string mode, int count, long lastTime, string requestId, string targetBotId, string targetFunc)
         {
-            NinjaTrader.Code.Output.Process($"[Sync] Received CMD_START_SYNCHRONIZED_UPDATE for {symbol} {timeframe}. Mode: {mode}, Count: {count}", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
+            BridgeLogger.Log($"[Sync] Received CMD_START_SYNCHRONIZED_UPDATE for {symbol} {timeframe}. Mode: {mode}, Count: {count}");
 
             // Step 1: Parse Timeframe
             BarsPeriod period = ParseTimeframe(timeframe);
             if (period == null)
             {
-                NinjaTrader.Code.Output.Process($"[Sync] Unknown Timeframe: {timeframe}", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
+                BridgeLogger.Log($"[Sync] Unknown Timeframe: {timeframe}");
                 SendErrorResponse("Unknown Timeframe", timeframe, requestId, targetBotId, targetFunc, symbol);
                 return;
             }
 
             // Step 2: Get Instrument
-            NinjaTrader.Code.Output.Process($"[Sync] Attempting to load Instrument string: '{symbol}'", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
+            BridgeLogger.Log($"[Sync] Attempting to load Instrument string: '{symbol}'");
             Instrument inst = ResolveInstrument(symbol);
             bool isContinuous = false;
 
@@ -611,12 +611,12 @@ namespace AwesomeCockpit.NT8.Bridge
 
             if (inst == null)
             {
-                NinjaTrader.Code.Output.Process($"[Sync] Instrument '{symbol}' not found locally.", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
+                BridgeLogger.Log($"[Sync] Instrument '{symbol}' not found locally.");
                 SendErrorResponse("Unknown Symbol", timeframe, requestId, targetBotId, targetFunc, symbol);
                 return;
             }
 
-            NinjaTrader.Code.Output.Process($"[Sync] Successfully resolved Instrument: '{inst.FullName}' (Master: '{inst.MasterInstrument.Name}', Continuous: {isContinuous})", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
+            BridgeLogger.Log($"[Sync] Successfully resolved Instrument: '{inst.FullName}' (Master: '{inst.MasterInstrument.Name}', Continuous: {isContinuous})");
 
             // Step 3: Calculate Start/End Boundaries
             DateTime endTime = NinjaTrader.Core.Globals.Now;
@@ -679,7 +679,7 @@ namespace AwesomeCockpit.NT8.Bridge
             else
             {
                 // Fallback or other modes
-                NinjaTrader.Code.Output.Process($"[Sync] Mode {mode} not fully implemented yet for BarsRequest", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
+                BridgeLogger.Log($"[Sync] Mode {mode} not fully implemented yet for BarsRequest");
                 SendErrorResponse("Mode not implemented", timeframe, requestId, targetBotId, targetFunc, symbol);
                 return;
             }
@@ -717,12 +717,12 @@ namespace AwesomeCockpit.NT8.Bridge
 
                 if (!isConnected)
                 {
-                    NinjaTrader.Code.Output.Process($"[Sync] WARNING: NT8 has NO active connections. BarsRequest for '{symbol}' will fail or return 0 bars.", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
+                    BridgeLogger.Log($"[Sync] WARNING: NT8 has NO active connections. BarsRequest for '{symbol}' will fail or return 0 bars.");
                     SendErrorResponse("No Active Connections", timeframe, requestId, targetBotId, targetFunc, symbol);
                     return;
                 }
 
-                NinjaTrader.Code.Output.Process($"[Sync] Requesting {period.Value} {period.BarsPeriodType} for {inst.FullName} from {startTime} to {endTime} (Merge: {isContinuous})", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
+                BridgeLogger.Log($"[Sync] Requesting {period.Value} {period.BarsPeriodType} for {inst.FullName} from {startTime} to {endTime} (Merge: {isContinuous})");
 
                 BarsRequest req = new BarsRequest(inst, startTime, endTime)
                 {
@@ -735,7 +735,7 @@ namespace AwesomeCockpit.NT8.Bridge
                 {
                     if (errorCode != ErrorCode.NoError)
                     {
-                        NinjaTrader.Code.Output.Process($"[Sync] BarsRequest Error: {errorMsg}", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
+                        BridgeLogger.Log($"[Sync] BarsRequest Error: {errorMsg}");
                         SendErrorResponse(errorMsg, timeframe, requestId, targetBotId, targetFunc, symbol);
                         return;
                     }
@@ -745,7 +745,7 @@ namespace AwesomeCockpit.NT8.Bridge
             }
             catch (Exception ex)
             {
-                NinjaTrader.Code.Output.Process($"[Sync] BarsRequest Exception: {ex.Message}", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
+                BridgeLogger.Log($"[Sync] BarsRequest Exception: {ex.Message}");
                 SendErrorResponse(ex.Message, timeframe, requestId, targetBotId, targetFunc, symbol);
             }
         }
@@ -760,11 +760,11 @@ namespace AwesomeCockpit.NT8.Bridge
             string tEnd = barsCount > 0 ? bars.GetTime(barsCount - 1).ToString("yyyy-MM-dd HH:mm:ss") : "N/A";
             string requestedLastTimeRaw = lastTime > 0 ? DateTimeOffset.FromUnixTimeSeconds(lastTime).UtcDateTime.ToString("yyyy-MM-dd HH:mm:ss") : "0";
 
-            NinjaTrader.Code.Output.Process($"[Sync] ProcessBarsResponse {symbol} {timeframe} | Mode: {mode} | ClientLastTimeUTC: {requestedLastTimeRaw} | NT8_Bars: {barsCount} | NT8_Range: [{tStart} to {tEnd}]", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
+            BridgeLogger.Log($"[Sync] ProcessBarsResponse {symbol} {timeframe} | Mode: {mode} | ClientLastTimeUTC: {requestedLastTimeRaw} | NT8_Bars: {barsCount} | NT8_Range: [{tStart} to {tEnd}]");
 
             if (bars == null || bars.Count == 0 || barsCount <= 0)
             {
-                NinjaTrader.Code.Output.Process($"[Sync] ❌ DIAGNOSTIC: BarsRequest returned 0 bars for '{symbol}' ({inst.FullName}). Mode: {mode}, Period: {period.Value} {period.BarsPeriodType}. MergePolicy: {(inst.MasterInstrument.Name == symbol ? "Continuous" : "Exact")}.", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
+                BridgeLogger.Log($"[Sync] ❌ DIAGNOSTIC: BarsRequest returned 0 bars for '{symbol}' ({inst.FullName}). Mode: {mode}, Period: {period.Value} {period.BarsPeriodType}. MergePolicy: {(inst.MasterInstrument.Name == symbol ? "Continuous" : "Exact")}.");
                 SendSuccessResponse(data, timeframe, requestId, targetBotId, targetFunc, symbol);
                 return;
             }
@@ -780,7 +780,7 @@ namespace AwesomeCockpit.NT8.Bridge
                 if (lastBarCloseTime > NinjaTrader.Core.Globals.Now || lastBarCloseTime > endTime)
                 {
                     isActiveBar = true;
-                    NinjaTrader.Code.Output.Process($"[Sync] Last bar in history is incomplete/forming. Dropping from payload.", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
+                    BridgeLogger.Log($"[Sync] Last bar in history is incomplete/forming. Dropping from payload.");
                 }
             }
 
@@ -804,6 +804,12 @@ namespace AwesomeCockpit.NT8.Bridge
                     }
 
                     DateTimeOffset offsetTime = new DateTimeOffset(openTime, TimeZoneInfo.Local.GetUtcOffset(openTime));
+
+                    if (mode == "GAP_FILL")
+                    {
+                        BridgeLogger.Log($"[Sync-Verbose] GAP_FILL {symbol} {timeframe} added bar | NT8 CloseTime: {bars.GetTime(i):yyyy-MM-dd HH:mm:ss} | Mapped OpenTime Local: {openTime:yyyy-MM-dd HH:mm:ss} | O:{bars.GetOpen(i)} H:{bars.GetHigh(i)} L:{bars.GetLow(i)} C:{bars.GetClose(i)} V:{bars.GetVolume(i)} | Unix:{offsetTime.ToUnixTimeMilliseconds()}");
+                    }
+
                     data.Add(new
                     {
                         time = offsetTime.ToUnixTimeMilliseconds(),

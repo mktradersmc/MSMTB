@@ -57,7 +57,7 @@ namespace AwesomeCockpit.NT8.Bridge
             }
             else if (State == NinjaTrader.NinjaScript.State.DataLoaded)
             {
-                NinjaTrader.Code.Output.Process($"[HeadlessStrategy] Native DataLoaded for {_symbolName}. Multi-Series tracking fully armed.", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
+                BridgeLogger.Log($"[HeadlessStrategy] Native DataLoaded for {_symbolName}. Multi-Series tracking fully armed.");
             }
         }
 
@@ -105,12 +105,12 @@ namespace AwesomeCockpit.NT8.Bridge
                             volume = Volumes[ntIdx][1]
                         };
 
-                        BridgeLogger.Log($"[HeadlessStrategy] EV_BAR_CLOSED -> {tf} | NT8 CloseTime: {BarsArray[ntIdx].GetTime(1):yyyy-MM-dd HH:mm:ss} | Mapped OpenTime Local: {openTimeClosed:yyyy-MM-dd HH:mm:ss} | O:{Opens[ntIdx][1]} H:{Highs[ntIdx][1]} L:{Lows[ntIdx][1]} C:{Closes[ntIdx][1]} V:{Volumes[ntIdx][1]} | Unix:{offsetTimeClosed.ToUnixTimeMilliseconds()}");
+                        // BridgeLogger.Log($"[HeadlessStrategy] EV_BAR_CLOSED -> {tf} | NT8 CloseTime: {BarsArray[ntIdx].GetTime(1):yyyy-MM-dd HH:mm:ss} | Mapped OpenTime Local: {openTimeClosed:yyyy-MM-dd HH:mm:ss} | O:{Opens[ntIdx][1]} H:{Highs[ntIdx][1]} L:{Lows[ntIdx][1]} C:{Closes[ntIdx][1]} V:{Volumes[ntIdx][1]} | Unix:{offsetTimeClosed.ToUnixTimeMilliseconds()}");
                         _onBarUpdateCallback?.Invoke(_symbolName, tf, closedPayload, true);
                     }
                     catch (Exception ex)
                     {
-                        NinjaTrader.Code.Output.Process($"[HeadlessStrategy] EV_BAR_CLOSED Error ({tf}): {ex.Message}", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
+                        // BridgeLogger.Log($"[HeadlessStrategy] EV_BAR_CLOSED Error ({tf}): {ex.Message}");
                     }
                 }
                 _lastBarIndexMap[bIdx] = currentNativeBarIdx;
@@ -132,12 +132,12 @@ namespace AwesomeCockpit.NT8.Bridge
                     volume = Volumes[ntIdx][0]
                 };
 
-                BridgeLogger.Log($"[HeadlessStrategy] EV_BAR_UPDATE -> {tf} | Active NT8 Time: {BarsArray[ntIdx].GetTime(0):yyyy-MM-dd HH:mm:ss} | Mapped OpenTime: {openTimeAct:yyyy-MM-dd HH:mm:ss} | O:{Opens[ntIdx][0]} H:{Highs[ntIdx][0]} L:{Lows[ntIdx][0]} C:{Closes[ntIdx][0]} V:{Volumes[ntIdx][0]} | Unix:{offsetTimeAct.ToUnixTimeMilliseconds()}");
+                // BridgeLogger.Log($"[HeadlessStrategy] EV_BAR_UPDATE -> {tf} | Active NT8 Time: {BarsArray[ntIdx].GetTime(0):yyyy-MM-dd HH:mm:ss} | Mapped OpenTime: {openTimeAct:yyyy-MM-dd HH:mm:ss} | O:{Opens[ntIdx][0]} H:{Highs[ntIdx][0]} L:{Lows[ntIdx][0]} C:{Closes[ntIdx][0]} V:{Volumes[ntIdx][0]} | Unix:{offsetTimeAct.ToUnixTimeMilliseconds()}");
                 _onBarUpdateCallback?.Invoke(_symbolName, tf, updatePayload, false);
             }
             catch (Exception ex)
             {
-                NinjaTrader.Code.Output.Process($"[HeadlessStrategy] EV_BAR_UPDATE Error ({tf}): {ex.Message}", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
+                // BridgeLogger.Log($"[HeadlessStrategy] EV_BAR_UPDATE Error ({tf}): {ex.Message}");
             }
         }
 
@@ -170,7 +170,7 @@ namespace AwesomeCockpit.NT8.Bridge
             }
             catch (Exception ex)
             {
-                NinjaTrader.Code.Output.Process($"[HeadlessStrategy] Payload Error ({timeframe}): {ex.Message}", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
+                BridgeLogger.Log($"[HeadlessStrategy] Payload Error ({timeframe}): {ex.Message}");
                 return null;
             }
         }

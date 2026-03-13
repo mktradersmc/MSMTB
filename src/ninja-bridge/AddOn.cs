@@ -35,7 +35,7 @@ namespace AwesomeCockpit.NT8.Bridge
                     {
                         if (_webSocket == null)
                         {
-                            NinjaTrader.Code.Output.Process("AwesomeCockpit: Starting Bridge...", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
+                            BridgeLogger.Log("AwesomeCockpit: Starting Bridge...");
                             _webSocket = new BridgeWebSocket();
                             _webSocket.Connect("ws://localhost:3000"); // TODO: Configurable
                         }
@@ -43,7 +43,7 @@ namespace AwesomeCockpit.NT8.Bridge
                 }
                 catch (Exception ex)
                 {
-                    NinjaTrader.Code.Output.Process($"AwesomeCockpit AddOn INIT ERROR: {ex.Message} {ex.StackTrace}", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
+                    BridgeLogger.Log($"AwesomeCockpit AddOn INIT ERROR: {ex.Message} {ex.StackTrace}");
                 }
             }
             else if (State == State.Terminated)
@@ -53,7 +53,7 @@ namespace AwesomeCockpit.NT8.Bridge
                 {
                     if (_webSocket != null)
                     {
-                        NinjaTrader.Code.Output.Process("AwesomeCockpit: Stopping Bridge...", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
+                        BridgeLogger.Log("AwesomeCockpit: Stopping Bridge...");
                         _webSocket.Disconnect();
                         _webSocket = null;
                     }

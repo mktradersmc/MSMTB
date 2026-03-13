@@ -78,13 +78,13 @@ namespace AwesomeCockpit.NT8.Bridge
             }
             catch (Exception ex)
             {
-                NinjaTrader.Code.Output.Process($"[ExecutionManager] Constructor Error: {ex.Message}", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
+                BridgeLogger.Log($"[ExecutionManager] Constructor Error: {ex.Message}");
             }
             // We should also listen for newly added accounts if possible, but bridging usually runs with pre-existing accounts.
 
             // We should also listen for newly added accounts if possible, but bridging usually runs with pre-existing accounts.
 
-            NinjaTrader.Code.Output.Process($"[ExecutionManager] Constructor: Initialized.", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
+            BridgeLogger.Log($"[ExecutionManager] Constructor: Initialized.");
         }
 
         private void SubscribeToAccount(Account acc)
@@ -148,7 +148,7 @@ namespace AwesomeCockpit.NT8.Bridge
             }
             catch (Exception ex)
             {
-                NinjaTrader.Code.Output.Process($"[ExecutionManager] OnAccountItemUpdate Error: {ex.Message}", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
+                BridgeLogger.Log($"[ExecutionManager] OnAccountItemUpdate Error: {ex.Message}");
             }
         }
 
@@ -156,12 +156,12 @@ namespace AwesomeCockpit.NT8.Bridge
         {
             if (e.OrderState == OrderState.Rejected)
             {
-                NinjaTrader.Code.Output.Process($"[ExecutionManager] ORDER REJECTED: {e.Order.Name}, Action: {e.Order.OrderAction}, Type: {e.Order.OrderType}, OCO: {e.Order.Oco}", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
+                BridgeLogger.Log($"[ExecutionManager] ORDER REJECTED: {e.Order.Name}, Action: {e.Order.OrderAction}, Type: {e.Order.OrderType}, OCO: {e.Order.Oco}");
             }
             // Trace all updates during debug
             if (e.Order.Name.Contains("_SL") || e.Order.Name.Contains("_TP"))
             {
-                NinjaTrader.Code.Output.Process($"[ExecutionManager] OrderUpdate: {e.Order.Name} -> {e.OrderState}", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
+                BridgeLogger.Log($"[ExecutionManager] OrderUpdate: {e.Order.Name} -> {e.OrderState}");
             }
         }
 
@@ -216,7 +216,7 @@ namespace AwesomeCockpit.NT8.Bridge
                             // Calculate exact Volume-Weighted Average Price (VWAP) of all entry fills
                             double totalCost = entryExecutions.Sum(ex => ex.Price * ex.Quantity);
                             tm.Open = totalCost / totalEntryVol;
-                            NinjaTrader.Code.Output.Process($"[ExecutionManager] Updated VWAP Entry Price for {tm.Id} to {tm.Open} (Vol: {totalEntryVol})", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
+                            BridgeLogger.Log($"[ExecutionManager] Updated VWAP Entry Price for {tm.Id} to {tm.Open} (Vol: {totalEntryVol})");
                         }
                     }
                     else
@@ -230,7 +230,7 @@ namespace AwesomeCockpit.NT8.Bridge
                         int entryVol = tm.Executions.Where(ex => (tm.Type == 0 && ex.Order.OrderAction == OrderAction.Buy) || (tm.Type == 1 && ex.Order.OrderAction == OrderAction.SellShort)).Sum(ex => ex.Quantity);
                         int exitVol = tm.Executions.Where(ex => (tm.Type == 0 && (ex.Order.OrderAction == OrderAction.Sell || ex.Order.OrderAction == OrderAction.SellShort)) || (tm.Type == 1 && (ex.Order.OrderAction == OrderAction.Buy || ex.Order.OrderAction == OrderAction.BuyToCover))).Sum(ex => ex.Quantity);
 
-                        NinjaTrader.Code.Output.Process($"[ExecutionManager] OnExecutionUpdate - Trade: {tm.Id}, entryVol: {entryVol}, exitVol: {exitVol}", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
+                        BridgeLogger.Log($"[ExecutionManager] OnExecutionUpdate - Trade: {tm.Id}, entryVol: {entryVol}, exitVol: {exitVol}");
 
                         if (entryVol > 0 && entryVol == exitVol)
                         {
@@ -266,7 +266,7 @@ namespace AwesomeCockpit.NT8.Bridge
                                 var updatePayload = new { positions = new[] { closedPayloadObj } };
                                 _socket.SendProtocolMessage("EV_TRADE_CLOSED", updatePayload, e.Execution.Account.Name, "TRADING", "ALL");
 
-                                NinjaTrader.Code.Output.Process($"[ExecutionManager] Trade {baseId} Fully Closed. Emitted EV_TRADE_CLOSED. Realized: {closedTm.RealizedPl}", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
+                                BridgeLogger.Log($"[ExecutionManager] Trade {baseId} Fully Closed. Emitted EV_TRADE_CLOSED. Realized: {closedTm.RealizedPl}");
                             }
                         }
                     }
@@ -292,7 +292,7 @@ namespace AwesomeCockpit.NT8.Bridge
                 if (_dailyStartBalance <= 0) _dailyStartBalance = 50000; // Fallback sim size
 
                 _tradingStoppedForDay = false;
-                NinjaTrader.Code.Output.Process($"[ExecutionManager] New Day Detected for {acc.Name}. Reset Daily Balance: {_dailyStartBalance}", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
+                BridgeLogger.Log($"[ExecutionManager] New Day Detected for {acc.Name}. Reset Daily Balance: {_dailyStartBalance}");
             }
         }
 
@@ -313,7 +313,7 @@ namespace AwesomeCockpit.NT8.Bridge
                     limitReached = true;
                     if (!_tradingStoppedForDay)
                     {
-                        NinjaTrader.Code.Output.Process($"[ExecutionManager] EQUITY STOP LOSS REACHED on {acc.Name}! Eq: {currentEquity}, Min: {minEquity}", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
+                        BridgeLogger.Log($"[ExecutionManager] EQUITY STOP LOSS REACHED on {acc.Name}! Eq: {currentEquity}, Min: {minEquity}");
                         CloseAllPositions("Equity Stop Loss", acc);
                     }
                 }
@@ -330,7 +330,7 @@ namespace AwesomeCockpit.NT8.Bridge
                     limitReached = true;
                     if (!_tradingStoppedForDay)
                     {
-                        NinjaTrader.Code.Output.Process($"[ExecutionManager] DAILY PROFIT TARGET REACHED on {acc.Name}! Eq: {currentEquity}, Target: {targetEquity}", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
+                        BridgeLogger.Log($"[ExecutionManager] DAILY PROFIT TARGET REACHED on {acc.Name}! Eq: {currentEquity}, Target: {targetEquity}");
                         CloseAllPositions("Profit Target", acc);
                     }
                 }
@@ -378,7 +378,7 @@ namespace AwesomeCockpit.NT8.Bridge
 
                 double equity = balance + acc.Get(AccountItem.UnrealizedProfitLoss, Currency.UsDollar);
 
-                // NinjaTrader.Code.Output.Process($"[ExecutionManager] EV_ACCOUNT_STATUS_UPDATE on '{acc.Name}'. Balance: {balance}, Equity: {equity}", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
+                // BridgeLogger.Log($"[ExecutionManager] EV_ACCOUNT_STATUS_UPDATE on '{acc.Name}'. Balance: {balance}, Equity: {equity}");
 
                 var accountObj = new
                 {
@@ -418,7 +418,7 @@ namespace AwesomeCockpit.NT8.Bridge
             }
             catch (Exception ex)
             {
-                NinjaTrader.Code.Output.Process($"[ExecutionManager] BroadcastStatus Error: {ex.Message}", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
+                BridgeLogger.Log($"[ExecutionManager] BroadcastStatus Error: {ex.Message}");
             }
         }
 
@@ -533,7 +533,7 @@ namespace AwesomeCockpit.NT8.Bridge
                 // 1. Idempotency Guard
                 if (!_processedTradeIds.TryAdd(id, true))
                 {
-                    NinjaTrader.Code.Output.Process($"[ExecutionManager] Blocked duplicate execution for ID {id}", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
+                    BridgeLogger.Log($"[ExecutionManager] Blocked duplicate execution for ID {id}");
                     return;
                 }
 
@@ -556,7 +556,7 @@ namespace AwesomeCockpit.NT8.Bridge
                     {
                         try
                         {
-                            NinjaTrader.Code.Output.Process($"[ExecutionManager] Executing {operation} {orderType} for {symbol} (ID: {id})", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
+                            BridgeLogger.Log($"[ExecutionManager] Executing {operation} {orderType} for {symbol} (ID: {id})");
 
                             if (_tradingStoppedForDay)
                             {
@@ -594,7 +594,7 @@ namespace AwesomeCockpit.NT8.Bridge
                                 if (currentMarketPrice > 0)
                                 {
                                     entryPrice = currentMarketPrice;
-                                    NinjaTrader.Code.Output.Process($"[ExecutionManager] Dynamic MARKET Entry Fallback -> Using Current Price: {entryPrice} for Risk Calc", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
+                                    BridgeLogger.Log($"[ExecutionManager] Dynamic MARKET Entry Fallback -> Using Current Price: {entryPrice} for Risk Calc");
                                 }
                                 else
                                 {
@@ -672,14 +672,14 @@ namespace AwesomeCockpit.NT8.Bridge
                             double riskAmount = balance * (riskPercent / 100.0);
                             int finalQuantity = CalculateLotSize(inst, entryPrice, slPrice, riskAmount);
 
-                            NinjaTrader.Code.Output.Process($"[ExecutionManager] Target Vol: {finalQuantity} contracts (Balance: {balance}, Risk: {riskPercent}%)", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
+                            BridgeLogger.Log($"[ExecutionManager] Target Vol: {finalQuantity} contracts (Balance: {balance}, Risk: {riskPercent}%)");
 
                             // 5. Submit Order
                             OrderAction action = OrderAction.Buy;
                             if (operation == "SELL" || operation == "SHORT") action = OrderAction.SellShort;
 
                             string ocoGroup = $"OCO_{id}";
-                            NinjaTrader.Code.Output.Process($"[ExecutionManager] Submitting {action} {orderType} Volume: {finalQuantity} (Entry: {entryPrice}, SL: {slPrice}, TP: {tpPrice}, OCO: {ocoGroup})", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
+                            BridgeLogger.Log($"[ExecutionManager] Submitting {action} {orderType} Volume: {finalQuantity} (Entry: {entryPrice}, SL: {slPrice}, TP: {tpPrice}, OCO: {ocoGroup})");
 
                             var metric = new TradeMetric
                             {
@@ -749,12 +749,12 @@ namespace AwesomeCockpit.NT8.Bridge
                             }
                             catch (Exception rpEx)
                             {
-                                NinjaTrader.Code.Output.Process($"[ExecutionManager] ReportPositions Error: {rpEx.Message}", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
+                                BridgeLogger.Log($"[ExecutionManager] ReportPositions Error: {rpEx.Message}");
                             }
                         }
                         catch (Exception innerEx)
                         {
-                            NinjaTrader.Code.Output.Process($"[ExecutionManager] Dispatcher Execute Error: {innerEx.Message}\n{innerEx.StackTrace}", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
+                            BridgeLogger.Log($"[ExecutionManager] Dispatcher Execute Error: {innerEx.Message}\n{innerEx.StackTrace}");
                             SendRejectResponse($"NT8 Integration Error: {innerEx.Message}", id, reqId, botId);
                         }
                     };
@@ -765,7 +765,7 @@ namespace AwesomeCockpit.NT8.Bridge
             }
             catch (Exception ex)
             {
-                NinjaTrader.Code.Output.Process($"[ExecutionManager] ExecuteTrade Error: {ex.Message}", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
+                BridgeLogger.Log($"[ExecutionManager] ExecuteTrade Error: {ex.Message}");
             }
         }
 
@@ -787,7 +787,7 @@ namespace AwesomeCockpit.NT8.Bridge
 
             if (isMasterSymbol && master != null && master.RolloverCollection != null)
             {
-                NinjaTrader.Code.Output.Process($"\n--- Front Month Diagnostic for {symbol} ---", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
+                BridgeLogger.Log($"\n--- Front Month Diagnostic for {symbol} ---");
 
                 // --- Method 1: GetNextExpiry (Our previous attempt) ---
                 try
@@ -797,10 +797,10 @@ namespace AwesomeCockpit.NT8.Bridge
                     if (r1 != null)
                     {
                         string cand1 = symbol + " " + r1.ContractMonth.ToString("MM-yy");
-                        NinjaTrader.Code.Output.Process($"[Method 1] GetNextExpiry ({nextExpiry:yyyy-MM-dd})  -> {cand1}", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
+                        BridgeLogger.Log($"[Method 1] GetNextExpiry ({nextExpiry:yyyy-MM-dd})  -> {cand1}");
                     }
                 }
-                catch (Exception ex) { NinjaTrader.Code.Output.Process($"[Method 1] Failed: {ex.Message}", NinjaTrader.NinjaScript.PrintTo.OutputTab1); }
+                catch (Exception ex) { BridgeLogger.Log($"[Method 1] Failed: {ex.Message}"); }
 
                 // --- Method 2: The User's Suggestion (<= DateTime.Now) ---
                 try
@@ -813,18 +813,18 @@ namespace AwesomeCockpit.NT8.Bridge
                     if (r2 != null)
                     {
                         string cand2 = symbol + " " + r2.ContractMonth.ToString("MM-yy");
-                        NinjaTrader.Code.Output.Process($"[Method 2] <= DateTime.Now ({r2.Date:yyyy-MM-dd})  -> {cand2}", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
+                        BridgeLogger.Log($"[Method 2] <= DateTime.Now ({r2.Date:yyyy-MM-dd})  -> {cand2}");
 
                         // Let's actually USE this one as the return value since the user specifically requested to try it!
                         Instrument frontMonthInst = Instrument.GetInstrument(cand2);
                         if (frontMonthInst != null)
                         {
-                            NinjaTrader.Code.Output.Process($"--- Diagnostic Complete. Returning Method 2: {frontMonthInst.FullName} ---\n", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
+                            BridgeLogger.Log($"--- Diagnostic Complete. Returning Method 2: {frontMonthInst.FullName} ---\n");
                             return frontMonthInst;
                         }
                     }
                 }
-                catch (Exception ex) { NinjaTrader.Code.Output.Process($"[Method 2] Failed: {ex.Message}", NinjaTrader.NinjaScript.PrintTo.OutputTab1); }
+                catch (Exception ex) { BridgeLogger.Log($"[Method 2] Failed: {ex.Message}"); }
 
                 // --- Method 3: Strictly > DateTime.Now (Future Rollover) ---
                 try
@@ -837,12 +837,12 @@ namespace AwesomeCockpit.NT8.Bridge
                     if (r3 != null)
                     {
                         string cand3 = symbol + " " + r3.ContractMonth.ToString("MM-yy");
-                        NinjaTrader.Code.Output.Process($"[Method 3] > DateTime.Now  ({r3.Date:yyyy-MM-dd})  -> {cand3}", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
+                        BridgeLogger.Log($"[Method 3] > DateTime.Now  ({r3.Date:yyyy-MM-dd})  -> {cand3}");
                     }
                 }
-                catch (Exception ex) { NinjaTrader.Code.Output.Process($"[Method 3] Failed: {ex.Message}", NinjaTrader.NinjaScript.PrintTo.OutputTab1); }
+                catch (Exception ex) { BridgeLogger.Log($"[Method 3] Failed: {ex.Message}"); }
 
-                NinjaTrader.Code.Output.Process($"-------------------------------------------\n", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
+                BridgeLogger.Log($"-------------------------------------------\n");
             }
             return Instrument.GetInstrument(symbol);
         }
@@ -858,7 +858,7 @@ namespace AwesomeCockpit.NT8.Bridge
             double masterPrice = _subs.GetCurrentPrice(targetSymbol);
             if (masterPrice <= 0)
             {
-                NinjaTrader.Code.Output.Process($"[PriceMatch] No continuous stream active for {targetSymbol}. Falling back to calendar.", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
+                BridgeLogger.Log($"[PriceMatch] No continuous stream active for {targetSymbol}. Falling back to calendar.");
                 return ResolveInstrumentCalendar(targetSymbol);
             }
 
@@ -881,7 +881,7 @@ namespace AwesomeCockpit.NT8.Bridge
                 if (candPrice > 0)
                 {
                     double diff = Math.Abs(masterPrice - candPrice);
-                    NinjaTrader.Code.Output.Process($"[PriceMatch] Candidate {candInst.FullName} price: {candPrice} (Master: {masterPrice}, Diff: {diff})", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
+                    BridgeLogger.Log($"[PriceMatch] Candidate {candInst.FullName} price: {candPrice} (Master: {masterPrice}, Diff: {diff})");
 
                     if (diff < smallestDiff)
                     {
@@ -894,7 +894,7 @@ namespace AwesomeCockpit.NT8.Bridge
             if (bestMatch != null)
             {
                 _frontContractCache[targetSymbol] = bestMatch;
-                NinjaTrader.Code.Output.Process($"[PriceMatch] Successfully matched {targetSymbol} to {bestMatch.FullName} via direct Price Validation.", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
+                BridgeLogger.Log($"[PriceMatch] Successfully matched {targetSymbol} to {bestMatch.FullName} via direct Price Validation.");
                 return bestMatch;
             }
 
@@ -950,7 +950,7 @@ namespace AwesomeCockpit.NT8.Bridge
         {
             if (inst == null || entryPrice == 0 || stopLoss == 0 || riskAmount <= 0)
             {
-                NinjaTrader.Code.Output.Process($"[ExecutionManager] Risk Calc Skipped. Defaulting 1 Lot. (entry={entryPrice}, sl={stopLoss}, risk={riskAmount})", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
+                BridgeLogger.Log($"[ExecutionManager] Risk Calc Skipped. Defaulting 1 Lot. (entry={entryPrice}, sl={stopLoss}, risk={riskAmount})");
                 return 1;
             }
 
@@ -961,7 +961,7 @@ namespace AwesomeCockpit.NT8.Bridge
             double contractQuantity = riskAmount / (ticks * tickValue);
             int finalQuantity = (int)Math.Floor(contractQuantity);
 
-            NinjaTrader.Code.Output.Process($"[ExecutionManager] Risk Calc: SL Dist={slDistance} ({ticks:F1} Ticks). TickVal={tickValue:F2}. Max Contracts={contractQuantity:F2} -> Floor={finalQuantity}. RiskAmt={riskAmount:F2}", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
+            BridgeLogger.Log($"[ExecutionManager] Risk Calc: SL Dist={slDistance} ({ticks:F1} Ticks). TickVal={tickValue:F2}. Max Contracts={contractQuantity:F2} -> Floor={finalQuantity}. RiskAmt={riskAmount:F2}");
 
             if (finalQuantity < 1) finalQuantity = 1;
             return finalQuantity;
@@ -1012,7 +1012,7 @@ namespace AwesomeCockpit.NT8.Bridge
             else if (tfStr == "D1") { periodType = BarsPeriodType.Day; periodValue = 1; }
 
             // To query historical data synchronously in NT8 we use BarsRequest
-            NinjaTrader.Code.Output.Process($"[ExecutionManager] Resolving Anchor for time {requestedTime} ({tfStr}) type: {type}", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
+            BridgeLogger.Log($"[ExecutionManager] Resolving Anchor for time {requestedTime} ({tfStr}) type: {type}");
 
             double resolvedPrice = fallback;
             try
@@ -1055,7 +1055,7 @@ namespace AwesomeCockpit.NT8.Bridge
             }
             catch (Exception ex)
             {
-                NinjaTrader.Code.Output.Process($"[AnchorResolver] Error: {ex.Message}", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
+                BridgeLogger.Log($"[AnchorResolver] Error: {ex.Message}");
             }
 
             return resolvedPrice;
@@ -1075,7 +1075,7 @@ namespace AwesomeCockpit.NT8.Bridge
                 string id = payload["id"]?.ToString();
                 if (string.IsNullOrEmpty(id)) return;
 
-                NinjaTrader.Code.Output.Process($"[ExecutionManager] Modifying Trade {id}", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
+                BridgeLogger.Log($"[ExecutionManager] Modifying Trade {id}");
 
                 // Need the target account again to find working orders attached to this ID
                 string safeName = botId.Replace("_DATAFEED", "");
@@ -1205,11 +1205,11 @@ namespace AwesomeCockpit.NT8.Bridge
                                 {
                                     targetAccount.Cancel(associatedOrders);
                                     modified = true;
-                                    NinjaTrader.Code.Output.Process($"[ExecutionManager] Cancelled {associatedOrders.Count} Pending Orders (Entry, SL, TP) for: {id}", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
+                                    BridgeLogger.Log($"[ExecutionManager] Cancelled {associatedOrders.Count} Pending Orders (Entry, SL, TP) for: {id}");
                                 }
                                 else
                                 {
-                                    NinjaTrader.Code.Output.Process($"[ExecutionManager] Cancel Failed: Could not find working orders for {id}", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
+                                    BridgeLogger.Log($"[ExecutionManager] Cancel Failed: Could not find working orders for {id}");
                                 }
                             }
                             else if (action == "SL_BE")
@@ -1253,7 +1253,7 @@ namespace AwesomeCockpit.NT8.Bridge
 
                                         modified = true;
 
-                                        NinjaTrader.Code.Output.Process($"[ExecutionManager] Moved Stop Loss for {id} to Breakeven exactly at Execution Price: {bePrice}", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
+                                        BridgeLogger.Log($"[ExecutionManager] Moved Stop Loss for {id} to Breakeven exactly at Execution Price: {bePrice}");
                                     }
                                 }
                             }
@@ -1297,7 +1297,7 @@ namespace AwesomeCockpit.NT8.Bridge
                                             // Full Close -> Cancel all orphaned protective orders
                                             if (slOrder != null) targetAccount.Cancel(new[] { slOrder });
                                             if (tpOrder != null) targetAccount.Cancel(new[] { tpOrder });
-                                            NinjaTrader.Code.Output.Process($"[ExecutionManager] FULL CLOSE: Cancelled orphaned SL/TP orders for {id}", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
+                                            BridgeLogger.Log($"[ExecutionManager] FULL CLOSE: Cancelled orphaned SL/TP orders for {id}");
                                         }
                                         else
                                         {
@@ -1319,7 +1319,7 @@ namespace AwesomeCockpit.NT8.Bridge
                                                 if (scaledTp != null) targetAccount.Submit(new[] { scaledTp });
 #pragma warning restore 0618
                                             }
-                                            NinjaTrader.Code.Output.Process($"[ExecutionManager] PARTIAL CLOSE: Reduced orphaned SL/TP orders to {newWorkingVol} for {id}", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
+                                            BridgeLogger.Log($"[ExecutionManager] PARTIAL CLOSE: Reduced orphaned SL/TP orders to {newWorkingVol} for {id}");
                                         }
 
                                         OrderAction closeAction = tm.Type == 0 ? OrderAction.Sell : OrderAction.BuyToCover;
@@ -1334,7 +1334,7 @@ namespace AwesomeCockpit.NT8.Bridge
                                         {
                                             targetAccount.Submit(new[] { closeOrder });
                                             modified = true;
-                                            NinjaTrader.Code.Output.Process($"[ExecutionManager] Submitted {closeAction} Market Order to CLOSE {closeVol} contracts for {id}", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
+                                            BridgeLogger.Log($"[ExecutionManager] Submitted {closeAction} Market Order to CLOSE {closeVol} contracts for {id}");
                                         }
 #pragma warning restore 0618
                                     }
@@ -1368,7 +1368,7 @@ namespace AwesomeCockpit.NT8.Bridge
                         }
                         catch (Exception innerEx)
                         {
-                            NinjaTrader.Code.Output.Process($"[ExecutionManager] Dispatcher Modify Error: {innerEx.Message}\n{innerEx.StackTrace}", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
+                            BridgeLogger.Log($"[ExecutionManager] Dispatcher Modify Error: {innerEx.Message}\n{innerEx.StackTrace}");
 
                             string reqCmd = msg["command"]?.ToString() ?? "CMD_MODIFY_POSITION";
                             var errorPayload = new { status = "ERROR", message = $"Dispatcher Mod Error: {innerEx.Message}", id = id };
@@ -1382,7 +1382,7 @@ namespace AwesomeCockpit.NT8.Bridge
             }
             catch (Exception ex)
             {
-                NinjaTrader.Code.Output.Process($"[ExecutionManager] Modify/Close Error: {ex.Message}", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
+                BridgeLogger.Log($"[ExecutionManager] Modify/Close Error: {ex.Message}");
             }
         }
 
@@ -1392,7 +1392,7 @@ namespace AwesomeCockpit.NT8.Bridge
             if (!string.IsNullOrEmpty(id))
             {
                 _awaitingAckTrades.TryRemove(id, out _);
-                NinjaTrader.Code.Output.Process($"[ExecutionManager] Trade {id} ACKed and removed from terminal queue.", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
+                BridgeLogger.Log($"[ExecutionManager] Trade {id} ACKed and removed from terminal queue.");
             }
         }
     }

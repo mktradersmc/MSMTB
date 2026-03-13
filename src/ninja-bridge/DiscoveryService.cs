@@ -75,14 +75,14 @@ namespace AwesomeCockpit.NT8.Bridge
                         }
                         else
                         {
-                            NinjaTrader.Code.Output.Process($"AwesomeCockpit: MasterInstrument '{name}' not found locally.", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
+                            BridgeLogger.Log($"AwesomeCockpit: MasterInstrument '{name}' not found locally.");
                         }
                     }
                     catch { }
                 }
             }
 
-            NinjaTrader.Code.Output.Process($"AwesomeCockpit: Sending {count} Instruments (Broadcasting to Datafeed Accounts)...", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
+            BridgeLogger.Log($"AwesomeCockpit: Sending {count} Instruments (Broadcasting to Datafeed Accounts)...");
 
             // LOG for User Verification
             var allSymbolsList = symbolCategories.Values.SelectMany(v => v).ToList();
@@ -95,7 +95,7 @@ namespace AwesomeCockpit.NT8.Bridge
             var uniqueProviders = new System.Collections.Generic.HashSet<string>();
             NinjaTrader.Core.Globals.RandomDispatcher.Invoke(new Action(() =>
             {
-                NinjaTrader.Code.Output.Process($"AwesomeCockpit: Iterating {Account.All.Count} accounts for symbol broadcast...", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
+                BridgeLogger.Log($"AwesomeCockpit: Iterating {Account.All.Count} accounts for symbol broadcast...");
                 foreach (Account acc in Account.All)
                 {
                     if (acc == null) continue;
@@ -112,7 +112,7 @@ namespace AwesomeCockpit.NT8.Bridge
             foreach (var provider in uniqueProviders)
             {
                 string datafeedBotId = provider + "_DATAFEED";
-                NinjaTrader.Code.Output.Process($"AwesomeCockpit: Broadcasting Symbols for {datafeedBotId}...", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
+                BridgeLogger.Log($"AwesomeCockpit: Broadcasting Symbols for {datafeedBotId}...");
 
                 // We need to wrap this manually because BridgeWebSocket.Send uses internal socket identity
                 _socket.SendProtocolMessage("CMD_GET_SYMBOLS_RESPONSE", payload, datafeedBotId, "DATAFEED", "ALL", requestId);
@@ -131,7 +131,7 @@ namespace AwesomeCockpit.NT8.Bridge
         {
             try
             {
-                NinjaTrader.Code.Output.Process("AwesomeCockpit: DiscoveryService - Reporting Accounts...", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
+                BridgeLogger.Log("AwesomeCockpit: DiscoveryService - Reporting Accounts...");
 
                 var accountList = new System.Collections.Generic.List<object>();
                 var uniqueProviders = new System.Collections.Generic.HashSet<string>();
@@ -183,7 +183,7 @@ namespace AwesomeCockpit.NT8.Bridge
                         }
                         catch (Exception ex)
                         {
-                            NinjaTrader.Code.Output.Process($"AwesomeCockpit: Error reading account: {ex.Message}", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
+                            BridgeLogger.Log($"AwesomeCockpit: Error reading account: {ex.Message}");
                         }
                     }
                 }));
@@ -206,17 +206,17 @@ namespace AwesomeCockpit.NT8.Bridge
                 }
 
                 _socket.SendProtocolMessage("CMD_INIT_RESPONSE", accountList, "NT8", "DISCOVERY", "ALL", requestId);
-                NinjaTrader.Code.Output.Process($"AwesomeCockpit: Sent {accountList.Count} accounts (RPC Response).", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
+                BridgeLogger.Log($"AwesomeCockpit: Sent {accountList.Count} accounts (RPC Response).");
             }
             catch (Exception ex)
             {
-                NinjaTrader.Code.Output.Process($"AwesomeCockpit: SendAccounts CRITICAL Error: {ex.Message}", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
+                BridgeLogger.Log($"AwesomeCockpit: SendAccounts CRITICAL Error: {ex.Message}");
             }
         }
 
         public void RegisterAccountBots()
         {
-            NinjaTrader.Code.Output.Process("AwesomeCockpit: DiscoveryService - Registering Account Bots...", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
+            BridgeLogger.Log("AwesomeCockpit: DiscoveryService - Registering Account Bots...");
 
             var uniqueProviders = new System.Collections.Generic.HashSet<string>();
             var accountsToRegister = new System.Collections.Generic.List<Tuple<string, string, bool>>();
@@ -248,7 +248,7 @@ namespace AwesomeCockpit.NT8.Bridge
                     }
                     catch (Exception ex)
                     {
-                        NinjaTrader.Code.Output.Process($"AwesomeCockpit: Error registering account {acc.Name}: {ex.Message}", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
+                        BridgeLogger.Log($"AwesomeCockpit: Error registering account {acc.Name}: {ex.Message}");
                     }
                 }
             }));
@@ -272,7 +272,7 @@ namespace AwesomeCockpit.NT8.Bridge
                 _socket.SendProtocolMessage("REGISTER", tradingPayload, safeName, "TRADING", "ALL");
                 _socket.RegisterBot(safeName, "TRADING", "ALL"); // Track for Heartbeat
 
-                NinjaTrader.Code.Output.Process($"AwesomeCockpit: Registered Bots for {safeName}", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
+                BridgeLogger.Log($"AwesomeCockpit: Registered Bots for {safeName}");
             }
 
             foreach (var provider in uniqueProviders)
@@ -289,7 +289,7 @@ namespace AwesomeCockpit.NT8.Bridge
                 };
                 _socket.SendProtocolMessage("REGISTER", datafeedPayload, dfId, "DATAFEED", "ALL");
                 _socket.RegisterBot(dfId, "DATAFEED", "ALL");
-                NinjaTrader.Code.Output.Process($"AwesomeCockpit: Registered DATAFEED Bot for {provider}", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
+                BridgeLogger.Log($"AwesomeCockpit: Registered DATAFEED Bot for {provider}");
             }
 
             // Flag that initialization and bot creation is complete, unlocking Live Account Status Updates
@@ -316,7 +316,7 @@ namespace AwesomeCockpit.NT8.Bridge
             _socket.SendProtocolMessage("REGISTER", histPayload, botId, "HISTORY", symbol);
             _socket.RegisterBot(botId, "HISTORY", symbol);
 
-            NinjaTrader.Code.Output.Process($"AwesomeCockpit: Registered Virtual TICK_SPY and HISTORY for '{botId}' on '{symbol}'.", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
+            BridgeLogger.Log($"AwesomeCockpit: Registered Virtual TICK_SPY and HISTORY for '{botId}' on '{symbol}'.");
         }
     }
 }

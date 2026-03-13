@@ -29,11 +29,11 @@ namespace AwesomeCockpit.NT8.Bridge
 
         public BridgeWebSocket()
         {
-            BridgeLogger.LogOutput($"[Bridge] Initializing Bridge Components...");
+            BridgeLogger.Log($"[Bridge] Initializing Bridge Components...");
             _subscriptionManager = new SubscriptionManager(this);
             _discoveryService = new DiscoveryService(this);
             _executionManager = new ExecutionManager(this, _subscriptionManager);
-            BridgeLogger.LogOutput($"[Bridge] Component Initialization Complete.");
+            BridgeLogger.Log($"[Bridge] Component Initialization Complete.");
         }
 
         public void Connect(string url)
@@ -50,12 +50,12 @@ namespace AwesomeCockpit.NT8.Bridge
             {
                 try
                 {
-                    BridgeLogger.LogOutput($"AwesomeCockpit: Connecting to {url}...");
+                    BridgeLogger.Log($"AwesomeCockpit: Connecting to {url}...");
 
                     _ws = new ClientWebSocket();
                     await _ws.ConnectAsync(new Uri(url), token);
 
-                    BridgeLogger.LogOutput("AwesomeCockpit: Connected!");
+                    BridgeLogger.Log("AwesomeCockpit: Connected!");
 
                     // 1. Start Heartbeat
                     _heartbeatTimer?.Dispose();
@@ -73,7 +73,7 @@ namespace AwesomeCockpit.NT8.Bridge
                 }
                 catch (Exception ex)
                 {
-                    BridgeLogger.LogOutput($"AwesomeCockpit: Connection Lost/Failed: {ex.Message}. Retrying in 5s...");
+                    BridgeLogger.Log($"AwesomeCockpit: Connection Lost/Failed: {ex.Message}. Retrying in 5s...");
                 }
                 finally
                 {
@@ -123,7 +123,7 @@ namespace AwesomeCockpit.NT8.Bridge
                 if (!_registeredBots.Contains(key))
                 {
                     _registeredBots.Add(key);
-                    BridgeLogger.LogOutput($"AwesomeCockpit: Tracking Heartbeat for {id}:{func}");
+                    BridgeLogger.Log($"AwesomeCockpit: Tracking Heartbeat for {id}:{func}");
                 }
             }
         }
@@ -138,7 +138,7 @@ namespace AwesomeCockpit.NT8.Bridge
             // 2. Re-register Account Bots if this is a reconnection
             if (ExecutionManager.IsDiscoveryComplete)
             {
-                BridgeLogger.LogOutput($"AwesomeCockpit: Reconnection detected. Re-registering existing account bots...");
+                BridgeLogger.Log($"AwesomeCockpit: Reconnection detected. Re-registering existing account bots...");
                 _discoveryService.RegisterAccountBots();
             }
         }
@@ -195,7 +195,7 @@ namespace AwesomeCockpit.NT8.Bridge
                 // if (command != "HEARTBEAT" && command != "EV_BAR_UPDATE" && command != "EV_BAR_CLOSED")
                 // {
                 //     string logJson = json.Length > 500 ? json.Substring(0, 500) + "... [TRUNCATED]" : json;
-                //     BridgeLogger.LogOutput($"AwesomeCockpit: TX -> {logJson}");
+                //     BridgeLogger.Log($"AwesomeCockpit: TX -> {logJson}");
                 // }
 
                 // Serialize JSON to bytes
@@ -218,7 +218,7 @@ namespace AwesomeCockpit.NT8.Bridge
                 Buffer.BlockCopy(jsonBytes, 0, finalBuffer, 4, jsonBytes.Length);
 
                 // DEBUG: Print Header & Array structure purely to log file
-                BridgeLogger.LogOutput($"[DEBUG] jsonLength: {jsonLength}, jsonBytes.Length: {jsonBytes.Length}, finalBuffer.Length: {finalBuffer.Length}, Header: {lengthHeader[0]}-{lengthHeader[1]}-{lengthHeader[2]}-{lengthHeader[3]}");
+                // BridgeLogger.Log($"[DEBUG] jsonLength: {jsonLength}, jsonBytes.Length: {jsonBytes.Length}, finalBuffer.Length: {finalBuffer.Length}, Header: {lengthHeader[0]}-{lengthHeader[1]}-{lengthHeader[2]}-{lengthHeader[3]}");
 
                 await _sendLock.WaitAsync();
                 try
@@ -236,7 +236,7 @@ namespace AwesomeCockpit.NT8.Bridge
             }
             catch (Exception ex)
             {
-                BridgeLogger.LogOutput($"AwesomeCockpit: Send Error: {ex.Message}");
+                BridgeLogger.Log($"AwesomeCockpit: Send Error: {ex.Message}");
             }
         }
 
@@ -290,7 +290,7 @@ namespace AwesomeCockpit.NT8.Bridge
                             // Safety check
                             if (jsonLength > messageBytes.Length - 4)
                             {
-                                BridgeLogger.LogOutput($"AwesomeCockpit: Socket Receive Error: Invalid length prefix {jsonLength} vs {messageBytes.Length}");
+                                BridgeLogger.Log($"AwesomeCockpit: Socket Receive Error: Invalid length prefix {jsonLength} vs {messageBytes.Length}");
                                 continue;
                             }
 
@@ -308,7 +308,7 @@ namespace AwesomeCockpit.NT8.Bridge
                 {
                     if (!_cts.IsCancellationRequested)
                     {
-                        BridgeLogger.LogOutput($"AwesomeCockpit: Socket Receive Error: {ex.Message}");
+                        BridgeLogger.Log($"AwesomeCockpit: Socket Receive Error: {ex.Message}");
                     }
                     break;
                 }
@@ -322,7 +322,7 @@ namespace AwesomeCockpit.NT8.Bridge
                 // DEBUG: Direct Feedback to Backend
                 if (json.Contains("CMD_INIT"))
                 {
-                    BridgeLogger.LogOutput($"AwesomeCockpit: RAW RX: {json}");
+                    BridgeLogger.Log($"AwesomeCockpit: RAW RX: {json}");
                 }
 
                 var msg = JObject.Parse(json);
@@ -359,26 +359,26 @@ namespace AwesomeCockpit.NT8.Bridge
                         if (!string.IsNullOrEmpty(logDir))
                         {
                             BridgeLogger.LogDirectory = logDir;
-                            BridgeLogger.LogOutput($"AwesomeCockpit: Initialized BridgeLogger to {logDir}");
+                            BridgeLogger.Log($"AwesomeCockpit: Initialized BridgeLogger to {logDir}");
                         }
 
-                        BridgeLogger.LogOutput($"AwesomeCockpit: Received CMD_INIT. Waiting 10s for Datafeeds to connect...");
+                        BridgeLogger.Log($"AwesomeCockpit: Received CMD_INIT. Waiting 10s for Datafeeds to connect...");
 
                         Task.Run(async () =>
                         {
                             await Task.Delay(10000);
-                            BridgeLogger.LogOutput($"AwesomeCockpit: 10s delay over. Syncing Accounts via RPC...");
+                            BridgeLogger.Log($"AwesomeCockpit: 10s delay over. Syncing Accounts via RPC...");
                             _discoveryService.SendAccounts(requestId);
                         });
                     }
                     else if (cmd == "CMD_DB_SYNC_CONFIRMED") // Backend confirms DB Sync
                     {
-                        BridgeLogger.LogOutput($"AwesomeCockpit: Received CMD_DB_SYNC_CONFIRMED. Registering Bots...");
+                        BridgeLogger.Log($"AwesomeCockpit: Received CMD_DB_SYNC_CONFIRMED. Registering Bots...");
                         _discoveryService.RegisterAccountBots();
                     }
                     else if (cmd == "CMD_ACCOUNTS_SYNCED") // Alias
                     {
-                        BridgeLogger.LogOutput($"AwesomeCockpit: Received CMD_ACCOUNTS_SYNCED. Registering Bots...");
+                        BridgeLogger.Log($"AwesomeCockpit: Received CMD_ACCOUNTS_SYNCED. Registering Bots...");
                         _discoveryService.RegisterAccountBots();
                     }
                     else if (cmd == "CMD_CONFIG_SYMBOLS")
@@ -391,7 +391,7 @@ namespace AwesomeCockpit.NT8.Bridge
                         string directSymbol = msg["payload"]?["symbol"]?.ToString() ?? msg["payload"]?["name"]?.ToString();
                         if (!string.IsNullOrEmpty(directSymbol))
                         {
-                            BridgeLogger.LogOutput($"AwesomeCockpit: Received CMD_CONFIG_SYMBOLS for direct symbol '{directSymbol}' targeted at '{targetBotId}'. Simulating Bot Registration...");
+                            BridgeLogger.Log($"AwesomeCockpit: Received CMD_CONFIG_SYMBOLS for direct symbol '{directSymbol}' targeted at '{targetBotId}'. Simulating Bot Registration...");
                             _discoveryService.RegisterVirtualBots(targetBotId, directSymbol);
                         }
 
@@ -405,7 +405,7 @@ namespace AwesomeCockpit.NT8.Bridge
                                     string symName = sym["broker"]?.ToString() ?? sym["internal"]?.ToString() ?? sym["symbol"]?.ToString();
                                     if (!string.IsNullOrEmpty(symName))
                                     {
-                                        BridgeLogger.LogOutput($"AwesomeCockpit: Received CMD_CONFIG_SYMBOLS for '{symName}' targeted at '{targetBotId}'. Simulating Bot Registration...");
+                                        BridgeLogger.Log($"AwesomeCockpit: Received CMD_CONFIG_SYMBOLS for '{symName}' targeted at '{targetBotId}'. Simulating Bot Registration...");
                                         _discoveryService.RegisterVirtualBots(targetBotId, symName);
                                     }
                                 }
@@ -458,13 +458,13 @@ namespace AwesomeCockpit.NT8.Bridge
                     else if (cmd == "CMD_REQ_SYMBOLS")
                     {
                         string requestId = msg["header"]?["requestId"]?.ToString() ?? msg["header"]?["request_id"]?.ToString() ?? "";
-                        BridgeLogger.LogOutput($"AwesomeCockpit: Received CMD_REQ_SYMBOLS. Scanning Instruments...");
+                        BridgeLogger.Log($"AwesomeCockpit: Received CMD_REQ_SYMBOLS. Scanning Instruments...");
                         _discoveryService.SendSymbols(requestId);
                     }
                     else if (cmd == "CMD_GET_SYMBOLS")
                     {
                         string requestId = msg["header"]?["requestId"]?.ToString() ?? msg["header"]?["request_id"]?.ToString() ?? "";
-                        BridgeLogger.LogOutput($"AwesomeCockpit: Received CMD_GET_SYMBOLS. Scanning Instruments...");
+                        BridgeLogger.Log($"AwesomeCockpit: Received CMD_GET_SYMBOLS. Scanning Instruments...");
                         _discoveryService.SendSymbols(requestId);
                     }
                     else if (cmd == "CMD_SUBSCRIBE_TICKS")
@@ -516,7 +516,7 @@ namespace AwesomeCockpit.NT8.Bridge
             }
             catch (Exception ex)
             {
-                BridgeLogger.LogOutput($"AwesomeCockpit: Parse Error: {ex.Message}");
+                BridgeLogger.Log($"AwesomeCockpit: Parse Error: {ex.Message}");
             }
         }
     }

@@ -5,8 +5,6 @@ const config = require('../config');
 
 // Path resolution (Trading Cockpit Data)
 const JSON_DATA_DIR = path.join(__dirname, '../../../trading-cockpit/data');
-const ACCOUNTS_FILE = path.join(JSON_DATA_DIR, 'accounts.json');
-const BROKERS_FILE = path.join(JSON_DATA_DIR, 'brokers.json');
 
 class DatabaseService {
     constructor() {
@@ -153,9 +151,6 @@ class DatabaseService {
         try { this.marketDb.exec("ALTER TABLE brokers ADD COLUMN username TEXT"); } catch (e) { }
         try { this.marketDb.exec("ALTER TABLE brokers ADD COLUMN password TEXT"); } catch (e) { }
 
-        // Perform Data Migration from JSON if tables are empty
-        this.migrateJsonToDb();
-
         // Migrations for brokers (Timezone Profile)
         try { this.marketDb.exec("ALTER TABLE brokers ADD COLUMN timezone TEXT DEFAULT 'DEFAULT_NY7'"); } catch (e) { }
 
@@ -292,113 +287,7 @@ class DatabaseService {
         } catch (e) { console.error("[DB] Legacy Purge Failed:", e); }
     }
 
-    migrateJsonToDb() {
-        try {
-            // 1. Brokers
-            const brokerCount = this.marketDb.prepare("SELECT count(*) as count FROM brokers").get().count;
-            if (brokerCount === 0 && fs.existsSync(BROKERS_FILE)) {
-                console.log("[DB] Migrating Brokers from JSON...");
-                const brokers = this._loadJson(BROKERS_FILE);
-                const insert = this.marketDb.prepare(`
-                    INSERT INTO brokers (id, name, shorthand, servers, symbol_mappings, default_symbol, type, api, environment)
-                    VALUES (@id, @name, @shorthand, @servers, @symbolMappings, @defaultSymbol, @type, @api, @environment)
-                `);
-                const insertMany = this.marketDb.transaction((list) => {
-                    for (const b of list) insert.run({
-                        id: b.id, name: b.name, shorthand: b.shorthand,
-                        servers: JSON.stringify(b.servers || []),
-                        symbolMappings: JSON.stringify(b.symbolMappings || {}),
-                        defaultSymbol: b.defaultSymbol,
-                        type: b.type, api: b.api, environment: b.environment
-                    });
-                });
-                insertMany(brokers);
-                console.log(`[DB] Migrated ${brokers.length} brokers.`);
-            }
 
-            // 2. Accounts
-            const accountCount = this.marketDb.prepare("SELECT count(*) as count FROM accounts").get().count;
-            if (accountCount === 0 && fs.existsSync(ACCOUNTS_FILE)) {
-                console.log("[DB] Migrating Accounts from JSON...");
-                const accounts = this._loadJson(ACCOUNTS_FILE);
-                const insert = this.marketDb.prepare(`
-                    INSERT INTO accounts (id, bot_id, broker_id, login, password, server, account_type, is_test, is_datafeed, platform, balance, account_size, created_at)
-                    VALUES (@id, @botId, @brokerId, @login, @password, @server, @accountType, @isTest, @isDatafeed, @platform, @balance, @accountSize, @createdAt)
-                `);
-                const insertMany = this.marketDb.transaction((list) => {
-                    for (const a of list) insert.run({
-                        id: a.id, botId: a.botId, brokerId: a.brokerId, login: a.login, password: a.password,
-                        server: a.server, accountType: a.accountType, isTest: a.isTest ? 1 : 0,
-                        isDatafeed: a.isDatafeed ? 1 : 0, platform: a.platform,
-                        balance: a.balance || 0, accountSize: a.accountSize || null,
-                        createdAt: a.createdAt || Date.now()
-                    });
-                });
-                insertMany(accounts);
-                console.log(`[DB] Migrated ${accounts.length} accounts.`);
-            }
-
-            // 3. Distribution Config
-            // Path: src/market-data-core/trading-cockpit/data/distribution_config.json
-            const distConfigFile = path.join(__dirname, '../../trading-cockpit/data/distribution_config.json');
-            const distConfigCount = this.marketDb.prepare("SELECT count(*) as count FROM distribution_configs").get().count;
-            if (distConfigCount === 0 && fs.existsSync(distConfigFile)) {
-                console.log("[DB] Migrating Distribution Config from JSON...");
-                const config = this._loadJson(distConfigFile);
-                const insert = this.marketDb.prepare(`
-                    INSERT INTO distribution_configs (broker_id, loop_size, matrix, environment)
-                    VALUES (@brokerId, @loopSize, @matrix, @environment)
-                `);
-                const insertMany = this.marketDb.transaction((conf) => {
-                    // Live Brokers
-                    if (conf.brokers) {
-                        Object.entries(conf.brokers).forEach(([bid, c]) => {
-                            insert.run({ brokerId: bid, loopSize: c.loop_size, matrix: JSON.stringify(c.matrix), environment: 'LIVE' });
-                        });
-                    }
-                    // Test Brokers
-                    if (conf.test_brokers) {
-                        Object.entries(conf.test_brokers).forEach(([bid, c]) => {
-                            insert.run({ brokerId: bid, loopSize: c.loop_size, matrix: JSON.stringify(c.matrix), environment: 'TEST' });
-                        });
-                    }
-                });
-                insertMany(config);
-                console.log("[DB] Migrated Distribution Configs.");
-            }
-
-            // 4. Distribution State
-            const distStateFile = path.join(__dirname, '../../trading-cockpit/data/distribution_state.json');
-            const distStateCount = this.marketDb.prepare("SELECT count(*) as count FROM distribution_state").get().count;
-            if (distStateCount === 0 && fs.existsSync(distStateFile)) {
-                console.log("[DB] Migrating Distribution State from JSON...");
-                const state = this._loadJson(distStateFile);
-                const brokers = this.getBrokers(); // Helper to resolve shorthand
-                const insert = this.marketDb.prepare(`
-                    INSERT INTO distribution_state (broker_id, sequence, updated_at)
-                    VALUES (@brokerId, @sequence, @updatedAt)
-                `);
-                const insertMany = this.marketDb.transaction((st) => {
-                    Object.entries(st).forEach(([key, val]) => {
-                        // Key might be UUID or Shorthand
-                        let brokerId = key;
-                        // Try resolve if not UUID
-                        if (!key.includes('-')) {
-                            const b = brokers.find(x => x.shorthand === key);
-                            if (b) brokerId = b.id;
-                        }
-                        insert.run({ brokerId: brokerId, sequence: val.sequence, updatedAt: Date.now() });
-                    });
-                });
-                insertMany(state);
-                console.log("[DB] Migrated Distribution State.");
-                console.log("[DB] Migrated Distribution State.");
-            }
-
-        } catch (e) {
-            console.error("[DB] Migration Failed:", e);
-        }
-    }
 
     // --- DISTRIBUTION CONFIG ---
     getDistributionConfig() {
@@ -1112,6 +1001,14 @@ class DatabaseService {
 
     getHistory(symbol, timeframe, limit, to = null) {
         return this.getCandles(symbol, timeframe, limit, to);
+    }
+
+    getHistoryRange(symbol, timeframe, from, to) {
+        try {
+            const db = this.getSymbolDb(symbol);
+            if (!db) return [];
+            return db.prepare(`SELECT * FROM candles_${timeframe} WHERE time >= ? AND time <= ? ORDER BY time ASC`).all(from, to);
+        } catch (e) { return []; }
     }
 
     getTradeHistory(limit = 50, env = 'test') {

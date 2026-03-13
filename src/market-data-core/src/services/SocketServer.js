@@ -306,7 +306,7 @@ class SocketServer {
                 console.log(`[API] ict-sessions REQ received: ${JSON.stringify(req.query)}`);
             }
             try {
-                let { symbol, timeframe, limit, settings, to, backtestId } = req.query;
+                let { symbol, timeframe, limit, settings, from, to, backtestId } = req.query;
                 limit = parseInt(limit) || 1000;
 
                 let simTimeOffset = null;
@@ -343,9 +343,17 @@ class SocketServer {
                     console.log(`[API] Fetching history for ${symbol}... To=${toLog}`);
                 }
 
-                let candles = dataProvider.getHistory(symbol, timeframe, limit, to);
+                let candles = [];
+                if (from && to) {
+                    // Time-bounded fetch strictly requested by the front-end (allows 1000s of sessions correctly)
+                    candles = dataProvider.getHistoryRange(symbol, timeframe, parseInt(from), parseInt(to));
+                } else {
+                    // Fallback to limit-based fetch
+                    candles = dataProvider.getHistory(symbol, timeframe, limit, to);
+                }
+
                 if (systemOrchestrator.getFeatures().ENABLE_INDICATOR_LOGGING) {
-                    console.log(`[API] History fetched (clamped). Count: ${candles.length}`);
+                    console.log(`[API] History fetched (clamped/bounded). Count: ${candles.length}`);
                 }
 
                 if (candles.length === 0) {

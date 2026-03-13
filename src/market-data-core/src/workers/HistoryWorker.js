@@ -213,7 +213,7 @@ class HistoryWorker extends AbstractWorker {
         // Process Response
         let data = [];
         let rawBin = response._rawBinary;
-        
+
         // --- IPC Buffer Rehydration ---
         if (rawBin && !Buffer.isBuffer(rawBin)) {
             if (rawBin.type === 'Buffer' && Array.isArray(rawBin.data)) {
@@ -232,7 +232,7 @@ class HistoryWorker extends AbstractWorker {
                 const offset = i * 48;
                 const chunk = Buffer.alloc(48);
                 b.copy(chunk, 0, offset, offset + 48);
-                
+
                 data.push({
                     time: Number(b.readBigInt64LE(offset)),
                     open: b.readDoubleLE(offset + 8),

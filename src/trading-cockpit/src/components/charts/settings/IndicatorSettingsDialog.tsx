@@ -107,7 +107,7 @@ export const IndicatorSettingsDialog: React.FC<IndicatorSettingsDialogProps> = (
                 return (
                     <input
                         type={item.type === 'number' ? 'number' : 'text'}
-                        value={val || ''}
+                        value={val !== undefined && val !== null ? val : ''}
                         onChange={(e) => handleChange(item.id, item.type === 'number' ? parseFloat(e.target.value) : e.target.value)}
                         className="bg-white dark:bg-gray-700 border border-slate-300 dark:border-gray-600 rounded px-2 py-1 text-sm text-slate-900 dark:text-gray-200 focus:outline-none focus:border-blue-500 w-full"
                     />

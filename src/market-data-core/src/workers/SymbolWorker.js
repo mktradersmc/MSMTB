@@ -131,7 +131,7 @@ class SymbolWorker extends AbstractWorker {
         // v3 Payload standard: timeframe is either in the base object, header, or payload
         let timeframe = msg.timeframe || (msg.header && msg.header.timeframe) || (msg.payload && msg.payload.timeframe) || (msg.content && msg.content.timeframe);
         let candle = null;
-        
+
         // --- 1. MQL5 V3 Binary Protocol Support (IPC Buffer Rehydration) ---
         let rawBin = msg._rawBinary;
         if (rawBin && !Buffer.isBuffer(rawBin)) {
@@ -203,14 +203,23 @@ class SymbolWorker extends AbstractWorker {
         if (timeMS < 946684800000) return; // Drop invalid
 
         if (isComplete) {
-            const lastCandle = this.getLastCandle(timeframe); 
+            const lastCandle = this.getLastCandle(timeframe);
             if (lastCandle) {
                 const tfMs = this.getPeriodMs(timeframe);
                 if (timeMS > lastCandle.time + tfMs + 500) {
-                    this.log(`[BarData] 🚨 GAP DETECTED for ${timeframe}. Triggering Sync.`);
-                    const lastTimeSec = Math.floor(lastCandle.time / 1000);
-                    this.handleSynchronizedUpdate({ timeframe, mode: 'GAP_FILL', lastTime: lastTimeSec, count: 5000 });
-                    return; 
+                    const isPending = this.pendingTasks.has(timeframe);
+                    if (!isPending) {
+                        this.log(`[BarData] 🚨 GAP DETECTED for ${timeframe}. Triggering Sync.`);
+                        const lastTimeSec = Math.floor(lastCandle.time / 1000);
+                        this.handleSynchronizedUpdate({ timeframe, mode: 'GAP_FILL', lastTime: lastTimeSec, count: 5000 });
+                    }
+
+                    // If there's a gap, we DO NOT save the current completed candle until the gap fill resolves
+                    // it. Out of order candles corrupt the SQLite database.
+                    if (isComplete) {
+                        this.warn(`[BarData] ⚠️ Dropping out-of-order completed ${timeframe} candle to await GAP_FILL resolution.`);
+                        return;
+                    }
                 }
             }
             this.updateStatus(timeframe, this.STATUS.READY);
@@ -231,7 +240,7 @@ class SymbolWorker extends AbstractWorker {
                 ...dbCandle,
                 is_complete: isComplete
             },
-            botId: this.botId 
+            botId: this.botId
         });
     }
 
@@ -270,7 +279,7 @@ class SymbolWorker extends AbstractWorker {
         if (msg._rawBinary && Buffer.isBuffer(msg._rawBinary)) {
             const b = msg._rawBinary;
             const barCount = Math.floor(b.length / 48);
-            
+
             if (barCount > 0) {
                 // this.log(`[Sync] 📥 Ingesting ${barCount} bars from Binary Payload (${b.length} bytes) for ${timeframe}.`);
                 for (let i = 0; i < barCount; i++) {
@@ -283,7 +292,7 @@ class SymbolWorker extends AbstractWorker {
                         close: b.readDoubleLE(offset + 32),
                         volume: Number(b.readBigInt64LE(offset + 40))
                     };
-                    
+
                     let timeMS = c.time;
                     if (timeMS < 10000000000) {
                         if (isHighTimeframe) {
@@ -309,7 +318,7 @@ class SymbolWorker extends AbstractWorker {
             const content = payload.candles || payload.data || [];
             if (!content || !Array.isArray(content) || content.length === 0) {
                 this.log(`[Sync:Trace] ⚠️ Received empty HISTORY_SNAPSHOT for ${timeframe}. Setting READY.`);
-                this.updateStatus(timeframe, this.STATUS.READY); 
+                this.updateStatus(timeframe, this.STATUS.READY);
                 return;
             }
 
@@ -331,7 +340,7 @@ class SymbolWorker extends AbstractWorker {
                     high: c.high,
                     low: c.low,
                     close: c.close,
-                    tick_volume: c.volume 
+                    tick_volume: c.volume
                 };
             });
         }
@@ -610,7 +619,7 @@ class SymbolWorker extends AbstractWorker {
             // 3. Process Response (Standard Protocol v3)
             let data = [];
             let rawBin = response._rawBinary;
-            
+
             // --- IPC Buffer Rehydration ---
             if (rawBin && !Buffer.isBuffer(rawBin)) {
                 if (rawBin.type === 'Buffer' && Array.isArray(rawBin.data)) {
@@ -629,7 +638,7 @@ class SymbolWorker extends AbstractWorker {
                     const offset = i * 48;
                     const chunk = Buffer.alloc(48);
                     b.copy(chunk, 0, offset, offset + 48);
-                    
+
                     data.push({
                         time: Number(b.readBigInt64LE(offset)),
                         open: b.readDoubleLE(offset + 8),
@@ -713,33 +722,20 @@ class SymbolWorker extends AbstractWorker {
         this.log(`[Subscription] ➕ Subscribing to ${this.symbol} ${timeframe}`);
 
         try {
-            this.log(`[Subscription] ⏳ Sending SUBSCRIBE_TICKS and fetching current forming bar for ${timeframe}...`);
-            const response = await this.sendRpc('CMD_SUBSCRIBE_TICKS', {
+            this.updateStatus(timeframe, this.STATUS.SYNCING);
+
+            // 1. Send Broker Subscription Command (Pub/Sub stream, don't wait for RPC)
+            this.sendCommand('CMD_SUBSCRIBE_TICKS', {
                 symbol: this.symbol,
                 timeframe: timeframe
-            }, 5000); // 5 sec timeout
+            });
 
-            if (response && response.status === 'OK') {
-                this.log(`[Subscription] ✅ Subscription successful for ${timeframe}`);
+            // 2. DRY PRINCIPLE: Immediately run gap checks exactly the way it's done natively
+            this.log(`[Subscription] 🔍 Firing immediate gap check for ${timeframe} on subscribe.`);
+            this.checkForGaps();
 
-                // Check if candle is included in response
-                if (response.candle) {
-                    this.log(`[Subscription] ✅ Current forming bar received via SUBSCRIBE for ${timeframe}`);
-                    this.handleBarEvent({
-                        content: {
-                            symbol: this.symbol,
-                            timeframe: timeframe,
-                            candle: response.candle
-                        }
-                    }, false);
-                } else {
-                    this.warn(`[Subscription] ⚠️ Subscription successful but no forming candle returned for ${timeframe}`);
-                }
-            } else {
-                this.error(`⚠️ Failed to subscribe and get forming bar for ${timeframe}: ${response ? response.message : 'Unknown Error'}`);
-            }
         } catch (e) {
-            this.error(`⚠️ RPC Error subscribing to ${timeframe}: ${e.message}`);
+            this.error(`⚠️ Error subscribing to ${timeframe}: ${e.message}`);
         }
     }
 

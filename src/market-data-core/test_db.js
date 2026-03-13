@@ -1,6 +1,10 @@
-const path = require('path');
-const dbFile = path.resolve(__dirname, 'market_data.db');
-console.log("Using DB:", dbFile);
-const db = require('better-sqlite3')(dbFile);
-const rows = db.prepare("SELECT * FROM accounts WHERE account_type = 'DATAFEED'").all();
-console.table(rows.map(r => ({ id: r.bot_id, instance: r.instance_path })));
+const Database = require('better-sqlite3');
+const db = new Database('C:/Users/Michael/IdeaProjects/MSMTB/src/market-data-core/market_data.db');
+
+console.log('--- ACCOUNTS ---');
+const accounts = db.prepare("SELECT * FROM accounts WHERE bot_id LIKE '%_DATAFEED%'").all();
+console.table(accounts);
+
+console.log('--- BROKERS ---');
+const brokers = db.prepare("SELECT id, name, type, timezone FROM brokers WHERE id LIKE '%_DATAFEED%' OR name LIKE '%_DATAFEED%'").all();
+console.table(brokers);

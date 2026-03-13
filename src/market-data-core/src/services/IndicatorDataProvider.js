@@ -65,6 +65,24 @@ class IndicatorDataProvider {
         return candles;
     }
 
+    getHistoryRange(symbol, timeframe, from, toTime) {
+        let maxTime = toTime;
+        if (this.mode === 'BACKTEST' && this.simulationTime) {
+            if (!maxTime || maxTime > this.simulationTime) {
+                maxTime = this.simulationTime;
+            }
+        }
+
+        let candles = db.getHistoryRange(symbol, timeframe, from, maxTime);
+
+        if (this.mode === 'BACKTEST' && this.simulationTime) {
+            const tfMs = this.getTfDurationMs(timeframe);
+            candles = candles.filter(c => (c.time + tfMs) <= this.simulationTime);
+        }
+
+        return candles;
+    }
+
     /**
      * Matches DivergenceEngine's raw SQL "get exact peak" method, but safely wrapped.
      * All times expected and returned in SECONDS.

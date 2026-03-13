@@ -29,11 +29,11 @@ namespace AwesomeCockpit.NT8.Bridge
 
         public BridgeWebSocket()
         {
-            NinjaTrader.Code.Output.Process($"[Bridge] Initializing Bridge Components...", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
+            BridgeLogger.LogOutput($"[Bridge] Initializing Bridge Components...");
             _subscriptionManager = new SubscriptionManager(this);
             _discoveryService = new DiscoveryService(this);
             _executionManager = new ExecutionManager(this, _subscriptionManager);
-            NinjaTrader.Code.Output.Process($"[Bridge] Component Initialization Complete.", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
+            BridgeLogger.LogOutput($"[Bridge] Component Initialization Complete.");
         }
 
         public void Connect(string url)
@@ -50,12 +50,12 @@ namespace AwesomeCockpit.NT8.Bridge
             {
                 try
                 {
-                    NinjaTrader.Code.Output.Process($"AwesomeCockpit: Connecting to {url}...", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
+                    BridgeLogger.LogOutput($"AwesomeCockpit: Connecting to {url}...");
 
                     _ws = new ClientWebSocket();
                     await _ws.ConnectAsync(new Uri(url), token);
 
-                    NinjaTrader.Code.Output.Process("AwesomeCockpit: Connected!", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
+                    BridgeLogger.LogOutput("AwesomeCockpit: Connected!");
 
                     // 1. Start Heartbeat
                     _heartbeatTimer?.Dispose();
@@ -73,7 +73,7 @@ namespace AwesomeCockpit.NT8.Bridge
                 }
                 catch (Exception ex)
                 {
-                    NinjaTrader.Code.Output.Process($"AwesomeCockpit: Connection Lost/Failed: {ex.Message}. Retrying in 5s...", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
+                    BridgeLogger.LogOutput($"AwesomeCockpit: Connection Lost/Failed: {ex.Message}. Retrying in 5s...");
                 }
                 finally
                 {
@@ -123,7 +123,7 @@ namespace AwesomeCockpit.NT8.Bridge
                 if (!_registeredBots.Contains(key))
                 {
                     _registeredBots.Add(key);
-                    NinjaTrader.Code.Output.Process($"AwesomeCockpit: Tracking Heartbeat for {id}:{func}", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
+                    BridgeLogger.LogOutput($"AwesomeCockpit: Tracking Heartbeat for {id}:{func}");
                 }
             }
         }
@@ -138,7 +138,7 @@ namespace AwesomeCockpit.NT8.Bridge
             // 2. Re-register Account Bots if this is a reconnection
             if (ExecutionManager.IsDiscoveryComplete)
             {
-                NinjaTrader.Code.Output.Process($"AwesomeCockpit: Reconnection detected. Re-registering existing account bots...", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
+                BridgeLogger.LogOutput($"AwesomeCockpit: Reconnection detected. Re-registering existing account bots...");
                 _discoveryService.RegisterAccountBots();
             }
         }
@@ -195,17 +195,38 @@ namespace AwesomeCockpit.NT8.Bridge
                 // if (command != "HEARTBEAT" && command != "EV_BAR_UPDATE" && command != "EV_BAR_CLOSED")
                 // {
                 //     string logJson = json.Length > 500 ? json.Substring(0, 500) + "... [TRUNCATED]" : json;
-                //     NinjaTrader.Code.Output.Process($"AwesomeCockpit: TX -> {logJson}", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
+                //     BridgeLogger.LogOutput($"AwesomeCockpit: TX -> {logJson}");
                 // }
 
-                var buffer = Encoding.UTF8.GetBytes(json);
+                // Serialize JSON to bytes
+                var jsonBytes = Encoding.UTF8.GetBytes(json);
+
+                // Protocol: 4-Byte Length Prefix (UInt32 Little Endian)
+                uint jsonLength = (uint)jsonBytes.Length;
+                byte[] lengthHeader = BitConverter.GetBytes(jsonLength);
+
+                // C# BitConverter uses system endianness. On Windows x86/x64, it is naturally Little Endian.
+                // However, let's explicitly enforce it just in case.
+                if (!BitConverter.IsLittleEndian)
+                {
+                    Array.Reverse(lengthHeader);
+                }
+
+                // Compose Final Buffer
+                var finalBuffer = new byte[4 + jsonBytes.Length];
+                Buffer.BlockCopy(lengthHeader, 0, finalBuffer, 0, 4);
+                Buffer.BlockCopy(jsonBytes, 0, finalBuffer, 4, jsonBytes.Length);
+
+                // DEBUG: Print Header & Array structure purely to log file
+                BridgeLogger.LogOutput($"[DEBUG] jsonLength: {jsonLength}, jsonBytes.Length: {jsonBytes.Length}, finalBuffer.Length: {finalBuffer.Length}, Header: {lengthHeader[0]}-{lengthHeader[1]}-{lengthHeader[2]}-{lengthHeader[3]}");
 
                 await _sendLock.WaitAsync();
                 try
                 {
                     if (_ws.State == WebSocketState.Open)
                     {
-                        await _ws.SendAsync(new ArraySegment<byte>(buffer), WebSocketMessageType.Text, true, _cts.Token);
+                        // Send as Binary explicitly
+                        await _ws.SendAsync(new ArraySegment<byte>(finalBuffer), WebSocketMessageType.Binary, true, _cts.Token);
                     }
                 }
                 finally
@@ -215,7 +236,7 @@ namespace AwesomeCockpit.NT8.Bridge
             }
             catch (Exception ex)
             {
-                NinjaTrader.Code.Output.Process($"AwesomeCockpit: Send Error: {ex.Message}", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
+                BridgeLogger.LogOutput($"AwesomeCockpit: Send Error: {ex.Message}");
             }
         }
 
@@ -226,29 +247,68 @@ namespace AwesomeCockpit.NT8.Bridge
             {
                 try
                 {
-                    var result = await _ws.ReceiveAsync(new ArraySegment<byte>(buffer), _cts.Token);
-                    if (result.MessageType == WebSocketMessageType.Close)
+                    using (var ms = new System.IO.MemoryStream())
                     {
-                        await _ws.CloseAsync(WebSocketCloseStatus.NormalClosure, "Closing", _cts.Token);
-                        break;
+                        WebSocketReceiveResult result;
+                        do
+                        {
+                            result = await _ws.ReceiveAsync(new ArraySegment<byte>(buffer), _cts.Token);
+                            if (result.MessageType == WebSocketMessageType.Close)
+                            {
+                                await _ws.CloseAsync(WebSocketCloseStatus.NormalClosure, "Closing", _cts.Token);
+                                return;
+                            }
+                            ms.Write(buffer, 0, result.Count);
+                        }
+                        while (!result.EndOfMessage && !_cts.IsCancellationRequested);
+
+                        var messageBytes = ms.ToArray();
+                        if (messageBytes.Length == 0) continue;
+
+                        string json = "";
+
+                        if (result.MessageType == WebSocketMessageType.Text)
+                        {
+                            // Node.js backend sends basic commands (e.g. CMD_INIT) as pure Text Data
+                            json = Encoding.UTF8.GetString(messageBytes);
+                        }
+                        else if (result.MessageType == WebSocketMessageType.Binary)
+                        {
+                            if (messageBytes.Length < 4) continue; // Too small to be valid
+
+                            // Extract 4-Byte Header (JSON Length)
+                            byte[] lengthBuffer = new byte[4];
+                            Buffer.BlockCopy(messageBytes, 0, lengthBuffer, 0, 4);
+
+                            if (!BitConverter.IsLittleEndian)
+                            {
+                                Array.Reverse(lengthBuffer);
+                            }
+
+                            uint jsonLength = BitConverter.ToUInt32(lengthBuffer, 0);
+
+                            // Safety check
+                            if (jsonLength > messageBytes.Length - 4)
+                            {
+                                BridgeLogger.LogOutput($"AwesomeCockpit: Socket Receive Error: Invalid length prefix {jsonLength} vs {messageBytes.Length}");
+                                continue;
+                            }
+
+                            // Extract JSON string
+                            json = Encoding.UTF8.GetString(messageBytes, 4, (int)jsonLength);
+                        }
+                        
+                        if (!string.IsNullOrEmpty(json))
+                        {
+                            HandleMessage(json);
+                        }
                     }
-
-                    var json = Encoding.UTF8.GetString(buffer, 0, result.Count);
-
-                    // USER REQUEST: Log Incoming JSONs - Disabled for noise reduction
-                    // if (!json.Contains("\"command\":\"HEARTBEAT\"") && !json.Contains("\"type\":\"HEARTBEAT\""))
-                    // {
-                    //     string logJson = json.Length > 500 ? json.Substring(0, 500) + "... [TRUNCATED]" : json;
-                    //     NinjaTrader.Code.Output.Process($"AwesomeCockpit: RX <- {logJson}", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
-                    // }
-
-                    HandleMessage(json);
                 }
                 catch (Exception ex)
                 {
                     if (!_cts.IsCancellationRequested)
                     {
-                        NinjaTrader.Code.Output.Process($"AwesomeCockpit: Socket Receive Error: {ex.Message}", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
+                        BridgeLogger.LogOutput($"AwesomeCockpit: Socket Receive Error: {ex.Message}");
                     }
                     break;
                 }
@@ -262,7 +322,7 @@ namespace AwesomeCockpit.NT8.Bridge
                 // DEBUG: Direct Feedback to Backend
                 if (json.Contains("CMD_INIT"))
                 {
-                    NinjaTrader.Code.Output.Process($"AwesomeCockpit: RAW RX: {json}", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
+                    BridgeLogger.LogOutput($"AwesomeCockpit: RAW RX: {json}");
                 }
 
                 var msg = JObject.Parse(json);
@@ -299,26 +359,26 @@ namespace AwesomeCockpit.NT8.Bridge
                         if (!string.IsNullOrEmpty(logDir))
                         {
                             BridgeLogger.LogDirectory = logDir;
-                            NinjaTrader.Code.Output.Process($"AwesomeCockpit: Initialized BridgeLogger to {logDir}", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
+                            BridgeLogger.LogOutput($"AwesomeCockpit: Initialized BridgeLogger to {logDir}");
                         }
 
-                        NinjaTrader.Code.Output.Process($"AwesomeCockpit: Received CMD_INIT. Waiting 10s for Datafeeds to connect...", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
+                        BridgeLogger.LogOutput($"AwesomeCockpit: Received CMD_INIT. Waiting 10s for Datafeeds to connect...");
 
                         Task.Run(async () =>
                         {
                             await Task.Delay(10000);
-                            NinjaTrader.Code.Output.Process($"AwesomeCockpit: 10s delay over. Syncing Accounts via RPC...", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
+                            BridgeLogger.LogOutput($"AwesomeCockpit: 10s delay over. Syncing Accounts via RPC...");
                             _discoveryService.SendAccounts(requestId);
                         });
                     }
                     else if (cmd == "CMD_DB_SYNC_CONFIRMED") // Backend confirms DB Sync
                     {
-                        NinjaTrader.Code.Output.Process($"AwesomeCockpit: Received CMD_DB_SYNC_CONFIRMED. Registering Bots...", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
+                        BridgeLogger.LogOutput($"AwesomeCockpit: Received CMD_DB_SYNC_CONFIRMED. Registering Bots...");
                         _discoveryService.RegisterAccountBots();
                     }
                     else if (cmd == "CMD_ACCOUNTS_SYNCED") // Alias
                     {
-                        NinjaTrader.Code.Output.Process($"AwesomeCockpit: Received CMD_ACCOUNTS_SYNCED. Registering Bots...", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
+                        BridgeLogger.LogOutput($"AwesomeCockpit: Received CMD_ACCOUNTS_SYNCED. Registering Bots...");
                         _discoveryService.RegisterAccountBots();
                     }
                     else if (cmd == "CMD_CONFIG_SYMBOLS")
@@ -331,7 +391,7 @@ namespace AwesomeCockpit.NT8.Bridge
                         string directSymbol = msg["payload"]?["symbol"]?.ToString() ?? msg["payload"]?["name"]?.ToString();
                         if (!string.IsNullOrEmpty(directSymbol))
                         {
-                            NinjaTrader.Code.Output.Process($"AwesomeCockpit: Received CMD_CONFIG_SYMBOLS for direct symbol '{directSymbol}' targeted at '{targetBotId}'. Simulating Bot Registration...", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
+                            BridgeLogger.LogOutput($"AwesomeCockpit: Received CMD_CONFIG_SYMBOLS for direct symbol '{directSymbol}' targeted at '{targetBotId}'. Simulating Bot Registration...");
                             _discoveryService.RegisterVirtualBots(targetBotId, directSymbol);
                         }
 
@@ -345,7 +405,7 @@ namespace AwesomeCockpit.NT8.Bridge
                                     string symName = sym["broker"]?.ToString() ?? sym["internal"]?.ToString() ?? sym["symbol"]?.ToString();
                                     if (!string.IsNullOrEmpty(symName))
                                     {
-                                        NinjaTrader.Code.Output.Process($"AwesomeCockpit: Received CMD_CONFIG_SYMBOLS for '{symName}' targeted at '{targetBotId}'. Simulating Bot Registration...", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
+                                        BridgeLogger.LogOutput($"AwesomeCockpit: Received CMD_CONFIG_SYMBOLS for '{symName}' targeted at '{targetBotId}'. Simulating Bot Registration...");
                                         _discoveryService.RegisterVirtualBots(targetBotId, symName);
                                     }
                                 }
@@ -398,13 +458,13 @@ namespace AwesomeCockpit.NT8.Bridge
                     else if (cmd == "CMD_REQ_SYMBOLS")
                     {
                         string requestId = msg["header"]?["requestId"]?.ToString() ?? msg["header"]?["request_id"]?.ToString() ?? "";
-                        NinjaTrader.Code.Output.Process($"AwesomeCockpit: Received CMD_REQ_SYMBOLS. Scanning Instruments...", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
+                        BridgeLogger.LogOutput($"AwesomeCockpit: Received CMD_REQ_SYMBOLS. Scanning Instruments...");
                         _discoveryService.SendSymbols(requestId);
                     }
                     else if (cmd == "CMD_GET_SYMBOLS")
                     {
                         string requestId = msg["header"]?["requestId"]?.ToString() ?? msg["header"]?["request_id"]?.ToString() ?? "";
-                        NinjaTrader.Code.Output.Process($"AwesomeCockpit: Received CMD_GET_SYMBOLS. Scanning Instruments...", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
+                        BridgeLogger.LogOutput($"AwesomeCockpit: Received CMD_GET_SYMBOLS. Scanning Instruments...");
                         _discoveryService.SendSymbols(requestId);
                     }
                     else if (cmd == "CMD_SUBSCRIBE_TICKS")
@@ -456,7 +516,7 @@ namespace AwesomeCockpit.NT8.Bridge
             }
             catch (Exception ex)
             {
-                NinjaTrader.Code.Output.Process($"AwesomeCockpit: Parse Error: {ex.Message}", NinjaTrader.NinjaScript.PrintTo.OutputTab1);
+                BridgeLogger.LogOutput($"AwesomeCockpit: Parse Error: {ex.Message}");
             }
         }
     }

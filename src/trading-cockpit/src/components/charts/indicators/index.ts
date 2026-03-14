@@ -132,7 +132,7 @@ export const registerIndicators = () => {
     // Register High-Impact News Indicator
     indicatorRegistry.register({
         id: 'news',
-        name: 'High-Impact News',
+        name: 'Economic Calendar',
         description: 'Displays high-impact news events as flags on the timescale based on configured currencies.',
         defaultSettings: { showHigh: true, showMedium: false, showLow: false, showNonEconomic: false, showVerticalLine: true },
         pluginFactory: (settings) => {

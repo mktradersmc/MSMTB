@@ -23,6 +23,7 @@ import { useWorkspaceStore } from '../../stores/useWorkspaceStore';
 import { useTradeMonitor } from '../../hooks/useTradeMonitor';
 import { TradeLogService } from '../../services/TradeLogService';
 import { useBacktest } from '../../contexts/BacktestContext';
+import { NewsPopupOverlay } from './overlays/NewsPopupOverlay';
 
 
 
@@ -665,6 +666,15 @@ export const ChartContainer = React.forwardRef<ChartContainerHandle, ChartContai
     const [isExecutingTrade, setIsExecutingTrade] = useState(false);
     const [executionSummary, setExecutionSummary] = useState<any[] | null>(null);
     const [actionFeedback, setActionFeedback] = useState<string | null>(null);
+
+    // --- NEWS POPUP STATE ---
+    const [newsPopup, setNewsPopup] = useState<{
+        events: any[];
+        x: number;
+        y: number;
+    } | null>(null);
+
+    // --- DOM Event listener removed. Replaced by direct Plugin callback ---
 
     // --- BROKER DATA FETCHING ---
     const { fetchBrokers, brokers } = useBrokerStore();
@@ -1874,6 +1884,21 @@ export const ChartContainer = React.forwardRef<ChartContainerHandle, ChartContai
                     }
                 }
             }
+
+            // --- FORCE PLUGIN REDRAW FOR CANDLE SYNC ---
+            // Triggered here guarantees that the logical ranges to map timestamps to X coordinates actually exist on the canvas API
+            activeIndicators.forEach(ind => {
+                const pluginInstance = indicatorPluginsRef.current.get(ind.instanceId);
+                if (pluginInstance && (pluginInstance as any).updateEvents) {
+                    if ((pluginInstance as any)._data?.events) {
+                        (pluginInstance as any).updateEvents((pluginInstance as any)._data.events, processedData);
+                        if ((pluginInstance as any).requestUpdate) {
+                            (pluginInstance as any).requestUpdate();
+                        }
+                    }
+                }
+            });
+
             // 5. Cleanup / Finish Transition
             const isClearing = processedData.length === 0;
 
@@ -1936,6 +1961,17 @@ export const ChartContainer = React.forwardRef<ChartContainerHandle, ChartContai
                     plugin = def.pluginFactory(ind.settings);
                     if (plugin) {
                         seriesARef.current?.attachPrimitive(plugin);
+                        
+                        if ((plugin as any).setOnNewsClick) {
+                            (plugin as any).setOnNewsClick((events: any[], x: number, y: number) => {
+                                console.log("[ChartContainer] Direct Callback triggered for News Click!");
+                                setNewsPopup(prev => {
+                                    if (prev && prev.events[0]?.timestamp === events[0]?.timestamp) return null;
+                                    return { events, x, y };
+                                });
+                            });
+                        }
+
                         plugins.set(ind.instanceId, plugin);
                         // console.log(`[ChartContainer] Attached plugin: ${ind.defId} (${ind.instanceId})`);
                     }
@@ -2013,15 +2049,25 @@ export const ChartContainer = React.forwardRef<ChartContainerHandle, ChartContai
                         backtestId: activeSession?.id,
                         signal: controller.signal
                     }).then(data => {
-                        if (pendingFetchesRef.current.get(ind.instanceId) === controller) {
-                            pendingFetchesRef.current.delete(ind.instanceId);
+                        if (pendingFetchesRef.current.get(ind.instanceId) !== controller) {
+                            indicatorLoadingStatesRef.current[ind.instanceId] = false;
+                            if (onIndicatorLoadStatesChange) onIndicatorLoadStatesChange({ ...indicatorLoadingStatesRef.current });
+                            return; // Fetch superseded or aborted. Drop payload.
                         }
+                        pendingFetchesRef.current.delete(ind.instanceId);
 
                         if (plugin.updateSessions) {
                             plugin.updateSessions(data);
                         }
                         if (plugin.updateDivergences) {
                             plugin.updateDivergences(data);
+                        }
+                        if ((plugin as any).updateEvents) {
+                            const eventsPayload = Array.isArray(data) ? data : (data.events || []);
+                            (plugin as any).updateEvents(eventsPayload, dataARef.current);
+                            if (seriesARef.current && (plugin as any).requestUpdate) {
+                                (plugin as any).requestUpdate();
+                            }
                         }
 
                         // NEW: Update Loading State
@@ -2059,10 +2105,8 @@ export const ChartContainer = React.forwardRef<ChartContainerHandle, ChartContai
             }
         });
 
-        // Trigger an indicator fetch whenever React state (dataA) updates.
-        // This ensures the closed candle state is synced, and fills any gaps.
-        triggerIndicatorFetch();
-        
+        // Explicit fetch sync removed to prevent AbortError dual-fetch collisions on initial dataA load.
+
         // Also update the live candle ref so expansion logic has a correct baseline
         prevLiveCandleRef.current = {
             time: latestCandle.time,
@@ -2851,6 +2895,18 @@ export const ChartContainer = React.forwardRef<ChartContainerHandle, ChartContai
                             </button>
                         </div>
                     </div>
+                </div>
+            )}
+
+            {/* --- News Popup Overlay --- */}
+            {newsPopup && (
+                <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', zIndex: 100 }}>
+                    <NewsPopupOverlay
+                        events={newsPopup.events}
+                        x={newsPopup.x}
+                        y={newsPopup.y}
+                        onClose={() => setNewsPopup(null)}
+                    />
                 </div>
             )}
 

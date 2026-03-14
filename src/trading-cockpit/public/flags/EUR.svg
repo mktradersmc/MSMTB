@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 810 540">
+  <path fill="#039" d="M0 0h810v540H0z"/>
+  <g fill="#fc0" transform="translate(405 270)scale(24)">
+    <use href="#s" y="-6"/>
+    <use href="#s" y="6"/>
+    <use href="#s" x="-6"/>
+    <use href="#s" x="6"/>
+    <use href="#s" x="-5.196" y="-3"/>
+    <use href="#s" x="5.196" y="3"/>
+    <use href="#s" x="-5.196" y="3"/>
+    <use href="#s" x="5.196" y="-3"/>
+    <use href="#s" x="-3" y="-5.196"/>
+    <use href="#s" x="3" y="5.196"/>
+    <use href="#s" x="-3" y="5.196"/>
+    <use href="#s" x="3" y="-5.196"/>
+    <g id="s">
+      <path d="M0-1l.588 1.81h-1.9L.176.326l-.764 2.352z"/>
+    </g>
+  </g>
+</svg>

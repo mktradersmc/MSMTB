@@ -4,6 +4,7 @@ import { ImbalancePlugin, applyImbalanceTransformation } from '../plugins/Imbala
 import { LevelsPlugin, LevelsSchema } from '../plugins/LevelsPlugin';
 import { DivergencePlugin, DivergenceSchema } from '../plugins/DivergencePlugin';
 import { fetchDirect } from '../../../lib/client-api';
+import { NewsMarkerPrimitive } from '../plugins/NewsMarkerPrimitive';
 
 
 // Register Default Indicators
@@ -124,6 +125,103 @@ export const registerIndicators = () => {
                     console.error("[DivergencePlugin] Fetch error", error);
                 }
                 return { divergences: [] };
+            }
+        }
+    });
+
+    // Register High-Impact News Indicator
+    indicatorRegistry.register({
+        id: 'news',
+        name: 'High-Impact News',
+        description: 'Displays high-impact news events as flags on the timescale based on configured currencies.',
+        defaultSettings: { showHigh: true, showMedium: false, showLow: false, showNonEconomic: false, showVerticalLine: true },
+        pluginFactory: (settings) => {
+            console.log("[NewsIndicator] FACTORY CALLED. Settings:", settings);
+            return new NewsMarkerPrimitive({ events: [], settings });
+        },
+        settingsSchema: [
+            { id: 'showHigh', title: 'High Impact', type: 'bool' },
+            { id: 'showMedium', title: 'Medium Impact', type: 'bool' },
+            { id: 'showLow', title: 'Low Impact', type: 'bool' },
+            { id: 'showNonEconomic', title: 'Non-Economic', type: 'bool' },
+            { id: 'showVerticalLine', title: 'Show Vertical Line', type: 'bool' },
+        ],
+        dataFetcher: async ({ symbol, timeframe, from, to, settings, backtestId, liveCandle, signal }) => {
+            console.log(`[NewsIndicator] DATA FETCHER ENTRY -> Symbol: ${symbol}, From: ${from}, To: ${to}`);
+            // First we need to know the currencies relevant to the current symbol
+            let currenciesQuery = '';
+            try {
+                // Fetch the mapping for the symbol to get its newsCurrency
+                const mappingRes = await fetchDirect('/mappings', { signal });
+                const mappings = await mappingRes.json();
+                const symbolMapping = mappings.find((m: any) => m.datafeedSymbol.includes(symbol) || m.originalSymbol === symbol);
+                
+                let targetCurrencies: string[] = [];
+                if (symbolMapping && symbolMapping.newsCurrency && symbolMapping.newsCurrency !== 'AUTO') {
+                    targetCurrencies = [symbolMapping.newsCurrency];
+                } else {
+                    // AUTO mode: extract 3-letter codes
+                    // EURUSD -> EUR, USD
+                    // GBPAUD.pro -> GBP, AUD
+                    const cleaned = symbol.replace(/[^A-Za-z]/g, '');
+                    if (cleaned.length >= 6) {
+                        targetCurrencies = [cleaned.substring(0, 3), cleaned.substring(3, 6)];
+                    } else if (cleaned.length >= 3) {
+                        targetCurrencies = [cleaned.substring(0, 3)];
+                    }
+                }
+                
+                if (targetCurrencies.length > 0) {
+                    currenciesQuery = `&currencies=${encodeURIComponent(targetCurrencies.map(c => c.toUpperCase()).join(','))}`;
+                }
+            } catch (e: any) {
+                if (e.name === 'AbortError') {
+                    throw e; // Bubble abort up to main promise rejection
+                }
+                console.warn("[NewsIndicator] Failed to fetch symbol currency tracking mapping:", e);
+            }
+
+            try {
+                // Fetch calendar events
+                // The calendar endpoint requires from and to in seconds (unix).
+                // ChartContainer dataFetcher passes from/to in milliseconds, so we divide by 1000.
+                const url = `/api/calendar?from=${Math.floor(from / 1000)}&to=${Math.floor(to / 1000)}${currenciesQuery}`;
+                const res = await fetchDirect(url, { signal });
+                if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+                const data = await res.json();
+                
+                // Filter events based on user settings
+                const events = data.events || [];
+                const filteredEvents = events.filter((e: any) => {
+                    if (!e.impact) return false;
+                    const i = e.impact;
+                    if (i.includes('High') && settings?.showHigh) return true;
+                    if (i.includes('Medium') && settings?.showMedium) return true;
+                    if (i.includes('Low') && settings?.showLow) return true;
+                    if (i.includes('Non-Economic') && settings?.showNonEconomic) return true;
+                    return false;
+                }).map((e: any) => ({
+                    ...e,
+                    timestamp: Number(e.timestamp) 
+                }));
+                
+                // Logging for user verification
+                console.log(`[NewsIndicator] Fetched ${filteredEvents.length} events between ${new Date(from).toLocaleDateString()} and ${new Date(to).toLocaleDateString()}:`, 
+                    filteredEvents.map((e: any) => ({
+                        time: new Date(e.timestamp * 1000).toLocaleString(),
+                        unix_s: e.timestamp,
+                        currency: e.currency,
+                        impact: e.impact,
+                        title: e.name || e.title
+                    }))
+                );
+
+                return filteredEvents;
+            } catch (error: any) {
+                if (error.name !== 'AbortError') {
+                    console.error("[NewsIndicator] Fetch error", error);
+                }
+                return [];
             }
         }
     });

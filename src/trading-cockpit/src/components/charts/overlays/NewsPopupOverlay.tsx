@@ -58,6 +58,7 @@ export function NewsPopupOverlay({ events, x, y, onClose }: NewsPopupOverlayProp
                 let badgeClass = 'text-slate-400 bg-slate-500/10 border-slate-500/20';
 
                 if (compactImpact === 'High') {
+                    compactImpact = 'Economic Calendar';
                     borderColor = 'border-rose-500';
                     badgeClass = 'text-rose-500 bg-rose-500/10 border-rose-500/20';
                 } else if (compactImpact === 'Medium') {

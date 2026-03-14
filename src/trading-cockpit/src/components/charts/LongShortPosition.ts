@@ -63,11 +63,9 @@ export class LongShortPosition extends InteractiveChartObject {
     public getSettingsSchema(): import('./widgets/InteractiveChartObject').SettingField[] {
         return [
             { id: 'riskReward', label: 'Risk Reward', type: 'number', value: this._data.riskReward },
-            { id: 'fixedLeg', label: 'Fixed Leg', type: 'select', value: this._data.fixedLeg, options: ['tp', 'sl', 'rr'] },
             { id: 'profitColor', label: 'Profit Color', type: 'color', value: this._data.profitColor || 'rgba(20, 184, 166, 0.25)' },
             { id: 'stopColor', label: 'Stop Color', type: 'color', value: this._data.stopColor || 'rgba(244, 63, 94, 0.25)' },
-            { id: 'lineColor', label: 'Line Color', type: 'color', value: this._data.lineColor || '#94a3b8' },
-            { id: 'riskSize', label: 'Risk Amount', type: 'number', value: this._data.riskSize || 0 }
+            { id: 'lineColor', label: 'Line Color', type: 'color', value: this._data.lineColor || '#94a3b8' }
         ];
     }
 

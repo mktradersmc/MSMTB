@@ -115,26 +115,28 @@ export const IndicatorSettingsDialog: React.FC<IndicatorSettingsDialogProps> = (
         }
     };
 
-    const renderItem = (item: SettingItem) => (
-        <div key={item.id} className="flex items-center justify-between py-2 border-b border-slate-200 dark:border-gray-800 last:border-0 hover:bg-slate-50 dark:hover:bg-gray-800/50 px-2 rounded-sm transition-colors">
-            <div className="flex flex-col">
-                <span className="text-sm text-slate-700 dark:text-gray-300">{item.title}</span>
-                {item.tooltip && <span className="text-[10px] text-slate-400 dark:text-gray-500">{item.tooltip}</span>}
+    const renderItem = (item: SettingItem) => {
+        return (
+            <div key={item.id} className="flex items-center justify-between py-2 hover:bg-slate-50 dark:hover:bg-gray-800/50 px-2 rounded-sm transition-colors">
+                <div className="flex flex-col">
+                    <span className="text-sm text-slate-700 dark:text-gray-300">{item.title}</span>
+                    {item.tooltip && <span className="text-[10px] text-slate-400 dark:text-gray-500">{item.tooltip}</span>}
+                </div>
+                <div className="ml-4 w-1/2 flex justify-end">
+                    {renderInput(item)}
+                </div>
             </div>
-            <div className="ml-4 w-1/2 flex justify-end">
-                {renderInput(item)}
-            </div>
-        </div>
-    );
+        );
+    };
 
     const content = (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-950/50 dark:bg-black/50 backdrop-blur-sm" onClick={onClose}>
-            <div className="bg-white dark:bg-[#1e222d] border border-slate-300 dark:border-gray-700 rounded-lg shadow-xl w-[400px] max-h-[85vh] flex flex-col" onClick={e => e.stopPropagation()}>
+            <div className="bg-white dark:bg-[#1E222D] border border-slate-300 dark:border-[#2A2E39] rounded-lg shadow-2xl w-[400px] flex flex-col max-h-[90vh] p-[1px]" onClick={e => e.stopPropagation()}>
                 {/* Header */}
-                <div className="px-4 py-3 border-b border-slate-200 dark:border-gray-700 flex justify-between items-center bg-slate-50 dark:bg-[#2a2e39] rounded-t-lg">
-                    <h3 className="text-sm font-semibold text-slate-900 dark:text-gray-200">{definition.name} Settings</h3>
-                    <button onClick={onClose} className="text-slate-400 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white transition-colors">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6L6 18M6 6l12 12" /></svg>
+                <div className="px-4 py-3 shrink-0 border-b border-slate-300 dark:border-[#2A2E39] flex justify-between items-center bg-black rounded-t-[7px] z-10">
+                    <h3 className="text-sm font-bold text-slate-200">{definition.name} Settings</h3>
+                    <button onClick={onClose} className="text-slate-400 hover:text-white transition-colors">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6L6 18M6 6l12 12" /></svg>
                     </button>
                 </div>
 
@@ -159,9 +161,9 @@ export const IndicatorSettingsDialog: React.FC<IndicatorSettingsDialogProps> = (
                 </div>
 
                 {/* Footer */}
-                <div className="p-4 border-t border-slate-200 dark:border-gray-700 bg-slate-50 dark:bg-[#2a2e39] rounded-b-lg flex justify-end gap-2">
-                    <button onClick={onClose} className="px-3 py-1.5 text-sm text-slate-600 dark:text-gray-300 hover:bg-slate-200 dark:hover:bg-gray-700 rounded transition-colors">Cancel</button>
-                    <button onClick={() => onSave(settings)} className="px-3 py-1.5 text-sm bg-blue-600 text-white rounded hover:bg-blue-500 transition-colors font-medium shadow-sm">Save Changes</button>
+                <div className="p-4 shrink-0 bg-slate-50 dark:bg-[#161a25] flex justify-end gap-2 sticky bottom-0 rounded-b-[7px]">
+                    <button onClick={onClose} className="px-3 py-1.5 text-sm font-bold text-slate-600 dark:text-gray-400 hover:text-slate-900 dark:hover:text-gray-200 rounded transition-colors">Cancel</button>
+                    <button onClick={() => onSave(settings)} className="px-4 py-1.5 text-sm font-bold bg-slate-900 text-white rounded-lg hover:bg-black transition-colors shadow-sm dark:bg-black dark:border dark:border-slate-700 dark:hover:bg-slate-900">Save Changes</button>
                 </div>
             </div>
         </div>
@@ -343,32 +345,51 @@ const ColorInput: React.FC<{ value: string, onChange: (val: string) => void }> =
 
     // Helpers for Hex8 <-> Hex + Opacity
     const parseColor = (val: string) => {
-        const clean = (val || '#000000').replace('#', '');
+        if (!val) return { hex: '#000000', opacity: 100, isRgba: false };
+        const rgbaMatch = val.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([\d.]+))?\)/);
+        if (rgbaMatch) {
+            const r = parseInt(rgbaMatch[1], 10).toString(16).padStart(2, '0');
+            const g = parseInt(rgbaMatch[2], 10).toString(16).padStart(2, '0');
+            const b = parseInt(rgbaMatch[3], 10).toString(16).padStart(2, '0');
+            const a = rgbaMatch[4] !== undefined ? parseFloat(rgbaMatch[4]) : 1;
+            return {
+                hex: `#${r}${g}${b}`,
+                opacity: Math.round(a * 100),
+                isRgba: true
+            };
+        }
+        const clean = val.replace('#', '');
         if (clean.length === 8) {
             return {
                 hex: '#' + clean.substring(0, 6),
-                opacity: Math.round((parseInt(clean.substring(6), 16) / 255) * 100)
+                opacity: Math.round((parseInt(clean.substring(6, 8), 16) / 255) * 100),
+                isRgba: false
             };
         }
-        return { hex: '#' + clean, opacity: 100 }; // Default 100%
+        return { hex: '#' + clean.substring(0, 6), opacity: 100, isRgba: false };
     };
 
-    const toHex8 = (hex: string, opacity: number) => {
-        const alpha = Math.round((opacity / 100) * 255);
-        const alphaHex = alpha.toString(16).padStart(2, '0');
-        return (hex.substring(0, 7) + alphaHex).toUpperCase();
+    const formatColor = (hexVal: string, opVal: number, isRgba: boolean) => {
+        if (isRgba) {
+            const r = parseInt(hexVal.substring(1, 3), 16);
+            const g = parseInt(hexVal.substring(3, 5), 16);
+            const b = parseInt(hexVal.substring(5, 7), 16);
+            return `rgba(${r}, ${g}, ${b}, ${+(opVal / 100).toFixed(2)})`;
+        }
+        const alphaHex = Math.round((opVal / 100) * 255).toString(16).padStart(2, '0');
+        return (hexVal.substring(0, 7) + alphaHex).toUpperCase();
     };
 
-    const { hex, opacity } = parseColor(value);
+    const { hex, opacity, isRgba } = parseColor(value);
 
     // Handler when Picker changes only Color
     const handleColorChange = (newHex: string) => {
-        onChange(toHex8(newHex, opacity));
+        onChange(formatColor(newHex, opacity, isRgba));
     };
 
     // Handler when Picker changes only Opacity
     const handleOpacityChange = (newOpacity: number) => {
-        onChange(toHex8(hex, newOpacity));
+        onChange(formatColor(hex, newOpacity, isRgba));
     };
 
     return (
@@ -384,8 +405,6 @@ const ColorInput: React.FC<{ value: string, onChange: (val: string) => void }> =
                     <div className="absolute inset-0 z-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI4IiBoZWlnaHQ9IjgiPjxwYXRoIGZpbGw9IiM4MDgwODAiIGQ9Ik0wIDBoNHY0SDB6bTQgNGg0djRINFoiIGZpbGwtb3BhY2l0eT0iMC4yIi8+PC9zdmc+')]" />
                     <div className="absolute inset-0 z-10" style={{ backgroundColor: value || '#000000' }} />
                 </button>
-                {/* Optional Text Display */}
-                <span className="text-xs font-mono text-slate-500 dark:text-gray-500">{value}</span>
             </div>
 
             {open && createPortal(

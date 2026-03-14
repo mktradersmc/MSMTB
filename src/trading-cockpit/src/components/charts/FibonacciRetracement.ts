@@ -260,23 +260,14 @@ export class FibonacciRetracement extends InteractiveChartObject {
             { id: 'backgroundOpacity', label: 'Background Opacity', type: 'number', value: this._data.backgroundOpacity }
         ];
 
-        // For dynamic levels, the SettingField might be limiting. 
-        // We inject them statically for the 5-6 most common if standard schema is strictly typed.
-        for (let i = 0; i < this._data.levels.length; i++) {
-            const level = this._data.levels[i];
-            schema.push({
-                id: `level_${i}_visible`,
-                label: `Level ${level.level}`,
-                type: 'boolean',
-                value: level.visible
-            });
-            schema.push({
-                id: `level_${i}_color`,
-                label: `Color ${level.level}`,
-                type: 'color',
-                value: level.color
-            });
-        }
+        // Export entire array
+        schema.push({
+            id: 'levels',
+            label: 'Fibonacci Levels',
+            type: 'fib_levels',
+            value: this._data.levels
+        });
+
         return schema;
     }
 
@@ -287,13 +278,9 @@ export class FibonacciRetracement extends InteractiveChartObject {
         if (settings.showLabels !== undefined) this._data.showLabels = settings.showLabels;
         if (settings.backgroundOpacity !== undefined) this._data.backgroundOpacity = settings.backgroundOpacity;
 
-        for (let i = 0; i < this._data.levels.length; i++) {
-            if (settings[`level_${i}_visible`] !== undefined) {
-                this._data.levels[i].visible = settings[`level_${i}_visible`];
-            }
-            if (settings[`level_${i}_color`] !== undefined) {
-                this._data.levels[i].color = settings[`level_${i}_color`];
-            }
+        if (settings.levels && Array.isArray(settings.levels)) {
+            // Need to deeply copy to avoid modifying state in React directly
+            this._data.levels = settings.levels.map((l: any) => ({ ...l }));
         }
 
         this._requestUpdate?.();

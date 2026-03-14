@@ -24,7 +24,7 @@ export interface Handle {
 export interface SettingField {
     id: string;
     label: string;
-    type: 'color' | 'number' | 'boolean' | 'select' | 'text';
+    type: 'color' | 'number' | 'boolean' | 'select' | 'text' | 'fib_levels';
     value: any;
     options?: string[]; // For select inputs
 }

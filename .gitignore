@@ -38,3 +38,9 @@ ressources/metatrader/master/**/*.exe
 ressources/metatrader/master/temp/
 components/metatrader/
 src/market-data-core/logs/console-parallel.log
+
+bridge_debug.log
+*.log
+*.db
+*.db-shm
+*.db-wal

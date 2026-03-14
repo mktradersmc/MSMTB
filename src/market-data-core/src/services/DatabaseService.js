@@ -104,6 +104,7 @@ class DatabaseService {
         try { this.marketDb.exec("ALTER TABLE accounts ADD COLUMN account_size REAL DEFAULT NULL"); } catch (e) { }
         try { this.marketDb.exec("ALTER TABLE backtest_sessions ADD COLUMN main_symbol TEXT"); } catch (e) { }
         try { this.marketDb.exec("ALTER TABLE backtest_sessions ADD COLUMN workspace_state TEXT"); } catch (e) { }
+        try { this.marketDb.exec("ALTER TABLE asset_mappings ADD COLUMN news_currency TEXT DEFAULT 'AUTO'"); } catch (e) { }
 
         // Trades DB Migrations (Fix for Task-0199 Crash)
         try { this.tradesDb.exec("ALTER TABLE messages ADD COLUMN isActive INTEGER DEFAULT 1"); } catch (e) { }
@@ -394,13 +395,19 @@ class DatabaseService {
     getMappings() {
         try {
             return this.marketDb.prepare("SELECT * FROM asset_mappings").all().map(r => ({
-                originalSymbol: r.original_symbol, datafeedSymbol: r.datafeed_symbol, mappings: JSON.parse(r.mappings || '[]'), updatedAt: r.updated_at
+                originalSymbol: r.original_symbol, datafeedSymbol: r.datafeed_symbol, mappings: JSON.parse(r.mappings || '[]'), updatedAt: r.updated_at, newsCurrency: r.news_currency || 'AUTO'
             }));
         } catch (e) { return []; }
     }
     saveMapping(m) {
         try {
-            this.marketDb.prepare("INSERT OR REPLACE INTO asset_mappings (original_symbol, datafeed_symbol, mappings, updated_at) VALUES (?, ?, ?, ?)").run(m.originalSymbol, m.datafeedSymbol, JSON.stringify(m.mappings), Date.now());
+            // Need to make sure table structure matches what we expect if inserting/replacing everything
+            const exists = this.marketDb.prepare("SELECT count(*) FROM pragma_table_info('asset_mappings') WHERE name='news_currency'").get();
+            if (exists && exists['count(*)'] > 0) {
+                 this.marketDb.prepare("INSERT OR REPLACE INTO asset_mappings (original_symbol, datafeed_symbol, mappings, updated_at, news_currency) VALUES (?, ?, ?, ?, ?)").run(m.originalSymbol, m.datafeedSymbol, JSON.stringify(m.mappings), Date.now(), m.newsCurrency || 'AUTO');
+            } else {
+                 this.marketDb.prepare("INSERT OR REPLACE INTO asset_mappings (original_symbol, datafeed_symbol, mappings, updated_at) VALUES (?, ?, ?, ?)").run(m.originalSymbol, m.datafeedSymbol, JSON.stringify(m.mappings), Date.now());
+            }
             return true;
         } catch (e) { return false; }
     }
@@ -988,8 +995,12 @@ class DatabaseService {
         }
     }
 
-    getCalendarEvents(fromTimestamp, toTimestamp) {
+    getCalendarEvents(fromTimestamp, toTimestamp, currencies = null) {
         try {
+            if (currencies && Array.isArray(currencies) && currencies.length > 0) {
+                const placeholders = currencies.map(() => '?').join(',');
+                return this.marketDb.prepare(`SELECT * FROM economic_calendar WHERE timestamp >= ? AND timestamp <= ? AND currency IN (${placeholders}) ORDER BY timestamp ASC`).all(fromTimestamp, toTimestamp, ...currencies);
+            }
             return this.marketDb.prepare("SELECT * FROM economic_calendar WHERE timestamp >= ? AND timestamp <= ? ORDER BY timestamp ASC").all(fromTimestamp, toTimestamp);
         } catch (e) {
             console.error("[DB] getCalendarEvents Error:", e);

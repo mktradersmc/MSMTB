@@ -630,6 +630,27 @@ class SocketServer {
             }
         });
 
+        // Economic Calendar Endpoint
+        this.app.get('/api/calendar', (req, res) => {
+            try {
+                const { from, to, currencies } = req.query;
+                if (!from || !to) {
+                    return res.status(400).json({ success: false, error: 'from and to timestamps are required' });
+                }
+                
+                let curArray = null;
+                if (currencies) {
+                    curArray = currencies.split(',').map(c => c.trim().toUpperCase());
+                }
+                
+                const events = db.getCalendarEvents(parseInt(from), parseInt(to), curArray);
+                res.json({ success: true, events });
+            } catch (e) {
+                console.error("[SocketServer] Calendar API Error", e);
+                res.status(500).json({ success: false, error: e.message });
+            }
+        });
+
         // Purge History Endpoint
         this.app.delete('/api/history', (req, res) => {
             try {
@@ -1625,7 +1646,8 @@ class SocketServer {
                             symbol: internalIdentity, // "US100"
                             botId: s.botId,
                             datafeedSymbol: dataSource, // "NDX100"
-                            originalName: internalIdentity
+                            originalName: internalIdentity,
+                            newsCurrency: s.newsCurrency || 'AUTO'
                         });
 
                         // Update Asset Mapping (Always persist to ensure count/status is correct)
@@ -1633,7 +1655,7 @@ class SocketServer {
                         console.log(`[SocketServer] Updating Asset Mapping for ${internalIdentity} -> ${datafeedStr}`);
                         try {
                             // Force Save
-                            assetMappingService.updateDatafeedMapping(internalIdentity, datafeedStr);
+                            assetMappingService.updateDatafeedMapping(internalIdentity, datafeedStr, s.newsCurrency || 'AUTO');
                             activeOriginalNames.push(internalIdentity);
                         } catch (e) {
                             console.error(`[SocketServer] Failed to update mapping for ${internalIdentity}:`, e);

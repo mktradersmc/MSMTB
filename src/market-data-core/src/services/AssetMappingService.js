@@ -17,7 +17,8 @@ class AssetMappingService extends EventEmitter {
             rows.forEach(row => {
                 this.cache.set(row.original_symbol, {
                     datafeed_symbol: row.datafeed_symbol,
-                    mappings: JSON.parse(row.mappings || '{}')
+                    mappings: JSON.parse(row.mappings || '{}'),
+                    news_currency: row.news_currency || 'AUTO'
                 });
             });
             console.log(`[AssetMapping] Loaded ${this.cache.size} mappings.`);
@@ -32,22 +33,25 @@ class AssetMappingService extends EventEmitter {
             result.push({
                 originalSymbol: key,
                 datafeedSymbol: val.datafeed_symbol,
-                brokerMappings: val.mappings
+                brokerMappings: val.mappings,
+                newsCurrency: val.news_currency
             });
         });
         return result;
     }
 
-    saveMapping(originalSymbol, datafeedSymbol, brokerMappings) {
+    saveMapping(originalSymbol, datafeedSymbol, brokerMappings, newsCurrency = 'AUTO') {
         try {
+            // Check if column exists, we rely on DatabaseService having created it.
             db.marketDb.prepare(`
-                INSERT OR REPLACE INTO asset_mappings (original_symbol, datafeed_symbol, mappings, updated_at)
-                VALUES (?, ?, ?, ?)
-            `).run(originalSymbol, datafeedSymbol, JSON.stringify(brokerMappings), Date.now());
+                INSERT OR REPLACE INTO asset_mappings (original_symbol, datafeed_symbol, mappings, updated_at, news_currency)
+                VALUES (?, ?, ?, ?, ?)
+            `).run(originalSymbol, datafeedSymbol, JSON.stringify(brokerMappings), Date.now(), newsCurrency);
 
             this.cache.set(originalSymbol, {
                 datafeed_symbol: datafeedSymbol,
-                mappings: brokerMappings
+                mappings: brokerMappings,
+                news_currency: newsCurrency
             });
 
             return true;
@@ -81,7 +85,7 @@ class AssetMappingService extends EventEmitter {
             if (!this.cache.has(origName)) {
                 console.log(`[AssetMapping] Sync: Creating default mapping for '${origName}' -> '${datafeedSymbol}'`);
                 // Create with empty broker mappings
-                this.saveMapping(origName, datafeedSymbol, {});
+                this.saveMapping(origName, datafeedSymbol, {}, 'AUTO');
             }
 
             validOriginalNames.push(origName);
@@ -135,7 +139,7 @@ class AssetMappingService extends EventEmitter {
         }
     }
 
-    updateDatafeedMapping(originalSymbol, datafeedSymbol) {
+    updateDatafeedMapping(originalSymbol, datafeedSymbol, newsCurrency = 'AUTO') {
         // 1. Check if this datafeedSymbol is already mapped to a DIFFERENT originalSymbol (Rename Case)
         let oldOriginalSymbol = null;
         let existingMappings = {};
@@ -169,7 +173,7 @@ class AssetMappingService extends EventEmitter {
             }
         }
 
-        return this.saveMapping(originalSymbol, datafeedSymbol, existingMappings);
+        return this.saveMapping(originalSymbol, datafeedSymbol, existingMappings, newsCurrency);
     }
 
     // --- Broker Symbols ---

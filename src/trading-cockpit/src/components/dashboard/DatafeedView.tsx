@@ -24,6 +24,7 @@ interface BrokerInfo {
 interface RowItem {
     id: string;
     originalName: string;
+    newsCurrency: string;
     source: {
         botId: string;
         symbol: string;
@@ -38,7 +39,7 @@ export function DatafeedView() {
     const [loading, setLoading] = useState(false);
     const [saving, setSaving] = useState(false);
     const [statusMsg, setStatusMsg] = useState<{ type: 'success' | 'error', text: string } | null>(null);
-    const [mappingCache, setMappingCache] = useState<Map<string, string>>(new Map());
+    const [mappingCache, setMappingCache] = useState<Map<string, { originalName: string, newsCurrency: string }>>(new Map());
     const [mappingsLoaded, setMappingsLoaded] = useState(false);
 
     // Modal State
@@ -66,9 +67,12 @@ export function DatafeedView() {
         fetchDirect('/mappings')
             .then(res => res.json())
             .then(data => {
-                const cache = new Map<string, string>();
+                const cache = new Map<string, { originalName: string, newsCurrency: string }>();
                 if (Array.isArray(data)) {
-                    data.forEach((m: any) => cache.set(m.datafeedSymbol, m.originalSymbol));
+                    data.forEach((m: any) => cache.set(m.datafeedSymbol, { 
+                        originalName: m.originalSymbol, 
+                        newsCurrency: m.newsCurrency || 'AUTO' 
+                    }));
                 }
                 setMappingCache(cache);
             })
@@ -142,12 +146,14 @@ export function DatafeedView() {
                         const internalName = (typeof s !== 'string' && s.originalName) ? s.originalName : (typeof s === 'string' ? s : s.symbol);
                         const key = `${botId}:${symbol}`;
 
-                        // Fallback to cache or internal name
-                        const original = mappingCache.get(key) || internalName;
+                        const cached = mappingCache.get(key);
+                        const original = cached ? cached.originalName : internalName;
+                        const newsCurrency = cached ? cached.newsCurrency : 'AUTO';
 
                         newRows.push({
                             id: crypto.randomUUID(),
                             originalName: original,
+                            newsCurrency: newsCurrency,
                             source: { botId, symbol }
                         });
                     });
@@ -242,7 +248,8 @@ export function DatafeedView() {
             symbol: item.source!.symbol,
             botId: item.source!.botId,
             enabled: true,
-            originalName: item.originalName.trim()
+            originalName: item.originalName.trim(),
+            newsCurrency: item.newsCurrency
         }));
 
         socketService.getSocket().emit('config_update', list);
@@ -266,6 +273,7 @@ export function DatafeedView() {
         const newRow: RowItem = {
             id: crypto.randomUUID(),
             originalName: '',
+            newsCurrency: 'AUTO',
             source: null
         };
         setRows([newRow, ...rows]);
@@ -443,6 +451,7 @@ export function DatafeedView() {
                                     <thead>
                                         <tr className="bg-slate-50 dark:bg-slate-900/50 border-b border-slate-200 dark:border-slate-800">
                                             <th className="px-6 py-3 text-xs font-bold text-slate-500 uppercase tracking-wider w-[240px]">Symbol Pattern / Name</th>
+                                            <th className="px-6 py-3 text-xs font-bold text-slate-500 uppercase tracking-wider w-[160px]">News Currency</th>
                                             <th className="px-6 py-3 text-xs font-bold text-slate-500 uppercase tracking-wider">Source Mechanism</th>
                                             <th className="px-6 py-3 w-[60px]"></th>
                                         </tr>
@@ -465,6 +474,27 @@ export function DatafeedView() {
                                                         placeholder="e.g. BTCUSD"
                                                         className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded px-3 py-2 text-sm font-bold text-slate-900 dark:text-white focus:outline-none focus:border-emerald-500 font-mono transition-colors"
                                                     />
+                                                </td>
+                                                <td className="p-4">
+                                                    <select
+                                                        value={row.newsCurrency}
+                                                        onChange={e => {
+                                                            setRows(rows.map(r => r.id === row.id ? { ...r, newsCurrency: e.target.value } : r));
+                                                            setHasChanges(true);
+                                                        }}
+                                                        className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded px-3 py-2 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-emerald-500 font-mono transition-colors"
+                                                    >
+                                                        <option value="AUTO">Auto</option>
+                                                        <option value="AUD">AUD</option>
+                                                        <option value="CAD">CAD</option>
+                                                        <option value="CHF">CHF</option>
+                                                        <option value="CNY">CNY</option>
+                                                        <option value="EUR">EUR</option>
+                                                        <option value="GBP">GBP</option>
+                                                        <option value="JPY">JPY</option>
+                                                        <option value="NZD">NZD</option>
+                                                        <option value="USD">USD</option>
+                                                    </select>
                                                 </td>
                                                 <td className="p-4">
                                                     {row.source ? (
